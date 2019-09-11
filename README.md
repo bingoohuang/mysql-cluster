@@ -3,10 +3,10 @@ A docker-compose example for a mysql master master setup
 
 ## docker-compose scripts
 
-1. `docker-compose rm -fsv`
-1. `docker-compose up`
-1. `docker-compose exec mysqlmaster1 mysql -uroot -proot`
-1. `docker-compose exec mysqlmaster2 mysql -uroot -proot`
+1. 停止并强制删除相关容器实例 `docker-compose rm -fsv`
+1. 启动容器 `docker-compose up`
+1. 登录master1的MySQL服务 `docker-compose exec mysqlmaster1 mysql -uroot -proot`
+1. 登录master2的MySQL服务 `docker-compose exec mysqlmaster2 mysql -uroot -proot`
 
 
 ## test SQL scripts
