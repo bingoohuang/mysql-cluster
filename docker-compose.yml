@@ -1,0 +1,41 @@
+version: '3.7'
+
+services:
+  mysqlmaster1:
+    image: 'mysql:5.7.27'
+    ports:
+      - '33061:3306'
+    networks:
+      - mysqlnet
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+    volumes:
+      - './config/mysql-master1:/etc/mysql/conf.d/'
+  mysqlmaster2:
+    image: 'mysql:5.7.27'
+    ports:
+      - '33062:3306'
+    networks:
+      - mysqlnet
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+    volumes:
+      - './config/mysql-master2:/etc/mysql/conf.d/'
+  mysqlconfigure:
+    image: 'mysql:5.7.27'
+    ports:
+      - '33063:3306'
+    networks:
+      - mysqlnet
+    environment:
+      - "MYSQL_PWD=root"
+      - "MYSQL_ROOT_PASSWORD=root"
+      - "MYSQL_REPL_USR=repl"
+      - "MYSQL_REPL_PWD=repl"
+    volumes:
+      - './mysqlconfigure.sh:/tmp/mysqlconfigure.sh'
+    command: /bin/bash -x /tmp/mysqlconfigure.sh
+
+networks:
+  mysqlnet:
+    name: mysqlnet

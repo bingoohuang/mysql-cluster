@@ -1,0 +1,18 @@
+[mysqld]
+datadir=/var/lib/mysql
+server-id=3310
+log-bin=mysql-bin
+relay-log=relay-log
+log-slave-updates=1
+gtid-mode=on
+enforce-gtid-consistency=on
+slave-skip-errors=all
+binlog_format=row
+binlog-ignore-db=test
+binlog-ignore-db=information_schema
+replicate-ignore-db=test
+replicate-ignore-db=information_schema
+auto-increment-increment=2
+auto-increment-offset=1
+expire_logs_days=10
+#max_binlog_size = 100M
