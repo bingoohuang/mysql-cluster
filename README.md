@@ -52,3 +52,11 @@ select * from t2;
 1. [MySQL master slave using docker](https://tarunlalwani.com/post/mysql-master-slave-using-docker/) and its related [github rep](https://github.com/tarunlalwani/docker-compose-mysql-master-slave)
 1. [MySQL Master Slave Docker部署例子](https://chanjarster.github.io/post/mysql-master-slave-docker-example/) and its related [github rep](https://github.com/chanjarster/mysql-master-slave-docker-example)
 1. [玩转一下MySQL双主集群](https://github.com/bingoohuang/blog/issues/118)
+
+## tips
+
+### 为什么需要单独建立docker的network
+
+> What was happening was that the default docker network doesn't allow name >> DNS mapping.
+> Containers on the default bridge network can only access each other by IP addresses, unless you use the --link option, which is considered legacy. On a user-defined bridge network, containers can resolve each other by name or alias.
+> --[How to allow docker containers to see each other by their name?](https://serverfault.com/a/913075)
