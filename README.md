@@ -10,6 +10,7 @@ A docker-compose example for a mysql master master setup
 1. 登录1号 `docker-compose exec mysqlmaster1 mysql -uroot -proot`
 1. 登录2号 `docker-compose exec mysqlmaster2 mysql -uroot -proot`
 1. 停止1号 `docker-compose stop mysqlmaster1`
+1. 启动1号 `docker-compose start mysqlmaster1`
 
 ## 测试场景
 
