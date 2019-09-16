@@ -11,6 +11,7 @@ A docker-compose example for a mysql master master setup
 1. 登录2号 `docker-compose exec mysqlmaster2 mysql -uroot -proot`
 1. 停止1号 `docker-compose stop mysqlmaster1`
 1. 启动1号 `docker-compose start mysqlmaster1`
+1. 检查集群 `./MySQLReplicationCheck.sh`
 
 ## 测试场景
 
@@ -47,6 +48,7 @@ insert into bjca.t1(a) values(3);
 
 ## thanks
 
+1. [mysql refman 5.7 Chapter 16 Replication](https://dev.mysql.com/doc/refman/5.7/en/replication.html)
 1. [MySQL master slave using docker](https://tarunlalwani.com/post/mysql-master-slave-using-docker/) and its related [github rep](https://github.com/tarunlalwani/docker-compose-mysql-master-slave)
 1. [MySQL Master Slave Docker部署例子](https://chanjarster.github.io/post/mysql-master-slave-docker-example/) and its related [github rep](https://github.com/chanjarster/mysql-master-slave-docker-example)
 1. [玩转一下MySQL双主集群](https://github.com/bingoohuang/blog/issues/118)

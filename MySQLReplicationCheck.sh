@@ -36,9 +36,9 @@ fi
 
 ## Check For Last Error ##
 if [[ "$LAST_ERRNO" != 0 ]]; then
-LAST_ERROR=$(mysql --login-path=mysql_login -e "SHOW SLAVE STATUS\G" | grep "Last_Error" | awk '{ print $2 }')
-ERRORS=("${ERRORS[@]}" "Error when processing relay log (Last_Errno = $LAST_ERRNO)")
-ERRORS=("${ERRORS[@]}" "(Last_Error = $LAST_ERROR)")
+    LAST_ERROR=$(mysql --login-path=mysql_login -e "SHOW SLAVE STATUS\G" | grep "Last_Error" | awk '{ print $2 }')
+    ERRORS=("${ERRORS[@]}" "Error when processing relay log (Last_Errno = $LAST_ERRNO)")
+    ERRORS=("${ERRORS[@]}" "(Last_Error = $LAST_ERROR)")
 fi
 
 ## Check if IO thread is running ##
@@ -61,7 +61,7 @@ fi
 totalErrors=${#ERRORS[@]}
 ### Send an Email if there is an error ###
 if [[ "$totalErrors" -gt 0 ]]; then
-    MESSAGE="$totalErrors errors detected on ${SERVER} involving the mysql replciation. Below is a list of the reported errors:\n\n
+    MESSAGE="$totalErrors errors detected on ${SERVER} involving the mysql replication. Below is a list of the reported errors:\n\n
     $(for i in $(seq 1 $totalErrors) ; do echo "\t$i: ${ERRORS[(($i-1))]}\n" ; done)
     \nPlease correct this ASAP!
     "
