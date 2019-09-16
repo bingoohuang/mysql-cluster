@@ -4,46 +4,44 @@ A docker-compose example for a mysql master master setup
 
 ## docker-compose scripts
 
-1. 停止并强制删除相关容器实例 `docker-compose rm -fsv`
-1. 启动容器 `docker-compose up`
-1. 登录master1的MySQL服务 `docker-compose exec mysqlmaster1 mysql -uroot -proot`
-1. 登录master2的MySQL服务 `docker-compose exec mysqlmaster2 mysql -uroot -proot`
+1. 查看状态 `docker-compose ps`
+1. 强删集群 `docker-compose rm -fsv`
+1. 启动集群 `docker-compose up`
+1. 登录1号 `docker-compose exec mysqlmaster1 mysql -uroot -proot`
+1. 登录2号 `docker-compose exec mysqlmaster2 mysql -uroot -proot`
+1. 停止1号 `docker-compose stop mysqlmaster1`
+
+## 测试场景
+
+1. 自增字段场景
+
+    1. MySQLServer1插入t1表10条数据
+    1. 检查MySQLServer2中t1表10条数据是否同步，自增字段取值情况
+    1. MySQLServer2插入t1表10条数据
+    1. 检查MySQLServer1中t1表10条数据是否同步，自增字段取值情况
+
+1. 双向同步场景
+
+    1. MySQLServer1插入t1表100条数据
+    1. MySQLServer2插入t1表100条数据
+    1. 各自检查同步状态，是否都是200条
+
+1. 节点重启场景
+
+    1. MySQLServer2停
+    1. MySQLServer1插入t1表100条数据
+    1. MySQLServer2启动
+    1. 查看MySQLServer2中t1表同步状态
 
 ## test SQL scripts
 
 ```sql
-create database bjca;
-user bjca;
-
-CREATE TABLE `t1` (
-  `id` int(11) NOT NULL,
-  `a` int(11) DEFAULT NULL,
-  `b` int(11) DEFAULT NULL,
-  `c` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 select name from mysql.proc where name like 't1%';
 
-DROP PROCEDURE IF EXISTS batch_t1;
-DELIMITER $
-CREATE PROCEDURE batch_t1()
-BEGIN
-    DECLARE i INT DEFAULT 1;
-    DELETE FROM t1
-    WHILE i<=10000 DO
-        INSERT INTO t1(id,a,b,c) VALUES(i,i*2,i*3,i*4);
-        SET i = i+1;
-    END WHILE;
-END $
-
-CALL batch_test();
-
-select count(*) from t1;
-
-create table t1(id int auto_increment, `a` int(11) DEFAULT NULL,primary key(id));
-insert into t1(a) values(3);
-select * from t2;
+call bjca.batch_t1(100);
+select count(*) from bjca.t1;
+select * from bjca.t1;
+insert into bjca.t1(a) values(3);
 ```
 
 ## thanks

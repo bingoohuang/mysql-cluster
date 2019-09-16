@@ -70,4 +70,28 @@ MASTER2_IP=$(eval "getent hosts mysqlmaster2|awk '{print \$1}'")
 echo $MASTER1_IP       : mysqlmaster1
 echo $MASTER2_IP       : mysqlmaster2
 
+mysql -h mysqlmaster1 -uroot -AN -vvv <<InputComesFromHERE
+create database bjca;
+use bjca;
 
+drop table if exists t1;
+CREATE TABLE t1 (
+  id int auto_increment,
+  a int(11) DEFAULT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP PROCEDURE IF EXISTS batch_t1;
+DELIMITER $
+CREATE PROCEDURE batch_t1(
+  IN CNT INT
+)
+BEGIN
+  DECLARE i INT DEFAULT 1;
+  WHILE i<=CNT DO
+    INSERT INTO t1(a) VALUES(i);
+    SET i = i+1;
+  END WHILE;
+END$
+DELIMITER ;
+InputComesFromHERE
