@@ -67,7 +67,7 @@ if [[ "$totalErrors" -gt 0 ]]; then
     "
     # https://explainshell.com/explain?cmd=echo+-e+%24MESSAGE
     # -e     enable interpretation of backslash escapes
-    echo -e $MESSAGE
+    echo -e ${MESSAGE}
 #/usr/sbin/ssmtp -t << EOF
 #to: emailaddress@email.co.uk
 #from: emailaddress@email.co.uk
