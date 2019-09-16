@@ -8,6 +8,8 @@
 # URL: https://opensourcedbms.com/dbms/passwordless-authentication-using-mysql_config_editor-with-mysql-5-6/
 # mysql_config_editor print --all
 # mysql_config_editor remove --login-path=mysql_login
+# remove parts of your profile like hostname from existing profile, like host:
+# mysql_config_editor remove --login-path=testbed1 --host
 # mysql_config_editor set --login-path=mysql_login --host=127.0.0.1 --port=33061 --user=root --password
 # mysql --login-path=mysql_login
 
