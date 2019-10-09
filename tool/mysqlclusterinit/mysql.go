@@ -3,6 +3,9 @@ package mysqlclusterinit
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+	"github.com/tkrajina/go-reflector/reflector"
+
 	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/sqlmore"
 	"github.com/sirupsen/logrus"
@@ -11,6 +14,7 @@ import (
 func (s Settings) createMySQCluster() (sqls []string, err error) {
 	serverID := 0
 	serverID, sqls = s.createInitSqls()
+
 	if len(sqls) == 0 {
 		logrus.Infof("InitMySQLCluster bypassed, nor master or slave for host %v", gonet.ListLocalIps())
 	} else {
@@ -31,6 +35,7 @@ func (s Settings) execMultiSqls(sqls []string) error {
 
 	ds := fmt.Sprintf("root:%s@tcp(127.0.0.1:%d)/", s.RootPassword, s.Port)
 	db := sqlmore.NewSQLMore("mysql", ds).MustOpen()
+
 	defer db.Close()
 
 	for _, sqlStr := range sqls {
@@ -42,6 +47,7 @@ func (s Settings) execMultiSqls(sqls []string) error {
 	}
 
 	logrus.Infof("createMySQCluster completed")
+
 	return nil
 }
 
@@ -94,4 +100,37 @@ func (s Settings) fixMySQLConfServerID(serverID int) error {
 	}
 
 	return nil
+}
+
+func ShowSlaveStatus(db *gorm.DB) (bean ShowSlaveStatusBean, err error) {
+	if s := db.Raw("show slave status").Scan(&bean); s.Error != nil {
+		logrus.Warnf("show slave status error: %v", s.Error)
+		return bean, s.Error
+	}
+
+	return bean, nil
+}
+
+func ShowVariables(db *gorm.DB) (variables Variables, err error) {
+	var beans []ShowVariablesBean
+	if s := db.Raw("show variables").Scan(&beans); s.Error != nil {
+		logrus.Warnf("show variables error: %v", s.Error)
+		return Variables{}, s.Error
+	}
+
+	variablesMap := make(map[string]string)
+	for _, v := range beans {
+		variablesMap[v.VariableName] = v.Value
+	}
+
+	for _, f := range reflector.New(&variables).Fields() {
+		tag, _ := f.Tag("var")
+		if v, ok := variablesMap[tag]; !ok {
+			continue
+		} else if err := f.Set(v); err != nil {
+			logrus.Warnf("Set error: %v", err)
+		}
+	}
+
+	return variables, nil
 }

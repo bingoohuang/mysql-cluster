@@ -24,6 +24,7 @@ func main() {
 	if len(args) > 0 {
 		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
 		pflag.PrintDefaults()
+
 		return
 	}
 
@@ -39,6 +40,7 @@ func main() {
 		} else {
 			fmt.Printf("%s is a non-local address\n", *testaddr)
 		}
+
 		return
 	}
 
@@ -74,5 +76,6 @@ func mustLoadConfig(configFile string) (config mysqlclusterinit.Settings) {
 	}
 
 	logrus.Debugf("config: %+v\n", config)
+
 	return config
 }

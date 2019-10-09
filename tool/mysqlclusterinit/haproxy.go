@@ -18,7 +18,6 @@ listen mysql-rw
   server mysql-1 %s:%d check inter 1s
   server mysql-2 %s:%d check inter 1s backup
 `, s.Master1Addr, s.Port, s.Master2Addr, s.Port)
-
 	rConfig := fmt.Sprintf(`
 listen mysql-ro
   bind 0.0.0.0:23306
@@ -56,15 +55,16 @@ func (s Settings) restartHAProxy(r *Result) {
 
 func (s Settings) overwriteHAProxyCnf(r *Result) {
 	if s.HAProxyCfg == "" {
-		logrus.Errorf("HAProxyCfg required")
 		r.Error = errors.New("HAProxyCfg required")
 		return
 	}
+
 	if r.Error = FileExists(s.HAProxyCfg); r.Error != nil {
 		return
 	}
 
 	logrus.Infof("prepare to overwriteHAProxyCnf %s", r.HAProxy)
+
 	if r.Error = ReplaceFileContent(s.HAProxyCfg,
 		`(?is)#\s*MySQLClusterConfigStart(.+)#\s*MySQLClusterConfigEnd`, r.HAProxy); r.Error == nil {
 		logrus.Infof("overwriteHAProxyCnf completed")

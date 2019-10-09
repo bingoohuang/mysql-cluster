@@ -16,9 +16,11 @@ func (s Settings) InitMySQLCluster() (r Result) {
 	}
 
 	r.HAProxy = s.createHAProxyConfig()
+
 	if s.Debug {
 		logrus.Infof("SQL:%s", strings.Join(r.Sqls, ";\n"))
 		logrus.Infof("HAProxy:%s", r.HAProxy)
+
 		return r
 	}
 
