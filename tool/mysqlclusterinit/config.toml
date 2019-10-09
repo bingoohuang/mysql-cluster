@@ -1,0 +1,9 @@
+Master1IP    = "10.0.0.1"     # Master1的IP
+Master2IP    = "10.0.0.2"     # Master2的IP
+SlaveIps     = ["10.0.0.3"]             # Slave的IP地址
+RootPassword = "root123456"   # Root用户密码
+Port         = 3306           # MySQL 端口号
+ReplUsr      = "repl"         # 复制用用户名
+ReplPassword = "repl123456"   # 复制用户密码
+Debug        = true           # 测试模式，只打印SQL和HAProxy配置, 不实际执行
+LocalIP      = "10.0.0.1"     # 指定本机的IP地址，不指定则自动从网卡中获取

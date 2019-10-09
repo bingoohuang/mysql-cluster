@@ -2,10 +2,14 @@ package mysqlclusterinit
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/sqlmore"
 	"github.com/sirupsen/logrus"
+
+	// support mysql
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // Settings 表示舒适化MySQL集群所需要的参数结构
@@ -35,6 +39,12 @@ func (s Settings) InitMySQLCluster() (r Result) {
 	}
 
 	r.HAProxy = s.createHAProxyConfig()
+
+	if s.Debug {
+		logrus.Infof("SQL:%s", strings.Join(r.Sqls, ";\n"))
+		logrus.Infof("HAProxy:%s", r.HAProxy)
+	}
+
 	return r
 }
 
