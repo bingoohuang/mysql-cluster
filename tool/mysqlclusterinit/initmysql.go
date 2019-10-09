@@ -8,8 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// MySQLClusterSettings 表示舒适化MySQL集群所需要的参数结构
-type MySQLClusterSettings struct {
+// Settings 表示舒适化MySQL集群所需要的参数结构
+type Settings struct {
 	Master1IP    string   // Master1的IP
 	Master2IP    string   // Master2的IP
 	SlaveIps     []string // Slave的IP地址
@@ -21,6 +21,7 @@ type MySQLClusterSettings struct {
 	LocalIP      string   // 指定本机的IP地址，不指定则自动从网卡中获取
 }
 
+// Result 表示初始化结果
 type Result struct {
 	Error   error
 	Sqls    []string
@@ -28,7 +29,7 @@ type Result struct {
 }
 
 // InitMySQLCluster 初始化MySQL Master-Master集群
-func (s MySQLClusterSettings) InitMySQLCluster() (r Result) {
+func (s Settings) InitMySQLCluster() (r Result) {
 	if r.Sqls, r.Error = s.createMySQCluster(); r.Error != nil {
 		return r
 	}
@@ -37,7 +38,7 @@ func (s MySQLClusterSettings) InitMySQLCluster() (r Result) {
 	return r
 }
 
-func (s MySQLClusterSettings) createMySQCluster() (sqls []string, err error) {
+func (s Settings) createMySQCluster() (sqls []string, err error) {
 	localIP := s.initLocalIPMap()
 
 	sqls = s.createInitSqls(localIP)
@@ -50,7 +51,7 @@ func (s MySQLClusterSettings) createMySQCluster() (sqls []string, err error) {
 	return
 }
 
-func (s MySQLClusterSettings) initLocalIPMap() map[string]bool {
+func (s Settings) initLocalIPMap() map[string]bool {
 	if s.LocalIP == "" {
 		return gonet.ListLocalIPMap()
 	}
@@ -58,7 +59,7 @@ func (s MySQLClusterSettings) initLocalIPMap() map[string]bool {
 	return map[string]bool{s.LocalIP: true}
 }
 
-func (s MySQLClusterSettings) execMultiSqls(sqls []string) error {
+func (s Settings) execMultiSqls(sqls []string) error {
 	if s.Debug {
 		return nil
 	}
@@ -79,7 +80,7 @@ func (s MySQLClusterSettings) execMultiSqls(sqls []string) error {
 	return nil
 }
 
-func (s MySQLClusterSettings) createInitSqls(localIP map[string]bool) []string {
+func (s Settings) createInitSqls(localIP map[string]bool) []string {
 	if _, ok := localIP[s.Master1IP]; ok {
 		return s.initMasterSqls(1, s.Master2IP)
 	}
@@ -96,7 +97,7 @@ func (s MySQLClusterSettings) createInitSqls(localIP map[string]bool) []string {
 	return []string{}
 }
 
-func (s MySQLClusterSettings) createHAProxyConfig() string {
+func (s Settings) createHAProxyConfig() string {
 	rwConfig := fmt.Sprintf(`
 listen mysql-rw
   bind 0.0.0.0:13306
@@ -122,7 +123,7 @@ listen mysql-ro
 	return rwConfig + rConfig
 }
 
-func (s MySQLClusterSettings) initMasterSqls(serverID int, masterTo string) []string {
+func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
 		fmt.Sprintf("CREATE USER '%s'@'%%'", s.ReplUsr),
@@ -135,7 +136,7 @@ func (s MySQLClusterSettings) initMasterSqls(serverID int, masterTo string) []st
 	}
 }
 
-func (s MySQLClusterSettings) initSlaveSqls(serverID int, masterTo string) []string {
+func (s Settings) initSlaveSqls(serverID int, masterTo string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
 		"STOP SLAVE",

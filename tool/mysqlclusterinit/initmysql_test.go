@@ -25,7 +25,7 @@ listen mysql-ro
 `
 
 func TestMaster1(t *testing.T) {
-	settings := &mysqlclusterinit.MySQLClusterSettings{
+	settings := &mysqlclusterinit.Settings{
 		Master1IP:    "10.0.0.1",
 		Master2IP:    "10.0.0.2",
 		RootPassword: "123456",
@@ -52,7 +52,7 @@ func TestMaster1(t *testing.T) {
 }
 
 func TestMaster2(t *testing.T) {
-	settings := &mysqlclusterinit.MySQLClusterSettings{
+	settings := &mysqlclusterinit.Settings{
 		Master1IP:    "10.0.0.1",
 		Master2IP:    "10.0.0.2",
 		RootPassword: "123456",
@@ -79,7 +79,7 @@ func TestMaster2(t *testing.T) {
 }
 
 func TestSlave(t *testing.T) {
-	settings := &mysqlclusterinit.MySQLClusterSettings{
+	settings := &mysqlclusterinit.Settings{
 		Master1IP:    "10.0.0.1",
 		Master2IP:    "10.0.0.2",
 		RootPassword: "123456",
@@ -103,7 +103,7 @@ func TestSlave(t *testing.T) {
 }
 
 func TestNone(t *testing.T) {
-	settings := &mysqlclusterinit.MySQLClusterSettings{
+	settings := &mysqlclusterinit.Settings{
 		Master1IP:    "10.0.0.1",
 		Master2IP:    "10.0.0.2",
 		RootPassword: "123456",
