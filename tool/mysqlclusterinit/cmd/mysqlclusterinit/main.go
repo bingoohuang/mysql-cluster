@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
+
+	"github.com/bingoohuang/gonet"
 
 	"github.com/BurntSushi/toml"
 	"github.com/bingoohuang/tool/mysqlclusterinit"
@@ -13,6 +14,9 @@ import (
 )
 
 func main() {
+	checkmysql := pflag.BoolP("checkmysql", "m", false, "check mysql")
+	ver := pflag.BoolP("version", "v", false, "show version")
+	testaddr := pflag.StringP("testaddr", "t", "", "test addr is local or not")
 	conf := pflag.StringP("config", "c", "./config.toml", "config file path")
 	pflag.Parse()
 
@@ -20,14 +24,34 @@ func main() {
 	if len(args) > 0 {
 		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
 		pflag.PrintDefaults()
-		os.Exit(0)
+		return
+	}
+
+	if *ver {
+		fmt.Printf("Version: 1.2\n")
+		return
+	}
+
+	if *testaddr != "" {
+		yes, _ := gonet.IsLocalAddr(*testaddr)
+		if yes {
+			fmt.Printf("%s is a local address\n", *testaddr)
+		} else {
+			fmt.Printf("%s is a non-local address\n", *testaddr)
+		}
+		return
 	}
 
 	configFile, _ := homedir.Expand(*conf)
 	settings := mustLoadConfig(configFile)
 
+	if *checkmysql {
+		settings.CheckMySQL()
+		return
+	}
+
 	if r := settings.InitMySQLCluster(); r.Error != nil {
-		logrus.Panic(r.Error)
+		logrus.Errorf("error %v", r.Error)
 	}
 }
 
