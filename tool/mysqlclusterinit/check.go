@@ -2,6 +2,7 @@ package mysqlclusterinit
 
 import (
 	"fmt"
+
 	"github.com/bingoohuang/sqlmore"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"

@@ -23,27 +23,30 @@ type Result struct {
 	HAProxy string
 }
 
+// ShowSlaveStatusBean 表示MySQL Slave Status
 type ShowSlaveStatusBean struct {
 	SlaveIOState         string `gorm:"column:Slave_IO_State"`
 	MasterHost           string `gorm:"column:Master_Host"`
 	MasterUser           string `gorm:"column:Master_User"`
 	MasterPort           int    `gorm:"column:Master_Port"`
-	SlaveSqlRunningState string `gorm:"column:Slave_SQL_Running_State"`
+	SlaveSQLRunningState string `gorm:"column:Slave_SQL_Running_State"`
 	AutoPosition         bool   `gorm:"column:Auto_Position"`
 	SlaveIoRunning       string `gorm:"column:Slave_IO_Running"`
-	SlaveSqlRunning      string `gorm:"column:Slave_SQL_Running"`
-	MasterServerId       string `gorm:"column:Master_Server_Id"`
+	SlaveSQLRunning      string `gorm:"column:Slave_SQL_Running"`
+	MasterServerID       string `gorm:"column:Master_Server_Id"`
 }
 
+// ShowVariablesBean 表示MySQL 服务器参数结果行
 type ShowVariablesBean struct {
 	VariableName string `gorm:"column:Variable_name"`
 	Value        string `gorm:"column:Value"`
 }
 
+// Variables 表示MySQL 服务器参数
 type Variables struct {
-	ServerId        string `var:"server_id"`
+	ServerID        string `var:"server_id"`
 	LogBin          string `var:"log_bin"`
-	SqlLogBin       string `var:"sql_log_bin"`
+	SQLLogBin       string `var:"sql_log_bin"`
 	GtidMode        string `var:"gtid_mode"`
 	GtidNext        string `var:"gtid_next"`
 	SlaveSkipErrors string `var:"slave_skip_errors"`
