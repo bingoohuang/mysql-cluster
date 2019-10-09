@@ -7,10 +7,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMySQLClusterSettings_InitMySQLCluster(t *testing.T) {
+const ha = `
+listen mysql-rw
+  bind 0.0.0.0:13306
+  mode tcp
+  option tcpka
+  server mysql-1 10.0.0.1:3306 check inter 1s
+  server mysql-2 10.0.0.2:3306 check inter 1s backup
+
+listen mysql-ro
+  bind 0.0.0.0:23306
+  mode tcp
+  option tcpka
+  server mysql-1 10.0.0.1:3306 check inter 1s
+  server mysql-2 10.0.0.2:3306 check inter 1s
+  server mysql-3 10.0.0.3:3306 check inter 1s
+`
+
+func TestMaster1(t *testing.T) {
 	settings := &mysqlclusterinit.MySQLClusterSettings{
-		MasterIP1:    "10.0.0.1",
-		MasterIP2:    "10.0.0.2",
+		Master1IP:    "10.0.0.1",
+		Master2IP:    "10.0.0.2",
 		RootPassword: "123456",
 		Port:         3306,
 		ReplUsr:      "repl",
@@ -31,25 +48,23 @@ func TestMySQLClusterSettings_InitMySQLCluster(t *testing.T) {
 			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",
 	}, result.Sqls)
-	assert.Equal(t, `
-listen mysql-rw
-  bind 0.0.0.0:13306
-  mode tcp
-  option tcpka
-  server mysql-1 10.0.0.1:3306 check inter 1s
-  server mysql-2 10.0.0.2:3306 check inter 1s backup
+	assert.Equal(t, ha, result.HAProxy)
+}
 
-listen mysql-ro
-  bind 0.0.0.0:23306
-  mode tcp
-  option tcpka
-  server mysql-1 10.0.0.1:3306 check inter 1s
-  server mysql-2 10.0.0.2:3306 check inter 1s
-  server mysql-3 10.0.0.3:3306 check inter 1s
-`, result.HAProxy)
+func TestMaster2(t *testing.T) {
+	settings := &mysqlclusterinit.MySQLClusterSettings{
+		Master1IP:    "10.0.0.1",
+		Master2IP:    "10.0.0.2",
+		RootPassword: "123456",
+		Port:         3306,
+		ReplUsr:      "repl",
+		ReplPassword: "repl_pwd",
+		SlaveIps:     []string{"10.0.0.3"},
+		Debug:        true,
+		LocalIP:      "10.0.0.2",
+	}
 
-	settings.LocalIP = "10.0.0.2"
-	result = settings.InitMySQLCluster()
+	result := settings.InitMySQLCluster()
 	assert.Nil(t, result.Error)
 	assert.Equal(t, []string{
 		"SET GLOBAL server_id=2",
@@ -60,9 +75,23 @@ listen mysql-ro
 			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",
 	}, result.Sqls)
+	assert.Equal(t, ha, result.HAProxy)
+}
 
-	settings.LocalIP = "10.0.0.3"
-	result = settings.InitMySQLCluster()
+func TestSlave(t *testing.T) {
+	settings := &mysqlclusterinit.MySQLClusterSettings{
+		Master1IP:    "10.0.0.1",
+		Master2IP:    "10.0.0.2",
+		RootPassword: "123456",
+		Port:         3306,
+		ReplUsr:      "repl",
+		ReplPassword: "repl_pwd",
+		SlaveIps:     []string{"10.0.0.3"},
+		Debug:        true,
+		LocalIP:      "10.0.0.3",
+	}
+
+	result := settings.InitMySQLCluster()
 	assert.Nil(t, result.Error)
 	assert.Equal(t, []string{
 		"SET GLOBAL server_id=3",
@@ -71,4 +100,23 @@ listen mysql-ro
 			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",
 	}, result.Sqls)
+}
+
+func TestNone(t *testing.T) {
+	settings := &mysqlclusterinit.MySQLClusterSettings{
+		Master1IP:    "10.0.0.1",
+		Master2IP:    "10.0.0.2",
+		RootPassword: "123456",
+		Port:         3306,
+		ReplUsr:      "repl",
+		ReplPassword: "repl_pwd",
+		SlaveIps:     []string{"10.0.0.3"},
+		Debug:        true,
+		LocalIP:      "",
+	}
+
+	result := settings.InitMySQLCluster()
+	assert.Nil(t, result.Error)
+	assert.Equal(t, []string{}, result.Sqls)
+	assert.Equal(t, ha, result.HAProxy)
 }

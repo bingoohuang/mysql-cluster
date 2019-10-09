@@ -1,7 +1,6 @@
 package mysqlclusterinit
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/bingoohuang/gonet"
@@ -11,15 +10,15 @@ import (
 
 // MySQLClusterSettings 表示舒适化MySQL集群所需要的参数结构
 type MySQLClusterSettings struct {
-	MasterIP1    string
-	MasterIP2    string
-	SlaveIps     []string
-	RootPassword string
-	Port         int
-	ReplUsr      string
-	ReplPassword string
-	Debug        bool // 测试模式，只打印SQL和HAProxy配置, 不实际执行
-	LocalIP      string
+	Master1IP    string   // Master1的IP
+	Master2IP    string   // Master2的IP
+	SlaveIps     []string // Slave的IP地址
+	RootPassword string   // Root用户密码
+	Port         int      // MySQL 端口号
+	ReplUsr      string   // 复制用用户名
+	ReplPassword string   // 复制用户密码
+	Debug        bool     // 测试模式，只打印SQL和HAProxy配置, 不实际执行
+	LocalIP      string   // 指定本机的IP地址，不指定则自动从网卡中获取
 }
 
 type Result struct {
@@ -29,44 +28,34 @@ type Result struct {
 }
 
 // InitMySQLCluster 初始化MySQL Master-Master集群
-func (s MySQLClusterSettings) InitMySQLCluster() Result {
-	var result Result
-	var err error
-	if result.Sqls, err = s.createMySQCluster(); err != nil {
-		result.Error = err
-		return result
+func (s MySQLClusterSettings) InitMySQLCluster() (r Result) {
+	if r.Sqls, r.Error = s.createMySQCluster(); r.Error != nil {
+		return r
 	}
 
-	result.HAProxy = s.createHAProxyConfig()
-
-	return result
+	r.HAProxy = s.createHAProxyConfig()
+	return r
 }
 
-func (s MySQLClusterSettings) createMySQCluster() ([]string, error) {
+func (s MySQLClusterSettings) createMySQCluster() (sqls []string, err error) {
 	localIP := s.initLocalIPMap()
 
-	sqls := s.createInitSqls(localIP)
+	sqls = s.createInitSqls(localIP)
 	if len(sqls) == 0 {
 		logrus.Infof("InitMySQLCluster bypassed, nor master or slave on %v", localIP)
-		return sqls, nil
+	} else {
+		err = s.execMultiSqls(sqls)
 	}
 
-	if err := s.execMultiSqls(sqls); err != nil {
-		return sqls, err
-	}
-
-	return sqls, nil
+	return
 }
 
 func (s MySQLClusterSettings) initLocalIPMap() map[string]bool {
-	var localIP map[string]bool
 	if s.LocalIP == "" {
-		localIP = gonet.ListLocalIPMap()
-	} else {
-		localIP = make(map[string]bool)
-		localIP[s.LocalIP] = true
+		return gonet.ListLocalIPMap()
 	}
-	return localIP
+
+	return map[string]bool{s.LocalIP: true}
 }
 
 func (s MySQLClusterSettings) execMultiSqls(sqls []string) error {
@@ -75,33 +64,36 @@ func (s MySQLClusterSettings) execMultiSqls(sqls []string) error {
 	}
 
 	ds := fmt.Sprintf("root:%s@tcp(127.0.0.1:%d)/root", s.RootPassword, s.Port)
-	more := sqlmore.NewSQLMore("mysql", ds)
-	db := more.MustOpen()
+	db := sqlmore.NewSQLMore("mysql", ds).MustOpen()
 	defer db.Close()
+
 	for _, sqlStr := range sqls {
-		if err := s.execSQL(db, sqlStr); err != nil {
-			return err
+		if r := sqlmore.ExecSQL(db, sqlStr, 0, ""); r.Error != nil {
+			return fmt.Errorf("exec sql %s error %w", sqlStr, r.Error)
 		}
+
+		logrus.Infof("execSQL %s completed", sqlStr)
 	}
+
 	logrus.Infof("createMySQCluster completed")
 	return nil
 }
 
 func (s MySQLClusterSettings) createInitSqls(localIP map[string]bool) []string {
-	if _, ok := localIP[s.MasterIP1]; ok {
-		return s.initMasterSqls(1, s.MasterIP2)
+	if _, ok := localIP[s.Master1IP]; ok {
+		return s.initMasterSqls(1, s.Master2IP)
 	}
-	if _, ok := localIP[s.MasterIP2]; ok {
-		return s.initMasterSqls(2, s.MasterIP1)
+	if _, ok := localIP[s.Master2IP]; ok {
+		return s.initMasterSqls(2, s.Master1IP)
 	}
 
 	for seq, slaveIP := range s.SlaveIps {
 		if _, ok := localIP[slaveIP]; ok {
-			return s.initSlaveSqls(seq+3, s.MasterIP2)
+			return s.initSlaveSqls(seq+3, s.Master2IP)
 		}
 	}
 
-	return nil
+	return []string{}
 }
 
 func (s MySQLClusterSettings) createHAProxyConfig() string {
@@ -112,7 +104,7 @@ listen mysql-rw
   option tcpka
   server mysql-1 %s:%d check inter 1s
   server mysql-2 %s:%d check inter 1s backup
-`, s.MasterIP1, s.Port, s.MasterIP2, s.Port)
+`, s.Master1IP, s.Port, s.Master2IP, s.Port)
 
 	rConfig := fmt.Sprintf(`
 listen mysql-ro
@@ -121,7 +113,7 @@ listen mysql-ro
   option tcpka
   server mysql-1 %s:%d check inter 1s
   server mysql-2 %s:%d check inter 1s
-`, s.MasterIP1, s.Port, s.MasterIP2, s.Port)
+`, s.Master1IP, s.Port, s.Master2IP, s.Port)
 
 	for seq, slaveIP := range s.SlaveIps {
 		rConfig += fmt.Sprintf("  server mysql-%d %s:%d check inter 1s\n", seq+3, slaveIP, s.Port)
@@ -131,35 +123,24 @@ listen mysql-ro
 }
 
 func (s MySQLClusterSettings) initMasterSqls(serverID int, masterTo string) []string {
-	sqls := make([]string, 0)
-	sqls = append(sqls, fmt.Sprintf("SET GLOBAL server_id=%d", serverID))
-	sqls = append(sqls, fmt.Sprintf("CREATE USER '%s'@'%%'", s.ReplUsr))
-	sqls = append(sqls, fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+
-		"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword))
-	sqls = append(sqls, "STOP SLAVE")
-	sqls = append(sqls, fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
-		"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword))
-	sqls = append(sqls, "START SLAVE")
-
-	return sqls
+	return []string{
+		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
+		fmt.Sprintf("CREATE USER '%s'@'%%'", s.ReplUsr),
+		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+
+			"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
+		"STOP SLAVE",
+		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
+			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
+		"START SLAVE",
+	}
 }
 
 func (s MySQLClusterSettings) initSlaveSqls(serverID int, masterTo string) []string {
-	sqls := make([]string, 0)
-	sqls = append(sqls, fmt.Sprintf("SET GLOBAL server_id=%d", serverID))
-	sqls = append(sqls, "STOP SLAVE")
-	sqls = append(sqls, fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
-		"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword))
-	sqls = append(sqls, "START SLAVE")
-
-	return sqls
-}
-
-func (s MySQLClusterSettings) execSQL(db *sql.DB, sqlStr string) error {
-	if result := sqlmore.ExecSQL(db, sqlStr, 0, ""); result.Error != nil {
-		return result.Error
+	return []string{
+		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
+		"STOP SLAVE",
+		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
+			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
+		"START SLAVE",
 	}
-
-	logrus.Infof("execSQL %s completed", sqlStr)
-	return nil
 }
