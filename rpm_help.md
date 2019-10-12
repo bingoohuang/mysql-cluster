@@ -4,9 +4,9 @@
 
 1. 下载
     `wget https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm`
-1. 安装 状态 源
+1. 安装MySQL源
     `sudo yum localinstall mysql57-community-release-el7-11.noarch.rpm`
-1. 用下面的命令检查 mysql 源是否安装成功
+1. 检查MySQL源是否安装成功
 
     ```bash
     [vagrant@bogon ~]$ sudo yum repolist enabled | grep "mysql.*-community.*"
@@ -15,7 +15,7 @@
     mysql57-community/x86_64 MySQL 5.7 Community Server 364
     ```
 
-1. 下载相关依赖包到本地目录(vagrant centos7)
+1. 下载全部依赖包到本地目录(vagrant centos7)
     * vagrant centos7上：安装插件 `sudo yum install yum-plugin-downloadonly`
     * vagrant centos7上：下载依赖包 `sudo yum install -y --downloadonly --downloaddir=/vagrant/mysql57  mysql-community-server`
     * 本机：上传目录 `sshpass -p mima scp -P1122 -o StrictHostKeyChecking=no ./*.rpm root@192.168.1.23:./mysql/`
@@ -24,16 +24,17 @@
     * 目标机：启动服务 `systemctl start mysqld` 查看 MySQL 状态 `systemctl status mysqld`
 
 1. 修改 root 本地账户密码
-    安装完成之后，生成的默认密码在 /var/log/mysqld.log 文件中。使用 `grep 'temporary password' /var/log/mysqld.log` 命令找到日志中的密码。
 
-    首次通过初始密码登录后，使用以下命令修改密码
+    安装完成之后，生成的默认密码在 /var/log/mysqld.log 文件中。
+
+    使用 `grep 'temporary password' /var/log/mysqld.log` 命令找到日志中的密码。
 
     ```sql
     ALTER USER 'root'@'localhost' IDENTIFIED BY 'A1765527-61a0';
     ```
 
-    注意：mysql 5.7 默认安装了密码安全检查插件（validate_password），默认密码检查策略要求密码必须包含：大小写字母、数字和特殊符号，并且长度不能少于8位。
-    否则会提示 ERROR 1819 (HY000): Your password does not satisfy the current policy requirements 错误。
+    > 注意：mysql 5.7 默认安装了密码安全检查插件（validate_password），默认密码检查策略要求密码必须包含：大小写字母、数字和特殊符号，并且长度不能少于8位。
+    > 否则会提示 ERROR 1819 (HY000): Your password does not satisfy the current policy requirements 错误。
 
 Thanks:
 
