@@ -12,7 +12,7 @@ import (
 func (s Settings) createHAProxyConfig() string {
 	rwConfig := fmt.Sprintf(`
 listen mysql-rw
-  bind 0.0.0.0:13306
+  bind 127.0.0.1:13306
   mode tcp
   option tcpka
   server mysql-1 %s:%d check inter 1s
@@ -20,7 +20,7 @@ listen mysql-rw
 `, s.Master1Addr, s.Port, s.Master2Addr, s.Port)
 	rConfig := fmt.Sprintf(`
 listen mysql-ro
-  bind 0.0.0.0:23306
+  bind 127.0.0.1:23306
   mode tcp
   option tcpka
   server mysql-1 %s:%d check inter 1s
