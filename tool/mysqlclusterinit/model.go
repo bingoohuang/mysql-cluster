@@ -44,11 +44,13 @@ type ShowVariablesBean struct {
 
 // Variables 表示MySQL 服务器参数
 type Variables struct {
-	ServerID        string `var:"server_id"`
-	LogBin          string `var:"log_bin"`
-	SQLLogBin       string `var:"sql_log_bin"`
-	GtidMode        string `var:"gtid_mode"`
-	GtidNext        string `var:"gtid_next"`
-	SlaveSkipErrors string `var:"slave_skip_errors"`
-	BinlogFormat    string `var:"binlog_format"`
+	ServerID               string `var:"server_id"`
+	LogBin                 string `var:"log_bin"`
+	SQLLogBin              string `var:"sql_log_bin"`
+	GtidMode               string `var:"gtid_mode"`
+	GtidNext               string `var:"gtid_next"`
+	SlaveSkipErrors        string `var:"slave_skip_errors"`
+	BinlogFormat           string `var:"binlog_format"`
+	MasterInfoRepository   string `var:"master_info_repository"`
+	RelayLogInfoRepository string `var:"relay_log_info_repository"`
 }

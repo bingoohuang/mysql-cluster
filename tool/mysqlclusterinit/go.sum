@@ -14,6 +14,8 @@ github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/bingoohuang/gonet v0.0.0-20191009053233-49f431d8b3c1 h1:fJzqFz0Gw0uwOc58NegMICEyfRbQodCio/N0s856y9Q=
 github.com/bingoohuang/gonet v0.0.0-20191009053233-49f431d8b3c1/go.mod h1:vNeu6I/zpzA/kYOF6I8pOt4EtmmFTa1JhZ1YOl5IFn4=
+github.com/bingoohuang/gonet v0.0.0-20191012100604-b7ba4a88f75b h1:47IeDnjyuBzH9wBfh6uPwKErf9kuziyg09pgul9JJIw=
+github.com/bingoohuang/gonet v0.0.0-20191012100604-b7ba4a88f75b/go.mod h1:vNeu6I/zpzA/kYOF6I8pOt4EtmmFTa1JhZ1YOl5IFn4=
 github.com/bingoohuang/sqlmore v0.0.0-20190711152446-8687de30af5c h1:OS/lIydZ1L5wJPXYlhncTQfa1Dx9etjOm/6+mxP6n4w=
 github.com/bingoohuang/sqlmore v0.0.0-20190711152446-8687de30af5c/go.mod h1:j+n7Coi7c4g8LuHAD5rrYl8VSvGRyEFsMwIEPWEHd1k=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=

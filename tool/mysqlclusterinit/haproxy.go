@@ -40,7 +40,7 @@ func (s Settings) restartHAProxy(r *Result) {
 		return
 	}
 
-	_, status := cmd.Bash(`echo "Hello"`, cmd.Timeout(5*time.Second), cmd.Buffered(false))
+	_, status := cmd.Bash(s.HAProxyRestartShell, cmd.Timeout(5*time.Second), cmd.Buffered(false))
 	if status.Error != nil {
 		r.Error = status.Error
 		return

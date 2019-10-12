@@ -73,7 +73,7 @@ func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
 		fmt.Sprintf("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
-		fmt.Sprintf("CREATE USER '%s'@'%%'", s.ReplUsr),
+		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
 		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+
 			"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
 		"STOP SLAVE",

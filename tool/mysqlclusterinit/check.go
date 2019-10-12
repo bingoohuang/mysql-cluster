@@ -20,10 +20,10 @@ func (s Settings) CheckMySQL() {
 	defer db.Close()
 
 	if status, err := ShowSlaveStatus(db); err == nil {
-		fmt.Printf("ShowSlaveStatus:%+v\n", status)
+		fmt.Printf("ShowSlaveStatus:%s\n", PrettyJSONSilent(status))
 	}
 
 	if variables, err := ShowVariables(db); err == nil {
-		fmt.Printf("Variables:%+v\n", variables)
+		fmt.Printf("Variables:%s\n", PrettyJSONSilent(variables))
 	}
 }

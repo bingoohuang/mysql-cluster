@@ -1,6 +1,8 @@
 package mysqlclusterinit
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -57,4 +59,24 @@ func ReplaceContent(str, regexStr, repl string) (string, error) {
 	}
 
 	return fixed + str[lastIndex:], nil
+}
+
+// PrettyJSON prettify the JSON encoding of data silently
+func PrettyJSONSilent(data interface{}) string {
+	p, _ := PrettyJSON(data)
+	return p
+}
+
+// PrettyJSON prettify the JSON encoding of data
+func PrettyJSON(data interface{}) (string, error) {
+	buffer := new(bytes.Buffer)
+	encoder := json.NewEncoder(buffer)
+	encoder.SetIndent("", "\t")
+
+	err := encoder.Encode(data)
+	if err != nil {
+		return "", err
+	}
+
+	return buffer.String(), nil
 }

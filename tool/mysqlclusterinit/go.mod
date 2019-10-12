@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/bingoohuang/gonet v0.0.0-20191009053233-49f431d8b3c1
+	github.com/bingoohuang/gonet v0.0.0-20191012100604-b7ba4a88f75b
 	github.com/bingoohuang/sqlmore v0.0.0-20190711152446-8687de30af5c
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gobars/cmd v0.0.0-20190805053627-b12a1f0df5b0
