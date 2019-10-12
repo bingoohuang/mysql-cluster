@@ -112,22 +112,24 @@ func ShowSlaveStatus(db *gorm.DB) (bean ShowSlaveStatusBean, err error) {
 }
 
 func ShowVariables(db *gorm.DB) (variables Variables, err error) {
+	fieldsMap := make(map[string]reflector.ObjField)
+
+	for _, f := range reflector.New(&variables).Fields() {
+		if tag, _ := f.Tag("var"); tag != "" {
+			fieldsMap[tag] = f
+		}
+	}
+
 	var beans []ShowVariablesBean
 	if s := db.Raw("show variables").Scan(&beans); s.Error != nil {
 		logrus.Warnf("show variables error: %v", s.Error)
 		return Variables{}, s.Error
 	}
 
-	variablesMap := make(map[string]string)
-	for _, v := range beans {
-		variablesMap[v.VariableName] = v.Value
-	}
-
-	for _, f := range reflector.New(&variables).Fields() {
-		tag, _ := f.Tag("var")
-		if v, ok := variablesMap[tag]; !ok {
+	for _, b := range beans {
+		if f, ok := fieldsMap[b.VariableName]; !ok {
 			continue
-		} else if err := f.Set(v); err != nil {
+		} else if err := f.Set(b.Value); err != nil {
 			logrus.Warnf("Set error: %v", err)
 		}
 	}
