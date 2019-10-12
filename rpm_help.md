@@ -55,18 +55,18 @@ Thanks:
     sed -i 's/http/https/g' /etc/yum.repos.d/epel.repo
     ```
 
-1. 下载
+1. 从公网下载到本机
     * `sudo yum install yum-plugin-downloadonly`
     * `yum install centos-release-scl`
     * `yum install --downloadonly --downloaddir=/vagrant/haproxy18 rh-haproxy18-haproxy rh-haproxy18-haproxy-syspaths`
 
-1. 上传
+1. 从本机上传到目标机器
     * `sshpass -p mima scp -P1122 -o StrictHostKeyChecking=no ./*.rpm root@192.168.1.23:./haproxy/`
 
-1. 安装
+1. 在目标机器上安装
     * ```sudo yum install `ls | grep rpm` ```
 
-1. 查看安装
+1. 在目标机器上查看安装
 
     ```bash
     [root@BJCA-device ~]# more /usr/lib/systemd/system/rh-haproxy18-haproxy.service
