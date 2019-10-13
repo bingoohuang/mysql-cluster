@@ -61,7 +61,7 @@ func ReplaceContent(str, regexStr, repl string) (string, error) {
 	return fixed + str[lastIndex:], nil
 }
 
-// PrettyJSON prettify the JSON encoding of data silently
+// PrettyJSONSilent prettify the JSON encoding of data silently
 func PrettyJSONSilent(data interface{}) string {
 	p, _ := PrettyJSON(data)
 	return p

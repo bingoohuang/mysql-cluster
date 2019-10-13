@@ -102,6 +102,7 @@ func (s Settings) fixMySQLConfServerID(serverID int) error {
 	return nil
 }
 
+// ShowSlaveStatus show slave status to bean
 func ShowSlaveStatus(db *gorm.DB) (bean ShowSlaveStatusBean, err error) {
 	if s := db.Raw("show slave status").Scan(&bean); s.Error != nil {
 		logrus.Warnf("show slave status error: %v", s.Error)
@@ -111,6 +112,7 @@ func ShowSlaveStatus(db *gorm.DB) (bean ShowSlaveStatusBean, err error) {
 	return bean, nil
 }
 
+// ShowVariables shows variables to variables bean
 func ShowVariables(db *gorm.DB) (variables Variables, err error) {
 	fieldsMap := make(map[string]reflector.ObjField)
 
