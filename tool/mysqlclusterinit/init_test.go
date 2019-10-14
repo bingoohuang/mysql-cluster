@@ -34,7 +34,7 @@ func TestMaster1(t *testing.T) {
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
 		Debug:        true,
-		LocalIP:      "10.0.0.1",
+		LocalAddr:    "10.0.0.1",
 	}
 
 	result := settings.InitMySQLCluster()
@@ -61,7 +61,7 @@ func TestMaster2(t *testing.T) {
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
 		Debug:        true,
-		LocalIP:      "10.0.0.2",
+		LocalAddr:    "10.0.0.2",
 	}
 
 	result := settings.InitMySQLCluster()
@@ -88,7 +88,7 @@ func TestSlave(t *testing.T) {
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
 		Debug:        true,
-		LocalIP:      "10.0.0.3",
+		LocalAddr:    "10.0.0.3",
 	}
 
 	result := settings.InitMySQLCluster()
@@ -112,7 +112,7 @@ func TestNone(t *testing.T) {
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
 		Debug:        true,
-		LocalIP:      "",
+		LocalAddr:    "",
 	}
 
 	result := settings.InitMySQLCluster()

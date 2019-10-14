@@ -18,10 +18,15 @@
 1. 下载全部依赖包到本地目录(vagrant centos7)
     * vagrant centos7上：安装插件 `sudo yum install yum-plugin-downloadonly`
     * vagrant centos7上：下载依赖包 `sudo yum install -y --downloadonly --downloaddir=/vagrant/mysql57  mysql-community-server`
+        > [root@BJCA-device ~]# yum -h
+        > -y, --assumeyes       回答全部问题为是
+        > --downloadonly        仅下载而不更新
+        > --downloaddir=DLDIR   指定一个其他文件夹用于保存软件包
     * 本机：上传目录 `sshpass -p mima scp -P1122 -o StrictHostKeyChecking=no ./*.rpm root@192.168.1.23:./mysql/`
-    * 目标机：执行 ```sudo yum install `ls | grep rpm` ```
+    * 目标机：执行 ```sudo yum -y install `ls | grep rpm` ```
     * 目标机：开启启动 `systemctl enable mysqld`
-    * 目标机：启动服务 `systemctl start mysqld` 查看 MySQL 状态 `systemctl status mysqld`
+    * 目标机：启动服务 `systemctl start mysqld`
+    * 目标机：查看状态 `systemctl status mysqld`
 
 1. 修改 root 本地账户密码
 
@@ -64,7 +69,7 @@ Thanks:
     * `sshpass -p mima scp -P1122 -o StrictHostKeyChecking=no ./*.rpm root@192.168.1.23:./haproxy/`
 
 1. 在目标机器上安装
-    * ```sudo yum install `ls | grep rpm` ```
+    * ```sudo yum -y install `ls | grep rpm` ```
 
 1. 在目标机器上查看安装
 

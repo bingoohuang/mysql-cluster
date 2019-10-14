@@ -28,7 +28,9 @@ listen mysql-ro
 `, s.Master1Addr, s.Port, s.Master2Addr, s.Port)
 
 	for seq, slaveIP := range s.SlaveAddrs {
-		rConfig += fmt.Sprintf("  server mysql-%d %s:%d check inter 1s\n", seq+3, slaveIP, s.Port)
+		if slaveIP != "" {
+			rConfig += fmt.Sprintf("  server mysql-%d %s:%d check inter 1s\n", seq+3, slaveIP, s.Port)
+		}
 	}
 
 	return rwConfig + rConfig
