@@ -35,6 +35,7 @@ type ShowSlaveStatusBean struct {
 	SlaveIoRunning       string `gorm:"column:Slave_IO_Running"`
 	SlaveSQLRunning      string `gorm:"column:Slave_SQL_Running"`
 	MasterServerID       string `gorm:"column:Master_Server_Id"`
+	SecondsBehindMaster  string `gorm:"column:Seconds_Behind_Master"`
 }
 
 // ShowVariablesBean 表示MySQL 服务器参数结果行
