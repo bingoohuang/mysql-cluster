@@ -1,11 +1,9 @@
 # MySQL和HAProxy的离线安装
 
-## MySQL
+## MySQL RPM 安装
 
-1. 下载
-    `wget https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm`
-1. 安装MySQL源
-    `sudo yum localinstall mysql57-community-release-el7-11.noarch.rpm`
+1. 下载 `wget https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm`
+1. 安装MySQL源 `sudo yum localinstall mysql57-community-release-el7-11.noarch.rpm`
 1. 检查MySQL源是否安装成功
 
     ```bash
@@ -22,31 +20,37 @@
         > -y, --assumeyes       回答全部问题为是
         > --downloadonly        仅下载而不更新
         > --downloaddir=DLDIR   指定一个其他文件夹用于保存软件包
+    * 只保留mysql开头的rpm包，删除其余rpm包
+
+        ```bash
+        [vagrant@bogon mysql-community-server-5.7.27-1.el7.x86_64]$ ls -lh *.rpm
+        -rw-r--r-- 1 vagrant vagrant  25M 7月  18 10:59 mysql-community-client-5.7.27-1.el7.x86_64.rpm
+        -rw-r--r-- 1 vagrant vagrant 275K 7月  18 10:59 mysql-community-common-5.7.27-1.el7.x86_64.rpm
+        -rw-r--r-- 1 vagrant vagrant 2.2M 7月  18 11:00 mysql-community-libs-5.7.27-1.el7.x86_64.rpm
+        -rw-r--r-- 1 vagrant vagrant 2.1M 7月  18 11:00 mysql-community-libs-compat-5.7.27-1.el7.x86_64.rpm
+        -rw-r--r-- 1 vagrant vagrant 166M 7月  18 11:00 mysql-community-server-5.7.27-1.el7.x86_64.rpm
+        ```
+
     * 本机：上传目录 `sshpass -p mima scp -P1122 -o StrictHostKeyChecking=no ./*.rpm root@192.168.1.23:./mysql/`
     * 目标机：执行 `sudo rpm -ivh *.rpm --nodeps --force`
 
         ```bash
-        [vagrant@bogon mysql57]$ sudo rpm -ivh *.rpm --nodeps --force
+        [vagrant@bogon mysql-community-server-5.7.27-1.el7.x86_64]$ sudo rpm -ivh *.rpm --nodeps --force
         警告：mysql-community-client-5.7.27-1.el7.x86_64.rpm: 头V3 DSA/SHA1 Signature, 密钥 ID 5072e1f5: NOKEY
         准备中...                          ################################# [100%]
         正在升级/安装...
-        1:mysql-community-common-5.7.27-1.e################################# [ 17%]
-        2:mysql-community-libs-5.7.27-1.el7################################# [ 33%]
-        3:mysql-community-client-5.7.27-1.e################################# [ 50%]
-        4:mysql-community-libs-compat-5.7.2################################# [ 67%]
-        5:postfix-2:2.10.1-7.el7           ################################# [ 83%]
-        6:mysql-community-server-5.7.27-1.e################################# [100%]
+        1:mysql-community-common-5.7.27-1.e################################# [ 20%]
+        2:mysql-community-libs-5.7.27-1.el7################################# [ 40%]
+        3:mysql-community-client-5.7.27-1.e################################# [ 60%]
+        4:mysql-community-server-5.7.27-1.e################################# [ 80%]
+        5:mysql-community-libs-compat-5.7.2################################# [100%]
         ```
 
-    * 目标机：开启启动 `systemctl enable mysqld`
-    * 目标机：启动服务 `systemctl start mysqld`
-    * 目标机：查看状态 `systemctl status mysqld`
+    * 目标机：开启启动 `systemctl enable mysqld`, 启动服务 `systemctl start mysqld`, 查看状态 `systemctl status mysqld`
 
 1. 修改 root 本地账户密码
 
-    安装完成之后，生成的默认密码在 /var/log/mysqld.log 文件中。
-
-    使用 `grep 'temporary password' /var/log/mysqld.log` 命令找到日志中的密码。
+    安装完成之后，生成的默认密码在 /var/log/mysqld.log 文件中。使用 `grep 'temporary password' /var/log/mysqld.log` 命令找到日志中的密码。
 
     ```sql
     ALTER USER 'root'@'localhost' IDENTIFIED BY 'A1765527-61a0';
@@ -60,7 +64,88 @@ Thanks:
 * [CentOS 7 下 MySQL 5.7 的安装与配置](https://www.jianshu.com/p/1dab9a4d0d5f)
 * [Installing a package forcefully without dependencies](https://www.golinuxhub.com/2014/01/how-to-installuninstallupgrade-rpm.html)
 
-## HAProxy
+## MySQL glibc方式安装
+
+而最为常用的为二进制安装以及源码安装。二进制安装方式中，包括rpm版本以及glibc版本。rpm版本就是在特定linux版本下编译的，如果你的linux版本匹配，就可以安装，如针对RedHat6或者RedHat7编译好的rpm包，下载对应的安装即可。还有另外一种二进制安装包为基于特定的glibc版本编译的。
+
+1. 从[官网](https://dev.mysql.com/downloads/mysql/5.7.html)直接下载包mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz
+1. 安装
+
+    ```bash
+    [vagrant@bogon ~]$ sudo useradd -r mysql -s /sbin/nologin
+    [vagrant@bogon ~]$ groups mysql
+    mysql : mysql
+    [vagrant@bogon ~]$ sudo mkdir -pv /u01/app /u01/soft /u02/mysqldata
+    mkdir: 已创建目录 "/u01"
+    mkdir: 已创建目录 "/u01/app"
+    mkdir: 已创建目录 "/u01/soft"
+    mkdir: 已创建目录 "/u02"
+    mkdir: 已创建目录 "/u02/mysqldata"
+    [vagrant@bogon ~]$ rpm -q glibc
+    glibc-2.17-78.el7.x86_64
+    [vagrant@bogon ~]$ cd /u01/soft; tar -xf mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz
+    [vagrant@bogon soft]$ ln -sv /u01/soft/mysql-5.7.28-linux-glibc2.12-x86_64 /u01/app/mysql
+    '/u01/app/mysql' -> '/u01/soft/mysql-5.7.28-linux-glibc2.12-x86_64'
+    [vagrant@bogon ~]$ chown -R mysql:mysql /u01/app/mysql
+    [vagrant@bogon ~]$ chown -R mysql:mysql /u02/mysqldata
+    [vagrant@bogon ~]$ cd /u01/app/mysql/bin
+    [vagrant@bogon bin] ./mysqld --initialize --basedir=/u01/app/mysql --datadir=/u02/mysqldata --user=mysql --explicit_defaults_for_timestamp
+    [vagrant@bogon ~]$ ls /u02/mysqldata/
+    ```
+
+1. 参考
+    * [基于 Linux 安装glibc版mysql 5.7.12](https://blog.csdn.net/leshami/article/details/51791836)
+    * [Linux: Check the glibc version](https://benohead.com/linux-check-glibc-version/)
+    * [MySQL 5.7 — Native Systemd Support](https://mysqlserverteam.com/mysql-5-7-native-systemd-support/)
+
+1. mysqld.service
+
+```bash
+    [root@BJCA-device ~]# more /usr/lib/systemd/system/mysqld.service
+    [Unit]
+    Description=MySQL Server
+    Documentation=man:mysqld(8)
+    Documentation=http://dev.mysql.com/doc/refman/en/using-systemd.html
+    After=network.target
+    After=syslog.target
+
+    [Install]
+    WantedBy=multi-user.target
+
+    [Service]
+    User=mysql
+    Group=mysql
+
+    Type=forking
+
+    PIDFile=/var/run/mysqld/mysqld.pid
+
+    # Disable service start and stop timeout logic of systemd for mysqld service.
+    TimeoutSec=0
+
+    # Execute pre and post scripts as root
+    PermissionsStartOnly=true
+
+    # Needed to create system tables
+    ExecStartPre=/usr/bin/mysqld_pre_systemd
+
+    # Start main service
+    ExecStart=/usr/sbin/mysqld --daemonize --pid-file=/var/run/mysqld/mysqld.pid $MYSQLD_OPTS
+
+    # Use this to switch malloc implementation
+    EnvironmentFile=-/etc/sysconfig/mysql
+
+    # Sets open_files_limit
+    LimitNOFILE = 5000
+
+    Restart=on-failure
+
+    RestartPreventExitStatus=1
+
+    PrivateTmp=false
+    ```
+
+## HAProxy rpm包安装
 
 1. 使用阿里云的源，将下面脚本写入文件 init_aliyun_repo.sh，然后执行 `sudu sh init_aliyun_repo.sh`
 
@@ -188,13 +273,19 @@ Packed 1 file.
 在目标机器上：
 
 ```bash
+# sudo useradd -r haproxy -s /sbin/nologin
+# groups haproxy
+haproxy : haproxy
 # cp haproxy /usr/sbin/
 # cat <<EOF | tee /usr/lib/systemd/system/haproxy.service
+# refer https://github.com/haproxy/haproxy/blob/master/contrib/systemd/haproxy.service.in
 [Unit]
 Description=HAProxy Load Balancer
 After=syslog.target network.target
 
 [Service]
+User=haproxy
+Group=haproxy
 Environment="CONFIG=/etc/haproxy.cfg" "PIDFILE=/run/haproxy.pid"
 ExecStartPre=/usr/sbin/haproxy -f \$CONFIG -c -q
 ExecStart=/usr/sbin/haproxy -Ws -f \$CONFIG -p \$PIDFILE
@@ -213,7 +304,10 @@ global
     #stats socket /var/lib/haproxy/haproxy.sock mode 600 level admin
     daemon
     pidfile /run/haproxy.pid
-    log 127.0.0.1 local3 info
+    log /dev/log local0
+    log /dev/log local1 notice
+    user        haproxy
+    group       haproxy
 
 defaults
     log global
@@ -276,3 +370,5 @@ EOF
 
 * [编译安装haproxy-1.8](https://www.s4lm0x.com/archives/116.html)
 * [Configuration Manual version 1.8](http://cbonte.github.io/haproxy-dconv/1.8/configuration.html)
+* [How to install HAProxy load balancer on CentOS](https://upcloud.com/community/tutorials/haproxy-load-balancer-centos/)
+* [HAproxy指南之haproxy编译安装（安装篇）](https://blog.51cto.com/blief/1750573)

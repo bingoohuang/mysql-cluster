@@ -12,20 +12,26 @@ import (
 )
 
 func (s Settings) createMySQCluster() (sqls []string, err error) {
-	serverID := 0
-	serverID, sqls = s.createInitSqls()
+	seq := 0
+	seq, sqls = s.createInitSqls()
 
 	if len(sqls) == 0 {
 		logrus.Infof("InitMySQLCluster bypassed, nor master or slave for host %v", gonet.ListLocalIps())
-	} else {
-		err = s.execMultiSqls(sqls)
-		if err != nil {
-			return
-		}
-		err = s.fixMySQLConfServerID(serverID)
 	}
 
-	return
+	if err := s.execMultiSqls(sqls); err != nil {
+		return sqls, err
+	}
+
+	if err := s.fixMySQLConfServerID(seq); err != nil {
+		return sqls, err
+	}
+
+	if err := s.fixAutoIncrementOffset(seq); err != nil {
+		return sqls, err
+	}
+
+	return sqls, nil
 }
 
 func (s Settings) execMultiSqls(sqls []string) error {
@@ -97,6 +103,16 @@ func (s Settings) fixMySQLConfServerID(serverID int) error {
 	if err := ReplaceFileContent(s.MySQLCnf,
 		`(?i)server[-_]id\s*=\s*(\d+)`, fmt.Sprintf("%d", serverID)); err != nil {
 		return fmt.Errorf("fixMySQLConfServerID %s error %w", s.MySQLCnf, err)
+	}
+
+	return nil
+}
+
+// auto_increment_offset
+func (s Settings) fixAutoIncrementOffset(offset int) error {
+	if err := ReplaceFileContent(s.MySQLCnf,
+		`(?i)auto[-_]increment[-_]offset\s*=\s*(\d+)`, fmt.Sprintf("%d", offset)); err != nil {
+		return fmt.Errorf("fixAutoIncrementOffset %s error %w", s.MySQLCnf, err)
 	}
 
 	return nil
