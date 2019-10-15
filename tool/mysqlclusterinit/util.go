@@ -7,6 +7,11 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
+
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"github.com/tkrajina/go-reflector/reflector"
 )
 
 // ReplaceFileContent 使用正则表达式查找模式，并且替换正则1号捕获分组为指定的内容
@@ -79,4 +84,63 @@ func PrettyJSON(data interface{}) (string, error) {
 	}
 
 	return buffer.String(), nil
+}
+
+// DeclarePflagsByStruct declares flags from struct fields'name and type
+func DeclarePflagsByStruct(structVar interface{}) {
+	for _, f := range reflector.New(structVar).Fields() {
+		if !f.IsExported() {
+			continue
+		}
+
+		switch t, _ := f.Get(); t.(type) {
+		case []string:
+			pflag.StringP(f.Name(), "", "", f.Name())
+		case string:
+			pflag.StringP(f.Name(), "", "", f.Name())
+		case int:
+			pflag.IntP(f.Name(), "", 0, f.Name())
+		case bool:
+			pflag.BoolP(f.Name(), "", false, f.Name())
+		}
+	}
+}
+
+// ViperToStruct read viper value to struct
+func ViperToStruct(structVar interface{}) {
+	for _, f := range reflector.New(structVar).Fields() {
+		if !f.IsExported() {
+			continue
+		}
+
+		switch t, _ := f.Get(); t.(type) {
+		case []string:
+			value := viper.GetString(f.Name())
+			valueSlice := make([]string, 0)
+
+			for _, v := range strings.Split(value, ",") {
+				v = strings.TrimSpace(v)
+				if v != "" {
+					valueSlice = append(valueSlice, v)
+				}
+			}
+
+			if len(valueSlice) > 0 {
+				_ = f.Set(valueSlice)
+			}
+		case string:
+			value := viper.GetString(f.Name())
+			if value = strings.TrimSpace(value); value != "" {
+				_ = f.Set(value)
+			}
+		case int:
+			if value := viper.GetInt(f.Name()); value != 0 {
+				_ = f.Set(value)
+			}
+		case bool:
+			if value := viper.GetBool(f.Name()); value {
+				_ = f.Set(value)
+			}
+		}
+	}
 }

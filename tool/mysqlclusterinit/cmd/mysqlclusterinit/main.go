@@ -2,22 +2,24 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
-
-	"github.com/bingoohuang/gonet"
 
 	"github.com/BurntSushi/toml"
 	"github.com/bingoohuang/tool/mysqlclusterinit"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 func main() {
 	checkmysql := pflag.BoolP("checkmysql", "m", false, "check mysql")
 	ver := pflag.BoolP("version", "v", false, "show version")
-	testaddr := pflag.StringP("testaddr", "t", "", "test addr is local or not")
 	conf := pflag.StringP("config", "c", "./config.toml", "config file path")
+
+	mysqlclusterinit.DeclarePflagsByStruct(mysqlclusterinit.Settings{})
+
 	pflag.Parse()
 
 	args := pflag.Args()
@@ -29,20 +31,11 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Printf("Version: 1.2\n")
+		fmt.Printf("Version: 1.3\n")
 		return
 	}
 
-	if *testaddr != "" {
-		yes, _ := gonet.IsLocalAddr(*testaddr)
-		if yes {
-			fmt.Printf("%s is a local address\n", *testaddr)
-		} else {
-			fmt.Printf("%s is a non-local address\n", *testaddr)
-		}
-
-		return
-	}
+	_ = viper.BindPFlags(pflag.CommandLine)
 
 	configFile, _ := homedir.Expand(*conf)
 	settings := mustLoadConfig(configFile)
@@ -58,6 +51,10 @@ func main() {
 }
 
 func loadConfig(configFile string) (config mysqlclusterinit.Settings, err error) {
+	if mysqlclusterinit.FileExists(configFile) != nil {
+		return config, nil
+	}
+
 	if _, err = toml.DecodeFile(configFile, &config); err != nil {
 		logrus.Errorf("DecodeFile error %v", err)
 	}
@@ -66,16 +63,14 @@ func loadConfig(configFile string) (config mysqlclusterinit.Settings, err error)
 }
 
 func mustLoadConfig(configFile string) (config mysqlclusterinit.Settings) {
-	var err error
-	if config, err = loadConfig(configFile); err != nil {
-		logrus.Panic(err)
+	config, _ = loadConfig(configFile)
+	mysqlclusterinit.ViperToStruct(&config)
+
+	if config.ValidateAndSetDefault() != nil {
+		os.Exit(-1)
 	}
 
-	if config.Port <= 0 {
-		config.Port = 3306
-	}
-
-	logrus.Debugf("config: %+v\n", config)
+	logrus.Infof("config: %+v\n", mysqlclusterinit.PrettyJSONSilent(config))
 
 	return config
 }

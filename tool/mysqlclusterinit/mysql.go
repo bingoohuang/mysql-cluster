@@ -57,17 +57,29 @@ func (s Settings) execMultiSqls(sqls []string) error {
 	return nil
 }
 
+func (s Settings) isLocalAddr(addr string) bool {
+	if s.LocalAddr == addr {
+		return true
+	}
+
+	if yes, _ := gonet.IsLocalAddr(addr); yes {
+		return yes
+	}
+
+	return false
+}
+
 func (s Settings) createInitSqls() (int, []string) {
-	if yes, _ := gonet.IsLocalAddr(s.Master1Addr); yes {
+	if s.isLocalAddr(s.Master1Addr) {
 		return 1, s.initMasterSqls(1, s.Master2Addr)
 	}
 
-	if yes, _ := gonet.IsLocalAddr(s.Master2Addr); yes {
+	if s.isLocalAddr(s.Master2Addr) {
 		return 2, s.initMasterSqls(2, s.Master1Addr)
 	}
 
 	for seq, slaveIP := range s.SlaveAddrs {
-		if yes, _ := gonet.IsLocalAddr(slaveIP); yes {
+		if s.isLocalAddr(slaveIP) {
 			return seq + 3, s.initSlaveSqls(seq+3, s.Master2Addr)
 		}
 	}
@@ -100,6 +112,10 @@ func (s Settings) initSlaveSqls(serverID int, masterTo string) []string {
 }
 
 func (s Settings) fixMySQLConfServerID(serverID int) error {
+	if s.Debug {
+		return nil
+	}
+
 	if err := ReplaceFileContent(s.MySQLCnf,
 		`(?i)server[-_]id\s*=\s*(\d+)`, fmt.Sprintf("%d", serverID)); err != nil {
 		return fmt.Errorf("fixMySQLConfServerID %s error %w", s.MySQLCnf, err)
@@ -110,6 +126,10 @@ func (s Settings) fixMySQLConfServerID(serverID int) error {
 
 // auto_increment_offset
 func (s Settings) fixAutoIncrementOffset(offset int) error {
+	if s.Debug {
+		return nil
+	}
+
 	if err := ReplaceFileContent(s.MySQLCnf,
 		`(?i)auto[-_]increment[-_]offset\s*=\s*(\d+)`, fmt.Sprintf("%d", offset)); err != nil {
 		return fmt.Errorf("fixAutoIncrementOffset %s error %w", s.MySQLCnf, err)

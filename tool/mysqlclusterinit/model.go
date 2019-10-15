@@ -1,11 +1,16 @@
 package mysqlclusterinit
 
+import (
+	"github.com/sirupsen/logrus"
+	"gopkg.in/dealancer/validate.v2"
+)
+
 // Settings 表示舒适化MySQL集群所需要的参数结构
 type Settings struct {
-	Master1Addr  string   // Master1的地址(IP，域名)
-	Master2Addr  string   // Master2的地址(IP，域名)
+	Master1Addr  string   `validate:"empty=false"` // Master1的地址(IP，域名)
+	Master2Addr  string   `validate:"empty=false"` // Master2的地址(IP，域名)
 	SlaveAddrs   []string // Slave的地址(IP，域名)
-	RootPassword string   // Root用户密码
+	RootPassword string   `validate:"empty=false"` // Root用户密码
 	Port         int      // MySQL 端口号
 	ReplUsr      string   // 复制用用户名
 	ReplPassword string   // 复制用户密码
@@ -15,6 +20,39 @@ type Settings struct {
 	HAProxyCfg   string   // HAProxy配置文件地址，
 	// 例如：/etc/haproxy/haproxy.cfg, /etc/opt/rh/rh-haproxy18/haproxy/haproxy.cfg
 	HAProxyRestartShell string // HAProxy重启命令
+}
+
+func (s *Settings) ValidateAndSetDefault() error {
+	if err := validate.Validate(s); err != nil {
+		logrus.Errorf("error %v", err)
+		return err
+	}
+
+	if s.Port <= 0 {
+		s.Port = 3306
+	}
+
+	if s.ReplUsr == "" {
+		s.ReplUsr = "repl"
+	}
+
+	if s.ReplPassword == "" {
+		s.ReplPassword = "984d-CE5679F93918"
+	}
+
+	if s.MySQLCnf == "" {
+		s.MySQLCnf = "/etc/my.cnf"
+	}
+
+	if s.HAProxyCfg == "" {
+		s.HAProxyCfg = "/etc/haproxy/haproxy.cfg"
+	}
+
+	if s.HAProxyRestartShell == "" {
+		s.HAProxyRestartShell = "systemctl restart haproxy"
+	}
+
+	return nil
 }
 
 // Result 表示初始化结果

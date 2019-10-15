@@ -11,5 +11,5 @@ MySQLCnf     = "/etc/mysql/conf.d/my.cnf" # MySQL 配置文件的地址
 HAProxyCfg   = "/usr/local/etc/haproxy/haproxy.cfg" # HAProxy配置文件地址
 # HAProxyCfg   = "/etc/opt/rh/rh-haproxy18/haproxy/haproxy.cfg" # HAProxy配置文件地址
 HAProxyRestartShell = "" # HAProxy重启命令
-# HAProxyRestartShell = "systemctl restart rh-haproxy18-haproxy" # HAProxy重启命令
-# systemctl status rh-haproxy18-haproxy
+# HAProxyRestartShell = "systemctl restart haproxy" # HAProxy重启命令
+# systemctl status haproxy
