@@ -1,6 +1,7 @@
 package mysqlclusterinit
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -34,14 +35,24 @@ func (s Settings) createMySQCluster() (sqls []string, err error) {
 	return sqls, nil
 }
 
+func (s Settings) MustOpenDB() *sql.DB {
+	ds := fmt.Sprintf("root:%s@tcp(127.0.0.1:%d)/", s.RootPassword, s.Port)
+	logrus.Infof("mysql ds:%s", ds)
+
+	return sqlmore.NewSQLMore("mysql", ds).MustOpen()
+}
+
+func (s Settings) MustOpenGormDB() *gorm.DB {
+	gdb, _ := gorm.Open("mysql", s.MustOpenDB())
+	return gdb
+}
+
 func (s Settings) execMultiSqls(sqls []string) error {
 	if s.Debug {
 		return nil
 	}
 
-	ds := fmt.Sprintf("root:%s@tcp(127.0.0.1:%d)/", s.RootPassword, s.Port)
-	db := sqlmore.NewSQLMore("mysql", ds).MustOpen()
-
+	db := s.MustOpenDB()
 	defer db.Close()
 
 	for _, sqlStr := range sqls {

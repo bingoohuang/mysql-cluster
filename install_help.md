@@ -59,6 +59,20 @@
     > 注意：mysql 5.7 默认安装了密码安全检查插件（validate_password），默认密码检查策略要求密码必须包含：大小写字母、数字和特殊符号，并且长度不能少于8位。
     > 否则会提示 ERROR 1819 (HY000): Your password does not satisfy the current policy requirements 错误。
 
+    ```sql
+    use mysql;
+
+    update user set host='localhost' where user='root';
+    flush privileges; -- 只允许root在本机登录
+
+    update user set host='%' where user='root';
+    flush privileges; -- 允许root远程访问
+    ```
+
+Remarks:
+
+1. `MYSQL_PWD=\!QAZ2wsx mysql -S /usr/local/mysql/data/mysql.sock -uroot -P13306`, default /tmp/mysql.sock
+
 Thanks:
 
 * [CentOS 7 下 MySQL 5.7 的安装与配置](https://www.jianshu.com/p/1dab9a4d0d5f)
