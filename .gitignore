@@ -18,3 +18,4 @@ centos7/mysql-community-server-5.7.27-1.el7.x86_64/mysql-community-server-5.7.27
 centos7/mysqlclusterinit/mysql
 centos7/mysqlclusterinit/mysqlclusterinit
 centos7/haproxy-1.8.21/haproxy
+.vagrant
