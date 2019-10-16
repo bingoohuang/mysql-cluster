@@ -26,8 +26,7 @@ func main() {
 	if len(args) > 0 {
 		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
 		pflag.PrintDefaults()
-
-		return
+		os.Exit(1)
 	}
 
 	if *ver {
@@ -47,6 +46,7 @@ func main() {
 
 	if r := settings.InitMySQLCluster(); r.Error != nil {
 		logrus.Errorf("error %v", r.Error)
+		os.Exit(1)
 	}
 }
 
@@ -67,7 +67,7 @@ func mustLoadConfig(configFile string) (config mysqlclusterinit.Settings) {
 	mysqlclusterinit.ViperToStruct(&config)
 
 	if config.ValidateAndSetDefault() != nil {
-		os.Exit(-1)
+		os.Exit(1)
 	}
 
 	logrus.Infof("config: %+v\n", mysqlclusterinit.PrettyJSONSilent(config))
