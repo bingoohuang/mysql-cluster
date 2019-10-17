@@ -34,6 +34,8 @@ func main() {
 		return
 	}
 
+	viper.SetEnvPrefix("MCI")
+	viper.AutomaticEnv()
 	_ = viper.BindPFlags(pflag.CommandLine)
 
 	configFile, _ := homedir.Expand(*conf)
