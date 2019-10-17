@@ -176,8 +176,8 @@ Thanks:
 
 1. 从公网下载到本机
     * `sudo yum install yum-plugin-downloadonly`
-    * `yum install centos-release-scl`
-    * `yum install --downloadonly --downloaddir=/vagrant/haproxy18 rh-haproxy18-haproxy rh-haproxy18-haproxy-syspaths`
+    * `sudo yum install -y centos-release-scl`
+    * `sudo yum install -y --downloadonly --downloaddir=/vagrant/haproxy18 rh-haproxy18-haproxy rh-haproxy18-haproxy-syspaths`
 
 1. 从本机上传到目标机器
     * `sshpass -p mima scp -P1122 -o StrictHostKeyChecking=no ./*.rpm root@192.168.1.23:./haproxy/`
