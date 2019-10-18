@@ -6,7 +6,7 @@ import (
 	"gopkg.in/dealancer/validate.v2"
 )
 
-// Settings 表示舒适化MySQL集群所需要的参数结构
+// Settings 表示初始化化MySQL集群所需要的参数结构
 type Settings struct {
 	Master1Addr  string   `validate:"empty=false"` // Master1的地址(IP，域名)
 	Master2Addr  string   `validate:"empty=false"` // Master2的地址(IP，域名)
