@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/bingoohuang/gonet v0.0.0-20191012100604-b7ba4a88f75b
 	github.com/bingoohuang/sqlmore v0.0.0-20190711152446-8687de30af5c
+	github.com/creasty/defaults v1.3.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gobars/cmd v0.0.0-20190805053627-b12a1f0df5b0
 	github.com/jinzhu/gorm v1.9.10
