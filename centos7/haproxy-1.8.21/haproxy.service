@@ -5,8 +5,8 @@ Description=HAProxy Load Balancer
 After=syslog.target network.target
 
 [Service]
-User=haproxy
-Group=haproxy
+# User=haproxy
+# Group=haproxy
 Environment="CONFIG=/etc/haproxy.cfg" "PIDFILE=/run/haproxy.pid"
 ExecStartPre=/usr/sbin/haproxy -f $CONFIG -c -q
 ExecStart=/usr/sbin/haproxy -Ws -f $CONFIG -p $PIDFILE
