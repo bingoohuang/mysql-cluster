@@ -39,3 +39,24 @@ func TestReplaceFileContent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "START\nHAHA\nEND", s)
 }
+
+func TestSearchPatternLines(t *testing.T) {
+	s, err := mysqlclusterinit.SearchPatternLines(`START
+listen mysql-rw
+  bind 127.0.0.1:13306
+  mode tcp
+  option tcpka
+  server mysql-1 10.0.0.1:3306 check inter 1s
+  server mysql-2 10.0.0.2:3306 check inter 1s backup
+
+listen mysql-ro
+  bind 127.0.0.1:23306
+  mode tcp
+  option tcpka
+  server mysql-1 10.0.0.1:3306 check inter 1s
+  server mysql-2 10.0.0.2:3306 check inter 1s
+  server mysql-3 10.0.0.3:3306 check inter 1s
+END`, `(?is)mysql-ro(.+)END`, `(?i)server\s+\S+\s(\d+(\.\d+){3})(:\d+)?`)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"10.0.0.1", "10.0.0.2", "10.0.0.3"}, s)
+}

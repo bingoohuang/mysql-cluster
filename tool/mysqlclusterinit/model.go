@@ -1,6 +1,7 @@
 package mysqlclusterinit
 
 import (
+	"github.com/bingoohuang/goreflect"
 	"github.com/creasty/defaults"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/dealancer/validate.v2"
@@ -23,18 +24,31 @@ type Settings struct {
 	HAProxyRestartShell string `default:"systemctl restart haproxy"` // HAProxy重启命令
 }
 
-func (s *Settings) ValidateAndSetDefault() error {
-	if err := validate.Validate(s); err != nil {
-		logrus.Errorf("error %v", err)
-		return err
+type SettingsOption int
+
+const (
+	Validate SettingsOption = iota
+	SetDefault
+)
+
+func (s *Settings) ValidateAndSetDefault(options ...SettingsOption) error {
+	if goreflect.SliceContains(options, Validate) {
+		if err := validate.Validate(s); err != nil {
+			logrus.Errorf("error %v", err)
+			return err
+		}
 	}
 
-	if err := defaults.Set(s); err != nil {
-		logrus.Errorf("defaults set %v", err)
-		return err
+	if goreflect.SliceContains(options, SetDefault) {
+		if err := defaults.Set(s); err != nil {
+			logrus.Errorf("defaults set %v", err)
+			return err
+		}
 	}
 
-	logrus.Infof("config: %+v\n", PrettyJSONSilent(s))
+	if s.Debug {
+		logrus.Infof("config: %+v\n", PrettyJSONSilent(s))
+	}
 
 	return nil
 }

@@ -110,6 +110,7 @@ func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
 		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+
 			"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
 		"STOP SLAVE",
+		"RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
 			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
 		"START SLAVE",
@@ -120,6 +121,7 @@ func (s Settings) initSlaveSqls(serverID int, masterTo string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
 		"STOP SLAVE",
+		"RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
 			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
 		"START SLAVE",

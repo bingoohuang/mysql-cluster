@@ -12,7 +12,7 @@ import (
 
 // InitMySQLCluster 初始化MySQL Master-Master集群
 func (s Settings) InitMySQLCluster() (r Result, err error) {
-	if s.ValidateAndSetDefault() != nil {
+	if s.ValidateAndSetDefault(Validate, SetDefault) != nil {
 		os.Exit(1)
 	}
 

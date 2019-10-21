@@ -44,6 +44,7 @@ func TestMaster1(t *testing.T) {
 		"CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"STOP SLAVE",
+		"RESET SLAVE",
 		"CHANGE MASTER TO master_host='10.0.0.2', master_port=3306, " +
 			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",
@@ -71,6 +72,7 @@ func TestMaster2(t *testing.T) {
 		"CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"STOP SLAVE",
+		"RESET SLAVE",
 		"CHANGE MASTER TO master_host='10.0.0.1', master_port=3306, " +
 			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",
@@ -95,6 +97,7 @@ func TestSlave(t *testing.T) {
 	assert.Equal(t, []string{
 		"SET GLOBAL server_id=3",
 		"STOP SLAVE",
+		"RESET SLAVE",
 		"CHANGE MASTER TO master_host='10.0.0.2', master_port=3306, " +
 			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",

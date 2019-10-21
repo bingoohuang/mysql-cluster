@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -14,6 +16,7 @@ import (
 )
 
 func main() {
+	readips := pflag.BoolP("readips", "r", false, "read haproxy server ips")
 	checkmysql := pflag.BoolP("checkmysql", "m", false, "check mysql")
 	ver := pflag.BoolP("version", "v", false, "show version")
 	conf := pflag.StringP("config", "c", "./config.toml", "config file path")
@@ -30,7 +33,7 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Printf("Version: 1.3.1\n")
+		fmt.Printf("Version: 1.3.2\n")
 		return
 	}
 
@@ -43,6 +46,13 @@ func main() {
 
 	if *checkmysql {
 		settings.CheckMySQL()
+	}
+
+	if *readips {
+		settings.CheckHAProxyServers()
+	}
+
+	if *checkmysql || *readips {
 		return
 	}
 
@@ -52,16 +62,31 @@ func main() {
 	}
 }
 
-func loadConfig(configFile string) (config mysqlclusterinit.Settings, err error) {
-	if mysqlclusterinit.FileExists(configFile) != nil {
-		return config, nil
+func findConfigFile(configFile string) (string, error) {
+	if mysqlclusterinit.FileExists(configFile) == nil {
+		return configFile, nil
 	}
 
-	if _, err = toml.DecodeFile(configFile, &config); err != nil {
+	if ex, err := os.Executable(); err == nil {
+		exPath := filepath.Dir(ex)
+		configFile = filepath.Join(exPath, "config.toml")
+	}
+
+	if mysqlclusterinit.FileExists(configFile) == nil {
+		return configFile, nil
+	}
+
+	return "", errors.New("unable to find config file")
+}
+
+func loadConfig(configFile string) (config mysqlclusterinit.Settings, err error) {
+	if file, err := findConfigFile(configFile); err != nil {
+		return config, err
+	} else if _, err = toml.DecodeFile(file, &config); err != nil {
 		logrus.Errorf("DecodeFile error %v", err)
 	}
 
-	return
+	return config, err
 }
 
 func mustLoadConfig(configFile string) (config mysqlclusterinit.Settings) {

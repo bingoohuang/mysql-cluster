@@ -40,6 +40,39 @@ func FileExists(filename string) error {
 	return nil
 }
 
+// SearchPatternLines 使用正则表达式boundaryRegexStr查找大块，然后在大块中用captureGroup1Regex中的每行寻找匹配
+func SearchPatternLinesInFile(filename, boundaryRegexStr, captureGroup1Regex string) ([]string, error) {
+	str, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("ReadFile %s error %w", filename, err)
+	}
+
+	return SearchPatternLines(string(str), boundaryRegexStr, captureGroup1Regex)
+}
+
+// SearchPatternLines 使用正则表达式boundaryRegexStr查找大块，然后在大块中用captureGroup1Regex中的每行寻找匹配
+func SearchPatternLines(str, boundaryRegexStr, captureGroup1Regex string) ([]string, error) {
+	re, err := regexp.Compile(boundaryRegexStr)
+	if err != nil {
+		return nil, err
+	}
+
+	ce, err := regexp.Compile(captureGroup1Regex)
+	if err != nil {
+		return nil, err
+	}
+
+	var lines []string
+
+	for _, v := range re.FindAllStringSubmatch(str, -1) {
+		for _, l := range ce.FindAllStringSubmatch(v[1], -1) {
+			lines = append(lines, l[1])
+		}
+	}
+
+	return lines, nil
+}
+
 // ReplaceContent 使用正则表达式查找模式，并且替换正则1号捕获分组为指定的内容
 func ReplaceContent(str, regexStr, repl string) (string, error) {
 	re, err := regexp.Compile(regexStr)
