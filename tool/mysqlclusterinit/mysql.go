@@ -73,6 +73,10 @@ func (s Settings) isLocalAddr(addr string) bool {
 		return true
 	}
 
+	if s.LocalAddr != "" {
+		return false
+	}
+
 	if yes, _ := gonet.IsLocalAddr(addr); yes {
 		return yes
 	}

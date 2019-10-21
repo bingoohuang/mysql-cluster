@@ -34,12 +34,13 @@ func (s *Settings) ValidateAndSetDefault() error {
 		return err
 	}
 
+	logrus.Infof("config: %+v\n", PrettyJSONSilent(s))
+
 	return nil
 }
 
 // Result 表示初始化结果
 type Result struct {
-	Error   error
 	Sqls    []string
 	HAProxy string
 }

@@ -30,7 +30,7 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Printf("Version: 1.3\n")
+		fmt.Printf("Version: 1.3.1\n")
 		return
 	}
 
@@ -46,8 +46,8 @@ func main() {
 		return
 	}
 
-	if r := settings.InitMySQLCluster(); r.Error != nil {
-		logrus.Errorf("error %v", r.Error)
+	if _, err := settings.InitMySQLCluster(); err != nil {
+		logrus.Errorf("error %v", err)
 		os.Exit(1)
 	}
 }
@@ -67,12 +67,6 @@ func loadConfig(configFile string) (config mysqlclusterinit.Settings, err error)
 func mustLoadConfig(configFile string) (config mysqlclusterinit.Settings) {
 	config, _ = loadConfig(configFile)
 	mysqlclusterinit.ViperToStruct(&config)
-
-	if config.ValidateAndSetDefault() != nil {
-		os.Exit(1)
-	}
-
-	logrus.Infof("config: %+v\n", mysqlclusterinit.PrettyJSONSilent(config))
 
 	return config
 }

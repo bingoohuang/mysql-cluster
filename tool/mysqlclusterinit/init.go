@@ -1,6 +1,7 @@
 package mysqlclusterinit
 
 import (
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -10,9 +11,13 @@ import (
 )
 
 // InitMySQLCluster 初始化MySQL Master-Master集群
-func (s Settings) InitMySQLCluster() (r Result) {
-	if r.Sqls, r.Error = s.createMySQCluster(); r.Error != nil {
-		return r
+func (s Settings) InitMySQLCluster() (r Result, err error) {
+	if s.ValidateAndSetDefault() != nil {
+		os.Exit(1)
+	}
+
+	if r.Sqls, err = s.createMySQCluster(); err != nil {
+		return r, err
 	}
 
 	r.HAProxy = s.createHAProxyConfig()
@@ -21,16 +26,16 @@ func (s Settings) InitMySQLCluster() (r Result) {
 		logrus.Infof("SQL:%s", strings.Join(r.Sqls, ";\n"))
 		logrus.Infof("HAProxy:%s", r.HAProxy)
 
-		return r
+		return r, err
 	}
 
-	if s.overwriteHAProxyCnf(&r); r.Error != nil {
-		return r
+	if err := s.overwriteHAProxyCnf(&r); err != nil {
+		return r, err
 	}
 
-	if s.restartHAProxy(&r); r.Error != nil {
-		return r
+	if err := s.restartHAProxy(); err != nil {
+		return r, err
 	}
 
-	return r
+	return r, err
 }

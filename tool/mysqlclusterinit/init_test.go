@@ -9,14 +9,14 @@ import (
 
 const ha = `
 listen mysql-rw
-  bind 0.0.0.0:13306
+  bind 127.0.0.1:13306
   mode tcp
   option tcpka
   server mysql-1 10.0.0.1:3306 check inter 1s
   server mysql-2 10.0.0.2:3306 check inter 1s backup
 
 listen mysql-ro
-  bind 0.0.0.0:23306
+  bind 127.0.0.1:23306
   mode tcp
   option tcpka
   server mysql-1 10.0.0.1:3306 check inter 1s
@@ -29,7 +29,6 @@ func TestMaster1(t *testing.T) {
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
 		RootPassword: "123456",
-		Port:         3306,
 		ReplUsr:      "repl",
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
@@ -37,11 +36,12 @@ func TestMaster1(t *testing.T) {
 		LocalAddr:    "10.0.0.1",
 	}
 
-	result := settings.InitMySQLCluster()
-	assert.Nil(t, result.Error)
+	result, err := settings.InitMySQLCluster()
+	assert.Nil(t, err)
 	assert.Equal(t, []string{
 		"SET GLOBAL server_id=1",
-		"CREATE USER 'repl'@'%'",
+		"DROP USER IF EXISTS 'repl'@'%'",
+		"CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"STOP SLAVE",
 		"CHANGE MASTER TO master_host='10.0.0.2', master_port=3306, " +
@@ -56,7 +56,6 @@ func TestMaster2(t *testing.T) {
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
 		RootPassword: "123456",
-		Port:         3306,
 		ReplUsr:      "repl",
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
@@ -64,11 +63,12 @@ func TestMaster2(t *testing.T) {
 		LocalAddr:    "10.0.0.2",
 	}
 
-	result := settings.InitMySQLCluster()
-	assert.Nil(t, result.Error)
+	result, err := settings.InitMySQLCluster()
+	assert.Nil(t, err)
 	assert.Equal(t, []string{
 		"SET GLOBAL server_id=2",
-		"CREATE USER 'repl'@'%'",
+		"DROP USER IF EXISTS 'repl'@'%'",
+		"CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"STOP SLAVE",
 		"CHANGE MASTER TO master_host='10.0.0.1', master_port=3306, " +
@@ -83,7 +83,6 @@ func TestSlave(t *testing.T) {
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
 		RootPassword: "123456",
-		Port:         3306,
 		ReplUsr:      "repl",
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
@@ -91,8 +90,8 @@ func TestSlave(t *testing.T) {
 		LocalAddr:    "10.0.0.3",
 	}
 
-	result := settings.InitMySQLCluster()
-	assert.Nil(t, result.Error)
+	result, err := settings.InitMySQLCluster()
+	assert.Nil(t, err)
 	assert.Equal(t, []string{
 		"SET GLOBAL server_id=3",
 		"STOP SLAVE",
@@ -107,7 +106,6 @@ func TestNone(t *testing.T) {
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
 		RootPassword: "123456",
-		Port:         3306,
 		ReplUsr:      "repl",
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
@@ -115,8 +113,8 @@ func TestNone(t *testing.T) {
 		LocalAddr:    "",
 	}
 
-	result := settings.InitMySQLCluster()
-	assert.Nil(t, result.Error)
+	result, err := settings.InitMySQLCluster()
+	assert.Nil(t, err)
 	assert.Equal(t, []string{}, result.Sqls)
 	assert.Equal(t, ha, result.HAProxy)
 }

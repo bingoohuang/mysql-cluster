@@ -36,41 +36,43 @@ listen mysql-ro
 	return rwConfig + rConfig
 }
 
-func (s Settings) restartHAProxy(r *Result) {
+func (s Settings) restartHAProxy() error {
 	if s.HAProxyRestartShell == "" {
 		logrus.Warnf("HAProxyRestartShell is empty")
-		return
+		return nil
 	}
 
 	_, status := cmd.Bash(s.HAProxyRestartShell, cmd.Timeout(5*time.Second), cmd.Buffered(false))
 	if status.Error != nil {
-		r.Error = status.Error
-		return
+		return status.Error
 	}
 
 	if status.Exit != 0 {
-		r.Error = fmt.Errorf("error exiting code %d, stdout:%s, stderr:%s",
+		return fmt.Errorf("error exiting code %d, stdout:%s, stderr:%s",
 			status.Exit, status.Stdout, status.Stderr)
-		return
 	}
+
+	return nil
 }
 
-func (s Settings) overwriteHAProxyCnf(r *Result) {
+func (s Settings) overwriteHAProxyCnf(r *Result) error {
 	if s.HAProxyCfg == "" {
-		r.Error = errors.New("HAProxyCfg required")
-		return
+		return errors.New("HAProxyCfg required")
 	}
 
-	if r.Error = FileExists(s.HAProxyCfg); r.Error != nil {
-		return
+	if err := FileExists(s.HAProxyCfg); err != nil {
+		return err
 	}
 
 	logrus.Infof("prepare to overwriteHAProxyCnf %s", r.HAProxy)
 
-	if r.Error = ReplaceFileContent(s.HAProxyCfg,
-		`(?is)#\s*MySQLClusterConfigStart(.+)#\s*MySQLClusterConfigEnd`, r.HAProxy); r.Error == nil {
-		logrus.Infof("overwriteHAProxyCnf completed")
-	} else {
-		logrus.Warnf("overwriteHAProxyCnf error: %v", r.Error)
+	if err := ReplaceFileContent(s.HAProxyCfg,
+		`(?is)#\s*MySQLClusterConfigStart(.+)#\s*MySQLClusterConfigEnd`, r.HAProxy); err != nil {
+		logrus.Warnf("overwriteHAProxyCnf error: %v", err)
+		return err
 	}
+
+	logrus.Infof("overwriteHAProxyCnf completed")
+
+	return nil
 }
