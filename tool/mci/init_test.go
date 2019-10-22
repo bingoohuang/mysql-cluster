@@ -1,9 +1,9 @@
-package mysqlclusterinit_test
+package mci_test
 
 import (
 	"testing"
 
-	"github.com/bingoohuang/tool/mysqlclusterinit"
+	"github.com/bingoohuang/tool/mci"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +25,7 @@ listen mysql-ro
 `
 
 func TestMaster1(t *testing.T) {
-	settings := &mysqlclusterinit.Settings{
+	settings := &mci.Settings{
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
 		RootPassword: "123456",
@@ -53,7 +53,7 @@ func TestMaster1(t *testing.T) {
 }
 
 func TestMaster2(t *testing.T) {
-	settings := &mysqlclusterinit.Settings{
+	settings := &mci.Settings{
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
 		RootPassword: "123456",
@@ -81,7 +81,7 @@ func TestMaster2(t *testing.T) {
 }
 
 func TestSlave(t *testing.T) {
-	settings := &mysqlclusterinit.Settings{
+	settings := &mci.Settings{
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
 		RootPassword: "123456",
@@ -105,7 +105,7 @@ func TestSlave(t *testing.T) {
 }
 
 func TestNone(t *testing.T) {
-	settings := &mysqlclusterinit.Settings{
+	settings := &mci.Settings{
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
 		RootPassword: "123456",

@@ -1,4 +1,4 @@
-package mysqlclusterinit
+package mci
 
 import (
 	"bytes"
@@ -8,6 +8,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -21,7 +23,7 @@ func ReplaceFileContent(filename, regexStr, repl string) error {
 		return fmt.Errorf("ReadFile %s error %w", filename, err)
 	}
 
-	fixed, err := ReplaceContent(string(conf), regexStr, repl)
+	fixed, err := ReplaceRegexGroup1(string(conf), regexStr, repl)
 	if err != nil {
 		return err
 	}
@@ -50,31 +52,49 @@ func SearchPatternLinesInFile(filename, boundaryRegexStr, captureGroup1Regex str
 	return SearchPatternLines(string(str), boundaryRegexStr, captureGroup1Regex)
 }
 
-// SearchPatternLines 使用正则表达式boundaryRegexStr查找大块，然后在大块中用captureGroup1Regex中的每行寻找匹配
+// SearchPatternLines 使用正则表达式boundaryRegexStr在str中查找大块，然后在大块中用captureGroup1Regex中的每行寻找匹配
 func SearchPatternLines(str, boundaryRegexStr, captureGroup1Regex string) ([]string, error) {
-	re, err := regexp.Compile(boundaryRegexStr)
+	founds, err := FindRegexGroup1(str, boundaryRegexStr)
 	if err != nil {
 		return nil, err
 	}
 
-	ce, err := regexp.Compile(captureGroup1Regex)
-	if err != nil {
-		return nil, err
-	}
+	lines := make([]string, 0)
 
-	var lines []string
-
-	for _, v := range re.FindAllStringSubmatch(str, -1) {
-		for _, l := range ce.FindAllStringSubmatch(v[1], -1) {
-			lines = append(lines, l[1])
+	for _, v := range founds {
+		vv, err := FindRegexGroup1(v, captureGroup1Regex)
+		if err != nil {
+			return nil, err
 		}
+
+		lines = append(lines, vv...)
 	}
 
 	return lines, nil
 }
 
-// ReplaceContent 使用正则表达式查找模式，并且替换正则1号捕获分组为指定的内容
-func ReplaceContent(str, regexStr, repl string) (string, error) {
+// FindRegexGroup1 使用正则表达式regexStr在str中查找内容
+func FindRegexGroup1(str, regexStr string) ([]string, error) {
+	re, err := regexp.Compile(regexStr)
+	if err != nil {
+		return nil, err
+	}
+
+	group1s := make([]string, 0)
+
+	for _, v := range re.FindAllStringSubmatch(str, -1) {
+		if len(v) < 2 {
+			return nil, fmt.Errorf("regexp %s should have at least one capturing group", regexStr)
+		}
+
+		group1s = append(group1s, v[1])
+	}
+
+	return group1s, nil
+}
+
+// ReplaceRegexGroup1 使用正则表达式regexStr在str中查找内容，并且替换正则1号捕获分组为指定的内容
+func ReplaceRegexGroup1(str, regexStr, repl string) (string, error) {
 	re, err := regexp.Compile(regexStr)
 	if err != nil {
 		return "", err
@@ -84,8 +104,8 @@ func ReplaceContent(str, regexStr, repl string) (string, error) {
 	lastIndex := 0
 
 	for _, v := range re.FindAllStringSubmatchIndex(str, -1) {
-		if len(v) != 4 {
-			return "", fmt.Errorf("regexp %s should have only one capturing group", regexStr)
+		if len(v) < 4 {
+			return "", fmt.Errorf("regexp %s should have at least one capturing group", regexStr)
 		}
 
 		fixed += str[lastIndex:v[2]] + repl
@@ -99,14 +119,14 @@ func ReplaceContent(str, regexStr, repl string) (string, error) {
 	return fixed + str[lastIndex:], nil
 }
 
-// PrettyJSONSilent prettify the JSON encoding of data silently
-func PrettyJSONSilent(data interface{}) string {
-	p, _ := PrettyJSON(data)
+// JSONPretty prettify the JSON encoding of data silently
+func JSONPretty(data interface{}) string {
+	p, _ := JSONPrettyE(data)
 	return p
 }
 
-// PrettyJSON prettify the JSON encoding of data
-func PrettyJSON(data interface{}) (string, error) {
+// JSONPrettyE prettify the JSON encoding of data
+func JSONPrettyE(data interface{}) (string, error) {
 	buffer := new(bytes.Buffer)
 	encoder := json.NewEncoder(buffer)
 	encoder.SetIndent("", "\t")
@@ -148,7 +168,7 @@ func ViperToStruct(structVar interface{}) {
 
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			value := viper.GetString(f.Name())
+			value := strings.TrimSpace(viper.GetString(f.Name()))
 			valueSlice := make([]string, 0)
 
 			for _, v := range strings.Split(value, ",") {
@@ -159,20 +179,27 @@ func ViperToStruct(structVar interface{}) {
 			}
 
 			if len(valueSlice) > 0 {
-				_ = f.Set(valueSlice)
+				if err := f.Set(valueSlice); err != nil {
+					logrus.Warnf("Fail to set %s to value %v, error %v", f.Name(), value, err)
+				}
 			}
 		case string:
-			value := viper.GetString(f.Name())
-			if value = strings.TrimSpace(value); value != "" {
-				_ = f.Set(value)
+			if value := strings.TrimSpace(viper.GetString(f.Name())); value != "" {
+				if err := f.Set(value); err != nil {
+					logrus.Warnf("Fail to set %s to value %v, error %v", f.Name(), value, err)
+				}
 			}
 		case int:
 			if value := viper.GetInt(f.Name()); value != 0 {
-				_ = f.Set(value)
+				if err := f.Set(value); err != nil {
+					logrus.Warnf("Fail to set %s to value %v, error %v", f.Name(), value, err)
+				}
 			}
 		case bool:
 			if value := viper.GetBool(f.Name()); value {
-				_ = f.Set(value)
+				if err := f.Set(value); err != nil {
+					logrus.Warnf("Fail to set %s to value %v, error %v", f.Name(), value, err)
+				}
 			}
 		}
 	}

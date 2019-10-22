@@ -1,4 +1,4 @@
-package mysqlclusterinit
+package mci
 
 import (
 	"github.com/bingoohuang/goreflect"
@@ -47,7 +47,7 @@ func (s *Settings) ValidateAndSetDefault(options ...SettingsOption) error {
 	}
 
 	if s.Debug {
-		logrus.Infof("config: %+v\n", PrettyJSONSilent(s))
+		logrus.Infof("config: %+v\n", JSONPretty(s))
 	}
 
 	return nil

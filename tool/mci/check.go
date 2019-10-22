@@ -1,4 +1,4 @@
-package mysqlclusterinit
+package mci
 
 import (
 	"fmt"
@@ -16,11 +16,11 @@ func (s Settings) CheckMySQL() {
 	}
 
 	if status, err := ShowSlaveStatus(db); err == nil {
-		fmt.Printf("ShowSlaveStatus:%s\n", PrettyJSONSilent(status))
+		fmt.Printf("ShowSlaveStatus:%s\n", JSONPretty(status))
 	}
 
 	if variables, err := ShowVariables(db); err == nil {
-		fmt.Printf("Variables:%s\n", PrettyJSONSilent(variables))
+		fmt.Printf("Variables:%s\n", JSONPretty(variables))
 	}
 }
 

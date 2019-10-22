@@ -1,4 +1,4 @@
-# mysqlclusterinit
+# mci(mysqlclusterinit)
 
 a tool to setup MySQL cluster-cluster and haproxy config.
 
@@ -73,7 +73,7 @@ listen mysql-ro
 ```
 
 ```bash
-# ./mysqlclusterinit -m -c tool-config.toml
+# ./mci -m -c tool-config.toml
 ShowSlaveStatus:{
 	"SlaveIOState": "Connecting to master",
 	"MasterHost": "mysqlmaster2",

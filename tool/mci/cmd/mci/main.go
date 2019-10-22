@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bingoohuang/tool/mysqlclusterinit"
+	"github.com/bingoohuang/tool/mci"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -21,7 +21,7 @@ func main() {
 	ver := pflag.BoolP("version", "v", false, "show version")
 	conf := pflag.StringP("config", "c", "./config.toml", "config file path")
 
-	mysqlclusterinit.DeclarePflagsByStruct(mysqlclusterinit.Settings{})
+	mci.DeclarePflagsByStruct(mci.Settings{})
 
 	pflag.Parse()
 
@@ -63,7 +63,7 @@ func main() {
 }
 
 func findConfigFile(configFile string) (string, error) {
-	if mysqlclusterinit.FileExists(configFile) == nil {
+	if mci.FileExists(configFile) == nil {
 		return configFile, nil
 	}
 
@@ -72,14 +72,14 @@ func findConfigFile(configFile string) (string, error) {
 		configFile = filepath.Join(exPath, "config.toml")
 	}
 
-	if mysqlclusterinit.FileExists(configFile) == nil {
+	if mci.FileExists(configFile) == nil {
 		return configFile, nil
 	}
 
 	return "", errors.New("unable to find config file")
 }
 
-func loadConfig(configFile string) (config mysqlclusterinit.Settings, err error) {
+func loadConfig(configFile string) (config mci.Settings, err error) {
 	if file, err := findConfigFile(configFile); err != nil {
 		return config, err
 	} else if _, err = toml.DecodeFile(file, &config); err != nil {
@@ -89,9 +89,9 @@ func loadConfig(configFile string) (config mysqlclusterinit.Settings, err error)
 	return config, err
 }
 
-func mustLoadConfig(configFile string) (config mysqlclusterinit.Settings) {
+func mustLoadConfig(configFile string) (config mci.Settings) {
 	config, _ = loadConfig(configFile)
-	mysqlclusterinit.ViperToStruct(&config)
+	mci.ViperToStruct(&config)
 
 	return config
 }

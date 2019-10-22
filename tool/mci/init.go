@@ -1,4 +1,4 @@
-package mysqlclusterinit
+package mci
 
 import (
 	"os"

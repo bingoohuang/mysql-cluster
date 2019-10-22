@@ -1,4 +1,4 @@
-package mysqlclusterinit
+package mci
 
 import (
 	"database/sql"
@@ -102,6 +102,12 @@ func (s Settings) createInitSqls() (int, []string) {
 	return 0, []string{}
 }
 
+// https://dev.mysql.com/doc/refman/5.7/en/reset-slave.html
+// RESET SLAVE makes the slave forget its replication position in the master's binary log.
+// This statement is meant to be used for a clean start: It clears the master info
+// and relay log info repositories, deletes all the relay log files,
+// and starts a new relay log file. It also resets to 0 the replication delay specified
+// with the MASTER_DELAY option to CHANGE MASTER TO.
 func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
@@ -109,8 +115,7 @@ func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
 		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
 		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+
 			"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
-		"STOP SLAVE",
-		"RESET SLAVE",
+		"STOP SLAVE", "RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
 			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
 		"START SLAVE",
@@ -120,8 +125,7 @@ func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
 func (s Settings) initSlaveSqls(serverID int, masterTo string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
-		"STOP SLAVE",
-		"RESET SLAVE",
+		"STOP SLAVE", "RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
 			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
 		"START SLAVE",
