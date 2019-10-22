@@ -19,3 +19,4 @@ centos7/mysqlclusterinit/mysql
 centos7/mysqlclusterinit/mysqlclusterinit
 centos7/haproxy-1.8.21/haproxy
 .vagrant
+dist/
