@@ -12,7 +12,9 @@ type Settings struct {
 	Master1Addr  string   `validate:"empty=false"` // Master1的地址(IP，域名)
 	Master2Addr  string   `validate:"empty=false"` // Master2的地址(IP，域名)
 	SlaveAddrs   []string // Slave的地址(IP，域名)
-	RootPassword string   `validate:"empty=false"`      // Root用户密码
+	User         string   `default:"root"`              // Root用户名
+	Password     string   `validate:"empty=false"`      // Root用户密码
+	Host         string   `default:"127.0.0.1"`         // MySQL 端口号
 	Port         int      `default:"3306"`              // MySQL 端口号
 	ReplUsr      string   `default:"repl"`              // 复制用用户名
 	ReplPassword string   `default:"984d-CE5679F93918"` // 复制用户密码
@@ -22,6 +24,8 @@ type Settings struct {
 	HAProxyCfg   string   `default:"/etc/haproxy.cfg"` // HAProxy配置文件地址，
 	// 例如：/etc/haproxy/haproxy.cfg, /etc/opt/rh/rh-haproxy18/haproxy/haproxy.cfg
 	HAProxyRestartShell string `default:"systemctl restart haproxy"` // HAProxy重启命令
+
+	CheckSQL string `default:"select current_date()"` // 检查MySQL可用性的SQL
 }
 
 type SettingsOption int

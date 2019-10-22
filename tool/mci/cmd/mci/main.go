@@ -17,7 +17,8 @@ import (
 
 func main() {
 	readips := pflag.BoolP("readips", "r", false, "read haproxy server ips")
-	checkmysql := pflag.BoolP("checkmysql", "m", false, "check mysql")
+	checkmc := pflag.BoolP("checkmc", "m", false, "check mysql cluster")
+	checkmysql := pflag.BoolP("checkmysql", "", false, "check mysql connection")
 	ver := pflag.BoolP("version", "v", false, "show version")
 	conf := pflag.StringP("config", "c", "./config.toml", "config file path")
 
@@ -33,7 +34,7 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Printf("Version: 1.3.2\n")
+		fmt.Printf("Version: 1.4.0\n")
 		return
 	}
 
@@ -44,6 +45,10 @@ func main() {
 	configFile, _ := homedir.Expand(*conf)
 	settings := mustLoadConfig(configFile)
 
+	if *checkmc {
+		settings.CheckMySQLCluster()
+	}
+
 	if *checkmysql {
 		settings.CheckMySQL()
 	}
@@ -52,7 +57,7 @@ func main() {
 		settings.CheckHAProxyServers()
 	}
 
-	if *checkmysql || *readips {
+	if *checkmc || *readips || *checkmysql {
 		return
 	}
 

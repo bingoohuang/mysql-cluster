@@ -98,3 +98,28 @@ Variables:{
 	"RelayLogInfoRepository": "TABLE"
 }
 ```
+
+
+check MySQL availability
+
+```bash
+[root@BJCA-device ~]# ./mci -c tool-config.toml  --checkmysql --User=root --Password="A1765527-61a0" --Host=127.0.0.1 --Port=3306
+netstat stdout tcp6       0      0 :::3306                 :::*                    LISTEN      28132/mysqld
+netstat found cmd mysqld with listen port 28132
+INFO[0000] mysql ds:root:A1765527-61a0@tcp(127.0.0.1:3306)/
+2019/10/22 13:48:56 SQL: select current_date()
+2019/10/22 13:48:56 cost: 20.880007ms
++---+---------------------------+
+| # | CURRENT_DATE()            |
++---+---------------------------+
+| 1 | 2019-10-22T00:00:00+08:00 |
++---+---------------------------+
+[root@BJCA-device ~]# echo $?
+0
+[root@BJCA-device ~]#
+[root@BJCA-device ~]#
+[root@BJCA-device ~]# ./mci -c tool-config.toml  --checkmysql --User=root --Password="A1765527-61a0" --Host=127.0.0.1 --Port=3307
+netstat result empty
+[root@BJCA-device ~]# echo $?
+1
+```

@@ -3,13 +3,14 @@ package mci
 import (
 	"database/sql"
 	"fmt"
-
-	"github.com/jinzhu/gorm"
-	"github.com/tkrajina/go-reflector/reflector"
+	"io"
 
 	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/sqlmore"
+	"github.com/jedib0t/go-pretty/table"
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"github.com/tkrajina/go-reflector/reflector"
 )
 
 func (s Settings) createMySQCluster() (sqls []string, err error) {
@@ -36,7 +37,7 @@ func (s Settings) createMySQCluster() (sqls []string, err error) {
 }
 
 func (s Settings) MustOpenDB() *sql.DB {
-	ds := fmt.Sprintf("root:%s@tcp(127.0.0.1:%d)/", s.RootPassword, s.Port)
+	ds := fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, s.Password, s.Host, s.Port)
 	logrus.Infof("mysql ds:%s", ds)
 
 	return sqlmore.NewSQLMore("mysql", ds).MustOpen()
@@ -194,4 +195,46 @@ func ShowVariables(db *gorm.DB) (variables Variables, err error) {
 	}
 
 	return variables, nil
+}
+
+func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResult) error {
+	if r.Error != nil {
+		fmt.Fprintf(stderr, "error %v\n", r.Error)
+		return r.Error
+	}
+
+	fmt.Fprintf(stdout, "SQL: %s\n", sqlStr)
+	fmt.Fprintf(stdout, "cost: %s\n", r.CostTime.String())
+
+	if !r.IsQuerySQL {
+		return nil
+	}
+
+	t := table.NewWriter()
+	t.SetOutputMirror(stdout)
+
+	cols := len(r.Headers) + 1
+	header := make(table.Row, cols)
+	header[0] = "#"
+
+	for i, h := range r.Headers {
+		header[i+1] = h
+	}
+
+	t.AppendHeader(header)
+
+	for i, r := range r.Rows {
+		row := make(table.Row, cols)
+		row[0] = i + 1
+
+		for j, c := range r {
+			row[j+1] = c
+		}
+
+		t.AppendRow(row)
+	}
+
+	t.Render()
+
+	return nil
 }

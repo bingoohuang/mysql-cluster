@@ -28,7 +28,7 @@ func TestMaster1(t *testing.T) {
 	settings := &mci.Settings{
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
-		RootPassword: "123456",
+		Password:     "123456",
 		ReplUsr:      "repl",
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
@@ -56,7 +56,7 @@ func TestMaster2(t *testing.T) {
 	settings := &mci.Settings{
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
-		RootPassword: "123456",
+		Password:     "123456",
 		ReplUsr:      "repl",
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
@@ -84,7 +84,7 @@ func TestSlave(t *testing.T) {
 	settings := &mci.Settings{
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
-		RootPassword: "123456",
+		Password:     "123456",
 		ReplUsr:      "repl",
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},
@@ -108,7 +108,7 @@ func TestNone(t *testing.T) {
 	settings := &mci.Settings{
 		Master1Addr:  "10.0.0.1",
 		Master2Addr:  "10.0.0.2",
-		RootPassword: "123456",
+		Password:     "123456",
 		ReplUsr:      "repl",
 		ReplPassword: "repl_pwd",
 		SlaveAddrs:   []string{"10.0.0.3"},

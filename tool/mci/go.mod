@@ -8,13 +8,16 @@ require (
 	github.com/bingoohuang/goreflect v0.0.0-20190712052741-f9e6d0b5f7fd
 	github.com/bingoohuang/sqlmore v0.0.0-20190711152446-8687de30af5c
 	github.com/creasty/defaults v1.3.0
+	github.com/go-openapi/strfmt v0.19.3 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gobars/cmd v0.0.0-20190805053627-b12a1f0df5b0
+	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/jinzhu/gorm v1.9.11
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
+	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pelletier/go-toml v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
