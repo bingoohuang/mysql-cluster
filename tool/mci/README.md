@@ -21,7 +21,8 @@ Usage of mysqlclusterinit:
       --Port int                     Port
       --ReplPassword string          ReplPassword
       --ReplUsr string               ReplUsr
-      --RootPassword string          RootPassword
+      --User string                  User
+      --Password string              Password
       --SlaveAddrs string            SlaveAddrs
   -m, --checkmysql                   check mysql
   -c, --config string                config file path (default "./config.toml")
@@ -32,12 +33,12 @@ pflag: help requested
 ## Demo
 
 ```bash
-➜  MCI_DEBUG=true mysqlclusterinit --LocalAddr=mysqlmaster1 --Master1Addr=mysqlmaster1 --Master2Addr=mysqlmaster2 --RootPassword=123
+➜  MCI_DEBUG=true mysqlclusterinit --LocalAddr=mysqlmaster1 --Master1Addr=mysqlmaster1 --Master2Addr=mysqlmaster2 --Password=123
 INFO[0000] config: {
 	"Master1Addr": "mysqlmaster1",
 	"Master2Addr": "mysqlmaster2",
 	"SlaveAddrs": null,
-	"RootPassword": "123",
+	"Password": "123",
 	"Port": 3306,
 	"ReplUsr": "repl",
 	"ReplPassword": "984d-CE5679F93918",
