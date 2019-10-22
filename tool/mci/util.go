@@ -8,9 +8,13 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
+
+	"github.com/gobars/cmd"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/bingoohuang/gou/str"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/tkrajina/go-reflector/reflector"
@@ -203,4 +207,30 @@ func ViperToStruct(structVar interface{}) {
 			}
 		}
 	}
+}
+
+// NetstatListen exec netstat to find pid and cmdName for specified listenPort
+func NetstatListen(listenPort int) (pid int, cmdName string, err error) {
+	shell := fmt.Sprintf(`netstat -tunlp | grep ":%d"`, listenPort)
+	_, status := cmd.Bash(shell, cmd.Timeout(1*time.Second))
+
+	if status.Error != nil {
+		return 0, "", fmt.Errorf("exec %s error %w", shell, status.Error)
+	}
+
+	if len(status.Stdout) == 0 {
+		return 0, "", fmt.Errorf("netstat  %s result empty", shell)
+	}
+
+	// [root@BJCA-device ~]# netstat -tunlp | grep ":3306"
+	// tcp6       0      0 :::3306                 :::*                    LISTEN      28132/mysqld
+	re := regexp.MustCompile(`(?is)LISTEN\s+(\d+)/(\w+)`)
+	stdout := strings.Join(status.Stdout, "\n")
+
+	subs := re.FindAllStringSubmatch(stdout, -1)
+	if len(subs) != 1 {
+		return 0, "", fmt.Errorf("netstat  %s result more than one result %s", shell, stdout)
+	}
+
+	return str.ParseInt(subs[0][1]), subs[0][2], nil
 }

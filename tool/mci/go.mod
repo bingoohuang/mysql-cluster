@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/bingoohuang/gonet v0.0.0-20191012100604-b7ba4a88f75b
 	github.com/bingoohuang/goreflect v0.0.0-20190712052741-f9e6d0b5f7fd
+	github.com/bingoohuang/gou v0.0.0-20190724062522-59c35e658334
 	github.com/bingoohuang/sqlmore v0.0.0-20190711152446-8687de30af5c
 	github.com/creasty/defaults v1.3.0
 	github.com/go-openapi/strfmt v0.19.3 // indirect

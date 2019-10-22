@@ -3,12 +3,9 @@ package mci
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
-	"time"
 
 	"github.com/bingoohuang/sqlmore"
-	"github.com/gobars/cmd"
 )
 
 // CheckMySQLCluster 检查MySQL集群配置
@@ -52,30 +49,18 @@ func (s Settings) CheckMySQL() {
 		os.Exit(1)
 	}
 
-	_, status := cmd.Bash(fmt.Sprintf(`netstat -tunlp | grep ":%d"`, s.Port), cmd.Timeout(1*time.Second))
-	if status.Error != nil {
-		fmt.Printf("netstat error %v\n", status.Error)
+	pid, cmdName, err := NetstatListen(s.Port)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "NetstatListen error %v\n", err)
 		os.Exit(1)
 	}
 
-	if len(status.Stdout) == 0 {
-		fmt.Printf("netstat result empty\n")
+	fmt.Printf("netstat found cmd %s with pid %d\n", cmdName, pid)
+
+	if !strings.HasPrefix(cmdName, "mysqld") {
+		fmt.Printf("cmd %s is not msyqld\n", cmdName)
 		os.Exit(1)
 	}
-
-	// [root@BJCA-device ~]# netstat -tunlp | grep ":3306"
-	// tcp6       0      0 :::3306                 :::*                    LISTEN      28132/mysqld
-	re := regexp.MustCompile(`(?is)LISTEN\s+(\d+)/(\w+)`)
-	stdout := strings.Join(status.Stdout, "\n")
-	fmt.Printf("netstat stdout %s\n", stdout)
-
-	subs := re.FindAllStringSubmatch(stdout, -1)
-	if len(subs) != 1 {
-		fmt.Printf("netstat too many results\n")
-		os.Exit(1)
-	}
-
-	fmt.Printf("netstat found cmd %s with listen port %s\n", subs[0][2], subs[0][1])
 
 	db := s.MustOpenDB()
 	defer db.Close()
