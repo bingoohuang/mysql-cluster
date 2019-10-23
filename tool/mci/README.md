@@ -104,7 +104,7 @@ Variables:{
 check MySQL availability
 
 ```bash
-# ./mci -c tool-config.toml  --checkmysql --User=root --Password="A1765527-61a0" --Host=127.0.0.1 --Port=3306
+# ./mci --checkmysql --User=root --Password="A1765527-61a0" --Host=127.0.0.1 --Port=3306
 netstat found cmd mysqld with pid 680
 INFO[0000] mysql ds:root:A1765527-61a0@tcp(127.0.0.1:3306)/
 SQL: select current_date()
@@ -116,7 +116,7 @@ cost: 945.128µs
 +---+---------------------------+
 # echo $?
 0
-# ./mci -c tool-config.toml  --checkmysql --User=root --Password="A1765527-61a0" --Host=127.0.0.1 --Port=3307
+# ./mci --checkmysql --User=root --Password="A1765527-61a0" --Host=127.0.0.1 --Port=3307
 NetstatListen error netstat  netstat -tunlp | grep ":3307" result empty
 # echo $?
 1

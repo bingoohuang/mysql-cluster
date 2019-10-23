@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -226,6 +227,7 @@ func NetstatListen(listenPort int) (pid int, cmdName string, err error) {
 	// tcp6       0      0 :::3306                 :::*                    LISTEN      28132/mysqld
 	re := regexp.MustCompile(`(?is)LISTEN\s+(\d+)/(\w+)`)
 	stdout := strings.Join(status.Stdout, "\n")
+	logrus.Infof("netstat result: %s", stdout)
 
 	subs := re.FindAllStringSubmatch(stdout, -1)
 	if len(subs) != 1 {
@@ -233,4 +235,34 @@ func NetstatListen(listenPort int) (pid int, cmdName string, err error) {
 	}
 
 	return str.ParseInt(subs[0][1]), subs[0][2], nil
+}
+
+// Ps get the result of ps in pattern with invert match
+func Ps(patterns, invertMatches []string) ([]string, error) {
+	shell := `ps -ef`
+
+	for _, p := range patterns {
+		shell += `|egrep -i ` + strconv.Quote(p)
+	}
+
+	for _, p := range invertMatches {
+		shell += `|egrep -iv ` + strconv.Quote(p)
+	}
+
+	shell += fmt.Sprintf(`|egrep -iv %d|grep -v grep`, os.Getpid())
+
+	logrus.Infof("ps shell:%s", shell)
+
+	lines := make([]string, 0)
+
+	_, status := cmd.BashLiner(shell, func(line string) bool {
+		lines = append(lines, line)
+		return true
+	}, cmd.Timeout(1*time.Second))
+
+	if status.Error != nil {
+		return nil, fmt.Errorf("exec %s error %w", shell, status.Error)
+	}
+
+	return lines, nil
 }

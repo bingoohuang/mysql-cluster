@@ -204,7 +204,7 @@ func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResul
 	}
 
 	fmt.Fprintf(stdout, "SQL: %s\n", sqlStr)
-	fmt.Fprintf(stdout, "cost: %s\n", r.CostTime.String())
+	fmt.Fprintf(stdout, "Cost: %s\n", r.CostTime.String())
 
 	if !r.IsQuerySQL {
 		return nil

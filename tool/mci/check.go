@@ -49,6 +49,19 @@ func (s Settings) CheckMySQL() {
 		os.Exit(1)
 	}
 
+	psLines, err := Ps([]string{"mysqld"}, []string{"mysqld_safe"})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Ps error %v\n", err)
+		os.Exit(1)
+	}
+
+	if len(psLines) == 0 {
+		fmt.Fprintf(os.Stderr, "Ps result is empty\n")
+		os.Exit(1)
+	}
+
+	fmt.Println(strings.Join(psLines, "\n"))
+
 	pid, cmdName, err := NetstatListen(s.Port)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "NetstatListen error %v\n", err)
