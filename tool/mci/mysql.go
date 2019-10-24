@@ -86,18 +86,21 @@ func (s Settings) isLocalAddr(addr string) bool {
 }
 
 func (s Settings) createInitSqls() (int, []string) {
+	const offset = 10000 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
 	if s.isLocalAddr(s.Master1Addr) {
-		return 1, s.initMasterSqls(1, s.Master2Addr)
+		return offset + 1, s.initMasterSqls(offset+1, s.Master2Addr)
 	}
 
 	if s.isLocalAddr(s.Master2Addr) {
-		return 2, s.initMasterSqls(2, s.Master1Addr)
+		return offset + 2, s.initMasterSqls(offset+2, s.Master1Addr)
 	}
 
 	for seq, slaveIP := range s.SlaveAddrs {
-		if s.isLocalAddr(slaveIP) {
-			return seq + 3, s.initSlaveSqls(seq+3, s.Master2Addr)
+		if !s.isLocalAddr(slaveIP) {
+			continue
 		}
+
+		return offset + seq + 3, s.initSlaveSqls(offset+seq+3, s.Master2Addr)
 	}
 
 	return 0, []string{}
@@ -210,9 +213,6 @@ func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResul
 		return nil
 	}
 
-	t := table.NewWriter()
-	t.SetOutputMirror(stdout)
-
 	cols := len(r.Headers) + 1
 	header := make(table.Row, cols)
 	header[0] = "#"
@@ -221,6 +221,8 @@ func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResul
 		header[i+1] = h
 	}
 
+	t := table.NewWriter()
+	t.SetOutputMirror(stdout)
 	t.AppendHeader(header)
 
 	for i, r := range r.Rows {
