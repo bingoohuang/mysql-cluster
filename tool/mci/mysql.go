@@ -49,11 +49,11 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 			continue
 		}
 
-		if err := s.fixMySQLConfServerID(1000 + node.Offset); err != nil {
+		if err := s.fixMySQLConfServerID(node.Offset); err != nil {
 			return err
 		}
 
-		if err := s.fixAutoIncrementOffset(node.Offset); err != nil {
+		if err := s.fixAutoIncrementOffset(node.AutoIncrementOffset); err != nil {
 			return err
 		}
 
@@ -116,7 +116,7 @@ func (s Settings) renameTables(postfix string) error {
 	db := s.MustOpenGormDB()
 	defer db.Close()
 
-	return RenameTables(db, postfix, s.Debug)
+	return RenameTables(db, postfix)
 }
 
 func (s Settings) execSQL(sqlStr string) error {
@@ -176,33 +176,37 @@ func (s Settings) isLocalAddr(addr string) bool {
 }
 
 type MySQLNode struct {
-	Addr   string
-	Offset int
-	Sqls   []string
+	Addr                string
+	AutoIncrementOffset int
+	Offset              int
+	Sqls                []string
 }
 
 func (s Settings) createInitSqls() []MySQLNode {
 	m := make([]MySQLNode, 0)
 
-	const offset = 0 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
+	const offset = 10000 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
 
 	m = append(m, MySQLNode{
-		Addr:   s.Master1Addr,
-		Offset: offset + 1,
-		Sqls:   s.initMasterSqls(offset+1, s.Master2Addr),
+		Addr:                s.Master1Addr,
+		AutoIncrementOffset: 1,
+		Offset:              offset + 1,
+		Sqls:                s.initMasterSqls(offset+1, s.Master2Addr),
 	})
 
 	m = append(m, MySQLNode{
-		Addr:   s.Master2Addr,
-		Offset: offset + 2,
-		Sqls:   s.initMasterSqls(offset+2, s.Master1Addr),
+		Addr:                s.Master2Addr,
+		AutoIncrementOffset: 2,
+		Offset:              offset + 2,
+		Sqls:                s.initMasterSqls(offset+2, s.Master1Addr),
 	})
 
 	for seq, slaveAddr := range s.SlaveAddrs {
 		m = append(m, MySQLNode{
-			Addr:   slaveAddr,
-			Offset: offset + seq + 3,
-			Sqls:   s.initSlaveSqls(offset+seq+3, s.Master2Addr),
+			Addr:                slaveAddr,
+			AutoIncrementOffset: seq + 3,
+			Offset:              offset + seq + 3,
+			Sqls:                s.initSlaveSqls(offset+seq+3, s.Master2Addr),
 		})
 	}
 
@@ -281,10 +285,14 @@ func ShowTables(db *gorm.DB) (beans []TableBean, err error) {
 	return beans, nil
 }
 
-func RenameTables(db *gorm.DB, postfix string, debug bool) error {
+func RenameTables(db *gorm.DB, postfix string) error {
 	tables, err := ShowTables(db)
 	if err != nil {
 		return err
+	}
+
+	if len(tables) == 0 {
+		return nil
 	}
 
 	renameSqls := make([]string, len(tables))
