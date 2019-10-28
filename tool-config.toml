@@ -1,7 +1,7 @@
 Master1Addr    = "mysqlmaster1" # Master1的网络地址
 Master2Addr    = "mysqlmaster2" # Master2的网络地址
 SlaveAddrs     = ["mysqlmaster3"] # Slave的网络地址
-RootPassword = "root-BE30FD30"  # Root用户密码
+Password       = "root"       # Root用户密码
 Port         = 3306           # MySQL 端口号
 ReplUsr      = "repl"         # 复制用用户名
 ReplPassword = "repl-BE30FD30"         # 复制用户密码

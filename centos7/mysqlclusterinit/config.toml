@@ -1,7 +1,7 @@
 Master1Addr         = "127.0.0.1"            # Master1的地址
 Master2Addr         = "127.0.0.2"            # Master2的地址
 SlaveAddrs          = []                          # Slave的地址列表
-RootPassword        = "8BE4-62A56623CA8c"             # Root用户密码
+Password        = "8BE4-62A56623CA8c"             # Root用户密码
 Port                = 3306                        # MySQL 端口号
 ReplUsr             = "repl"                      # 复制用用户名
 ReplPassword        = "97c0-009CDF5C5816"             # 复制用户密码
