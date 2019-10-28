@@ -2,7 +2,6 @@ package mci
 
 import (
 	"os"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -16,16 +15,14 @@ func (s Settings) InitMySQLCluster() (r Result, err error) {
 		os.Exit(1)
 	}
 
-	if r.Sqls, err = s.createMySQCluster(); err != nil {
+	if r.Nodes, err = s.createMySQCluster(); err != nil {
 		return r, err
 	}
 
 	r.HAProxy = s.createHAProxyConfig()
 
 	if s.Debug {
-		logrus.Infof("SQL:%s", strings.Join(r.Sqls, ";\n"))
 		logrus.Infof("HAProxy:%s", r.HAProxy)
-
 		return r, err
 	}
 

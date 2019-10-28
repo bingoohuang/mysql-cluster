@@ -59,8 +59,22 @@ func (s *Settings) ValidateAndSetDefault(options ...SettingsOption) error {
 
 // Result 表示初始化结果
 type Result struct {
-	Sqls    []string
+	Nodes   []MySQLNode
 	HAProxy string
+}
+
+// ShowDatabasesBean 表示MySQL show databases的结果行
+type ShowDatabasesBean struct {
+	Database string `gorm:"column:Database"`
+}
+
+type TableBean struct {
+	Schema       string `gorm:"column:TABLE_SCHEMA"`
+	Name         string `gorm:"column:TABLE_NAME"`
+	TableRows    int    `gorm:"column:TABLE_ROWS"`
+	CreateTime   string `gorm:"column:CREATE_TIME"`
+	UpdateTime   string `gorm:"column:UPDATE_TIME"`
+	TableComment string `gorm:"column:TABLE_COMMENT"`
 }
 
 // ShowSlaveStatusBean 表示MySQL Slave Status

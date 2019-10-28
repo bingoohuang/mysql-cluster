@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"strings"
+
+	"github.com/bingoohuang/now"
 
 	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/sqlmore"
@@ -13,27 +16,88 @@ import (
 	"github.com/tkrajina/go-reflector/reflector"
 )
 
-func (s Settings) createMySQCluster() (sqls []string, err error) {
-	seq := 0
-	seq, sqls = s.createInitSqls()
+func (s Settings) createMySQCluster() ([]MySQLNode, error) {
+	nodes := s.createInitSqls()
 
-	if len(sqls) == 0 {
-		logrus.Infof("InitMySQLCluster bypassed, nor master or slave for host %v", gonet.ListLocalIps())
+	if s.isLocalAddr(s.Master1Addr) && !s.Debug {
+		mysqlServers := []string{s.Master1Addr, s.Master2Addr}
+		mysqlServers = append(mysqlServers, s.SlaveAddrs...)
+
+		if err := s.stopSlaves(mysqlServers); err != nil {
+			return nodes, err
+		}
+
+		if err := s.backupTables(mysqlServers); err != nil {
+			return nodes, err
+		}
+
+		if err := s.createClusters(nodes); err != nil {
+			return nodes, err
+		}
 	}
 
-	if err := s.execMultiSqls(sqls); err != nil {
-		return sqls, err
+	if err := s.fixMySQLConf(nodes); err != nil {
+		return nodes, err
 	}
 
-	if err := s.fixMySQLConfServerID(seq); err != nil {
-		return sqls, err
+	return nodes, nil
+}
+
+func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
+	for _, node := range nodes {
+		if !s.isLocalAddr(node.Addr) {
+			continue
+		}
+
+		if err := s.fixMySQLConfServerID(1000 + node.Offset); err != nil {
+			return err
+		}
+
+		if err := s.fixAutoIncrementOffset(node.Offset); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	if err := s.fixAutoIncrementOffset(seq); err != nil {
-		return sqls, err
+	logrus.Infof("InitMySQLCluster bypassed, neither master nor slave for host %v", gonet.ListLocalIps())
+
+	return nil
+}
+
+func (s Settings) createClusters(nodes []MySQLNode) error {
+	for _, node := range nodes {
+		s.Host = node.Addr
+		if err := s.execMultiSqls(node.Sqls); err != nil {
+			return err
+		}
 	}
 
-	return sqls, nil
+	return nil
+}
+
+func (s Settings) backupTables(servers []string) error {
+	for _, server := range servers[1:] {
+		s.Host = server
+		postfix := now.MakeNow().Format("yyyyMMddHHmmss") + "_" + PurifyString(server)
+
+		if err := s.renameTables(postfix); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s Settings) stopSlaves(servers []string) error {
+	for _, server := range servers {
+		s.Host = server
+		if err := s.execSQL("stop slave"); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s Settings) MustOpenDB() *sql.DB {
@@ -48,8 +112,34 @@ func (s Settings) MustOpenGormDB() *gorm.DB {
 	return gdb
 }
 
+func (s Settings) renameTables(postfix string) error {
+	db := s.MustOpenGormDB()
+	defer db.Close()
+
+	return RenameTables(db, postfix, s.Debug)
+}
+
+func (s Settings) execSQL(sqlStr string) error {
+	if s.Debug {
+		fmt.Println(sqlStr + ";")
+		return nil
+	}
+
+	db := s.MustOpenDB()
+	defer db.Close()
+
+	if r := sqlmore.ExecSQL(db, sqlStr, 0, ""); r.Error != nil {
+		return fmt.Errorf("exec sql %s error %w", sqlStr, r.Error)
+	}
+
+	logrus.Infof("execSQL %s completed", sqlStr)
+
+	return nil
+}
+
 func (s Settings) execMultiSqls(sqls []string) error {
 	if s.Debug {
+		fmt.Print(strings.Join(sqls, ";\n"))
 		return nil
 	}
 
@@ -85,25 +175,38 @@ func (s Settings) isLocalAddr(addr string) bool {
 	return false
 }
 
-func (s Settings) createInitSqls() (int, []string) {
-	const offset = 10000 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
-	if s.isLocalAddr(s.Master1Addr) {
-		return offset + 1, s.initMasterSqls(offset+1, s.Master2Addr)
+type MySQLNode struct {
+	Addr   string
+	Offset int
+	Sqls   []string
+}
+
+func (s Settings) createInitSqls() []MySQLNode {
+	m := make([]MySQLNode, 0)
+
+	const offset = 0 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
+
+	m = append(m, MySQLNode{
+		Addr:   s.Master1Addr,
+		Offset: offset + 1,
+		Sqls:   s.initMasterSqls(offset+1, s.Master2Addr),
+	})
+
+	m = append(m, MySQLNode{
+		Addr:   s.Master2Addr,
+		Offset: offset + 2,
+		Sqls:   s.initMasterSqls(offset+2, s.Master1Addr),
+	})
+
+	for seq, slaveAddr := range s.SlaveAddrs {
+		m = append(m, MySQLNode{
+			Addr:   slaveAddr,
+			Offset: offset + seq + 3,
+			Sqls:   s.initSlaveSqls(offset+seq+3, s.Master2Addr),
+		})
 	}
 
-	if s.isLocalAddr(s.Master2Addr) {
-		return offset + 2, s.initMasterSqls(offset+2, s.Master1Addr)
-	}
-
-	for seq, slaveIP := range s.SlaveAddrs {
-		if !s.isLocalAddr(slaveIP) {
-			continue
-		}
-
-		return offset + seq + 3, s.initSlaveSqls(offset+seq+3, s.Master2Addr)
-	}
-
-	return 0, []string{}
+	return m
 }
 
 // https://dev.mysql.com/doc/refman/5.7/en/reset-slave.html
@@ -119,7 +222,7 @@ func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
 		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
 		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+
 			"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
-		"STOP SLAVE", "RESET SLAVE",
+		"RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
 			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
 		"START SLAVE",
@@ -129,7 +232,7 @@ func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
 func (s Settings) initSlaveSqls(serverID int, masterTo string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
-		"STOP SLAVE", "RESET SLAVE",
+		"RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
 			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
 		"START SLAVE",
@@ -138,6 +241,7 @@ func (s Settings) initSlaveSqls(serverID int, masterTo string) []string {
 
 func (s Settings) fixMySQLConfServerID(serverID int) error {
 	if s.Debug {
+		fmt.Println("fix server-id =", serverID)
 		return nil
 	}
 
@@ -152,6 +256,7 @@ func (s Settings) fixMySQLConfServerID(serverID int) error {
 // auto_increment_offset
 func (s Settings) fixAutoIncrementOffset(offset int) error {
 	if s.Debug {
+		fmt.Println("fix increment-offset =", offset)
 		return nil
 	}
 
@@ -161,6 +266,41 @@ func (s Settings) fixAutoIncrementOffset(offset int) error {
 	}
 
 	return nil
+}
+
+// ShowTables show all tables
+func ShowTables(db *gorm.DB) (beans []TableBean, err error) {
+	const sql = "select * from information_schema.tables " +
+		"where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys')"
+
+	if s := db.Raw(sql).Scan(&beans); s.Error != nil {
+		logrus.Warnf("show slave status error: %v", s.Error)
+		return beans, s.Error
+	}
+
+	return beans, nil
+}
+
+func RenameTables(db *gorm.DB, postfix string, debug bool) error {
+	tables, err := ShowTables(db)
+	if err != nil {
+		return err
+	}
+
+	renameSqls := make([]string, len(tables))
+	for i, t := range tables {
+		renameSqls[i] = fmt.Sprintf("%s.%s to %s.%s_%s",
+			t.Schema, t.Name, t.Schema, t.Name, postfix)
+	}
+
+	// https://dev.mysql.com/doc/refman/5.7/en/rename-table.html
+	// RENAME TABLE
+	//    tbl_name TO new_tbl_name
+	//    [, tbl_name2 TO new_tbl_name2] ...
+	joined := "rename table " + strings.Join(renameSqls, ", ")
+	logrus.Infof("sql:%s", joined)
+
+	return db.Exec(joined).Error
 }
 
 // ShowSlaveStatus show slave status to bean
@@ -184,6 +324,7 @@ func ShowVariables(db *gorm.DB) (variables Variables, err error) {
 	}
 
 	var beans []ShowVariablesBean
+
 	if s := db.Raw("show variables").Scan(&beans); s.Error != nil {
 		logrus.Warnf("show variables error: %v", s.Error)
 		return Variables{}, s.Error

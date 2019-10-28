@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/gobars/cmd"
 
@@ -265,4 +266,15 @@ func Ps(patterns, invertMatches []string) ([]string, error) {
 	}
 
 	return lines, nil
+}
+
+// PurifyString purifies the string to only letter,digit,and all others will turn to _.
+func PurifyString(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsDigit(r) || unicode.IsLetter(r) {
+			return r
+		}
+
+		return -1
+	}, s)
 }
