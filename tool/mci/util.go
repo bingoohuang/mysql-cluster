@@ -48,7 +48,8 @@ func FileExists(filename string) error {
 	return nil
 }
 
-// SearchPatternLines 使用正则表达式boundaryRegexStr查找大块，然后在大块中用captureGroup1Regex中的每行寻找匹配
+// SearchPatternLinesInFile 使用正则表达式boundaryRegexStr在文件filename中查找大块，
+// 然后在大块中用captureGroup1Regex中的每行寻找匹配
 func SearchPatternLinesInFile(filename, boundaryRegexStr, captureGroup1Regex string) ([]string, error) {
 	str, err := ioutil.ReadFile(filename)
 	if err != nil {

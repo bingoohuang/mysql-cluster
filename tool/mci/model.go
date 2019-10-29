@@ -28,13 +28,17 @@ type Settings struct {
 	CheckSQL string `default:"select current_date()"` // 检查MySQL可用性的SQL
 }
 
+// SettingsOption  stands for option of settings.
 type SettingsOption int
 
 const (
-	Validate SettingsOption = iota
+	// Validate means validation required.
+	Validate SettingsOption = iota + 1
+	// SetDefault means SetDefault required.
 	SetDefault
 )
 
+// ValidateAndSetDefault validates and set defaults to s.
 func (s *Settings) ValidateAndSetDefault(options ...SettingsOption) error {
 	if goreflect.SliceContains(options, Validate) {
 		if err := validate.Validate(s); err != nil {
@@ -68,6 +72,7 @@ type ShowDatabasesBean struct {
 	Database string `gorm:"column:Database"`
 }
 
+// TableBean means the table information in MySQL.
 type TableBean struct {
 	Schema       string `gorm:"column:TABLE_SCHEMA"`
 	Name         string `gorm:"column:TABLE_NAME"`

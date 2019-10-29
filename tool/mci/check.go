@@ -26,7 +26,7 @@ func (s Settings) CheckMySQLCluster() {
 	}
 }
 
-// CheckMySQLCluster 检查MySQL集群配置
+// CheckHAProxyServers 检查HAProxy中的MySQL集群配置
 func (s Settings) CheckHAProxyServers() {
 	if s.ValidateAndSetDefault(SetDefault) != nil {
 		os.Exit(1)

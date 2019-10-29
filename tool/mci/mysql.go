@@ -100,6 +100,7 @@ func (s Settings) stopSlaves(servers []string) error {
 	return nil
 }
 
+// MustOpenDB must open the db.
 func (s Settings) MustOpenDB() *sql.DB {
 	ds := fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, s.Password, s.Host, s.Port)
 	logrus.Infof("mysql ds:%s", ds)
@@ -107,6 +108,7 @@ func (s Settings) MustOpenDB() *sql.DB {
 	return sqlmore.NewSQLMore("mysql", ds).MustOpen()
 }
 
+// MustOpenGormDB must open the db.
 func (s Settings) MustOpenGormDB() *gorm.DB {
 	gdb, _ := gorm.Open("mysql", s.MustOpenDB())
 	return gdb
@@ -175,6 +177,7 @@ func (s Settings) isLocalAddr(addr string) bool {
 	return false
 }
 
+// MySQLNode means the information of MySQLNode in the cluster.
 type MySQLNode struct {
 	Addr                string
 	AutoIncrementOffset int
@@ -257,7 +260,7 @@ func (s Settings) fixMySQLConfServerID(serverID int) error {
 	return nil
 }
 
-// auto_increment_offset
+// fixAutoIncrementOffset fix auto_increment_offset
 func (s Settings) fixAutoIncrementOffset(offset int) error {
 	if s.Debug {
 		fmt.Println("fix increment-offset =", offset)
@@ -285,6 +288,7 @@ func ShowTables(db *gorm.DB) (beans []TableBean, err error) {
 	return beans, nil
 }
 
+// RenameTables rename the non-system databases' table to another name.
 func RenameTables(db *gorm.DB, postfix string) error {
 	tables, err := ShowTables(db)
 	if err != nil {
@@ -349,6 +353,7 @@ func ShowVariables(db *gorm.DB) (variables Variables, err error) {
 	return variables, nil
 }
 
+// PrintSQLResult prints the result r of sqlStr execution
 func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResult) error {
 	if r.Error != nil {
 		fmt.Fprintf(stderr, "error %v\n", r.Error)
