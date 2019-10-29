@@ -1,3 +1,5 @@
 #!/bin/bash
+
+name=$1
 set -ex
-upx --brute dist/mci*/mci
+upx --brute dist/$name*/$name

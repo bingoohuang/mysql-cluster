@@ -8,7 +8,7 @@ builds:
   -
     main: ./cmd/mci/main.go
     hooks:
-      post: ./upx.sh
+      post: ./upx.sh mci
     goarch:
       - amd64
 env:
