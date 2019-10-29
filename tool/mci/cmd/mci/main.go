@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/bingoohuang/gossh/pbe"
 	"github.com/bingoohuang/tool/mci"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
@@ -24,6 +25,8 @@ func main() {
 
 	mci.DeclarePflagsByStruct(mci.Settings{})
 
+	pbe.DeclarePflags()
+
 	pflag.Parse()
 
 	args := pflag.Args()
@@ -34,13 +37,15 @@ func main() {
 	}
 
 	if *ver {
-		fmt.Printf("Version: 1.5.0\n")
+		fmt.Printf("Version: 1.5.1\n")
 		return
 	}
 
 	viper.SetEnvPrefix("MCI")
 	viper.AutomaticEnv()
 	_ = viper.BindPFlags(pflag.CommandLine)
+
+	pbe.DealPflag()
 
 	configFile, _ := homedir.Expand(*conf)
 	settings := mustLoadConfig(configFile)

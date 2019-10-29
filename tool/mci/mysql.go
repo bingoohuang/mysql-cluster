@@ -6,6 +6,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/bingoohuang/gossh/pbe"
+
 	"github.com/bingoohuang/now"
 
 	"github.com/bingoohuang/gonet"
@@ -102,7 +104,12 @@ func (s Settings) stopSlaves(servers []string) error {
 
 // MustOpenDB must open the db.
 func (s Settings) MustOpenDB() *sql.DB {
-	ds := fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, s.Password, s.Host, s.Port)
+	pwd, err := pbe.Ebp(s.Password)
+	if err != nil {
+		panic(err)
+	}
+
+	ds := fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, pwd, s.Host, s.Port)
 	logrus.Infof("mysql ds:%s", ds)
 
 	return sqlmore.NewSQLMore("mysql", ds).MustOpen()
@@ -186,6 +193,11 @@ type MySQLNode struct {
 }
 
 func (s Settings) createInitSqls() []MySQLNode {
+	replPwd, err := pbe.Ebp(s.ReplPassword)
+	if err != nil {
+		panic(err)
+	}
+
 	m := make([]MySQLNode, 0)
 
 	const offset = 10000 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
@@ -194,14 +206,14 @@ func (s Settings) createInitSqls() []MySQLNode {
 		Addr:                s.Master1Addr,
 		AutoIncrementOffset: 1,
 		Offset:              offset + 1,
-		Sqls:                s.initMasterSqls(offset+1, s.Master2Addr),
+		Sqls:                s.initMasterSqls(offset+1, s.Master2Addr, replPwd),
 	})
 
 	m = append(m, MySQLNode{
 		Addr:                s.Master2Addr,
 		AutoIncrementOffset: 2,
 		Offset:              offset + 2,
-		Sqls:                s.initMasterSqls(offset+2, s.Master1Addr),
+		Sqls:                s.initMasterSqls(offset+2, s.Master1Addr, replPwd),
 	})
 
 	for seq, slaveAddr := range s.SlaveAddrs {
@@ -209,7 +221,7 @@ func (s Settings) createInitSqls() []MySQLNode {
 			Addr:                slaveAddr,
 			AutoIncrementOffset: seq + 3,
 			Offset:              offset + seq + 3,
-			Sqls:                s.initSlaveSqls(offset+seq+3, s.Master2Addr),
+			Sqls:                s.initSlaveSqls(offset+seq+3, s.Master2Addr, replPwd),
 		})
 	}
 
@@ -222,26 +234,26 @@ func (s Settings) createInitSqls() []MySQLNode {
 // and relay log info repositories, deletes all the relay log files,
 // and starts a new relay log file. It also resets to 0 the replication delay specified
 // with the MASTER_DELAY option to CHANGE MASTER TO.
-func (s Settings) initMasterSqls(serverID int, masterTo string) []string {
+func (s Settings) initMasterSqls(serverID int, masterTo, replPwd string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
 		fmt.Sprintf("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
-		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
+		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
 		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+
-			"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, s.ReplPassword),
+			"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
 		"RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
-			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
+			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, replPwd),
 		"START SLAVE",
 	}
 }
 
-func (s Settings) initSlaveSqls(serverID int, masterTo string) []string {
+func (s Settings) initSlaveSqls(serverID int, masterTo, replPwd string) []string {
 	return []string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
 		"RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
-			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, s.ReplPassword),
+			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, replPwd),
 		"START SLAVE",
 	}
 }
