@@ -21,6 +21,12 @@ import (
 func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 	nodes := s.createInitSqls()
 
+	if !s.Debug { // 所有节点都做root向master1的root授权
+		if err := s.grantRootToMaster1(); err != nil {
+			return nodes, err
+		}
+	}
+
 	if s.isLocalAddr(s.Master1Addr) && !s.Debug {
 		mysqlServers := []string{s.Master1Addr, s.Master2Addr}
 		mysqlServers = append(mysqlServers, s.SlaveAddrs...)
@@ -81,7 +87,7 @@ func (s Settings) createClusters(nodes []MySQLNode) error {
 func (s Settings) backupTables(servers []string) error {
 	for _, server := range servers[1:] {
 		s.Host = server
-		postfix := now.MakeNow().Format("yyyyMMddHHmmss") + "_" + PurifyString(server)
+		postfix := "_mci" + now.MakeNow().Format("yyyyMMdd")
 
 		if err := s.renameTables(postfix); err != nil {
 			return err
@@ -97,6 +103,19 @@ func (s Settings) stopSlaves(servers []string) error {
 		if err := s.execSQL("stop slave"); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (s Settings) grantRootToMaster1() error {
+	s.Host = "127.0.0.1"
+
+	// 授权 GRANT ALL ON *.* TO root@'192.168.136.23' IDENTIFIED BY 'xx';
+	// 回收：DROP USER root@'192.168.136.23';
+	q := fmt.Sprintf(`GRANT ALL ON *.* TO root@'%s' IDENTIFIED BY '%s'`, s.Master1Addr, s.Password)
+	if err := s.execSQL(q); err != nil {
+		return fmt.Errorf("execute %s error %w", q, err)
 	}
 
 	return nil
@@ -288,9 +307,10 @@ func (s Settings) fixAutoIncrementOffset(offset int) error {
 }
 
 // ShowTables show all tables
-func ShowTables(db *gorm.DB) (beans []TableBean, err error) {
-	const sql = "select * from information_schema.tables " +
-		"where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys')"
+func ShowTables(db *gorm.DB, postfix string) (beans []TableBean, err error) {
+	sql := `select * from information_schema.tables
+		where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys') 
+		and TABLE_NAME not like '%` + postfix + `'`
 
 	if s := db.Raw(sql).Scan(&beans); s.Error != nil {
 		logrus.Warnf("show slave status error: %v", s.Error)
@@ -302,7 +322,7 @@ func ShowTables(db *gorm.DB) (beans []TableBean, err error) {
 
 // RenameTables rename the non-system databases' table to another name.
 func RenameTables(db *gorm.DB, postfix string) error {
-	tables, err := ShowTables(db)
+	tables, err := ShowTables(db, postfix)
 	if err != nil {
 		return err
 	}
@@ -313,7 +333,7 @@ func RenameTables(db *gorm.DB, postfix string) error {
 
 	renameSqls := make([]string, len(tables))
 	for i, t := range tables {
-		renameSqls[i] = fmt.Sprintf("%s.%s to %s.%s_%s",
+		renameSqls[i] = fmt.Sprintf("%s.%s to %s.%s%s",
 			t.Schema, t.Name, t.Schema, t.Name, postfix)
 	}
 
