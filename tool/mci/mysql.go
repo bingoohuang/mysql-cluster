@@ -22,7 +22,7 @@ func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 	nodes := s.createInitSqls()
 
 	if !s.Debug { // 所有节点都做root向master1的root授权
-		if err := s.grantRootToMaster1(); err != nil {
+		if err := s.prepareCluster(nodes); err != nil {
 			return nodes, err
 		}
 	}
@@ -57,7 +57,7 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 			continue
 		}
 
-		if err := s.fixMySQLConfServerID(node.Offset); err != nil {
+		if err := s.fixMySQLConfServerID(node.ServerID); err != nil {
 			return err
 		}
 
@@ -108,22 +108,30 @@ func (s Settings) stopSlaves(servers []string) error {
 	return nil
 }
 
-func (s Settings) grantRootToMaster1() error {
+func (s Settings) prepareCluster(nodes []MySQLNode) error {
 	s.Host = "127.0.0.1"
 
 	// 授权 GRANT ALL ON *.* TO root@'192.168.136.23' IDENTIFIED BY 'xx';
 	// 回收：DROP USER root@'192.168.136.23';
-	q := fmt.Sprintf(`GRANT ALL ON *.* TO root@'%s' IDENTIFIED BY '%s'`, s.Master1Addr, s.Password)
-	if err := s.execSQL(q); err != nil {
-		return fmt.Errorf("execute %s error %w", q, err)
+	return s.execMultiSqls([]string{
+		fmt.Sprintf("SET GLOBAL server_id=%d", s.findServerID(nodes)),
+		fmt.Sprintf(`GRANT ALL ON *.* TO root@'%s' IDENTIFIED BY '%s'`, s.Master1Addr, s.Password),
+	})
+}
+
+func (s Settings) findServerID(nodes []MySQLNode) int {
+	for _, node := range nodes {
+		if s.isLocalAddr(node.Addr) {
+			return node.ServerID
+		}
 	}
 
-	return nil
+	return 0
 }
 
 // MustOpenDB must open the db.
 func (s Settings) MustOpenDB() *sql.DB {
-	pwd, err := pbe.Ebp(s.Password)
+	pwd, err := ebpFix(s.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -207,12 +215,21 @@ func (s Settings) isLocalAddr(addr string) bool {
 type MySQLNode struct {
 	Addr                string
 	AutoIncrementOffset int
-	Offset              int
+	ServerID            int
 	Sqls                []string
 }
 
+// ebpFix will be removed later after pbe upgraded.
+func ebpFix(p string) (string, error) {
+	if strings.HasPrefix(`{PBE}`, p) {
+		return pbe.Ebp(p)
+	}
+
+	return p, nil
+}
+
 func (s Settings) createInitSqls() []MySQLNode {
-	replPwd, err := pbe.Ebp(s.ReplPassword)
+	replPwd, err := ebpFix(s.ReplPassword)
 	if err != nil {
 		panic(err)
 	}
@@ -224,23 +241,23 @@ func (s Settings) createInitSqls() []MySQLNode {
 	m = append(m, MySQLNode{
 		Addr:                s.Master1Addr,
 		AutoIncrementOffset: 1,
-		Offset:              offset + 1,
-		Sqls:                s.initMasterSqls(offset+1, s.Master2Addr, replPwd),
+		ServerID:            offset + 1,
+		Sqls:                s.initMasterSqls(s.Master2Addr, replPwd),
 	})
 
 	m = append(m, MySQLNode{
 		Addr:                s.Master2Addr,
 		AutoIncrementOffset: 2,
-		Offset:              offset + 2,
-		Sqls:                s.initMasterSqls(offset+2, s.Master1Addr, replPwd),
+		ServerID:            offset + 2,
+		Sqls:                s.initMasterSqls(s.Master1Addr, replPwd),
 	})
 
 	for seq, slaveAddr := range s.SlaveAddrs {
 		m = append(m, MySQLNode{
 			Addr:                slaveAddr,
 			AutoIncrementOffset: seq + 3,
-			Offset:              offset + seq + 3,
-			Sqls:                s.initSlaveSqls(offset+seq+3, s.Master2Addr, replPwd),
+			ServerID:            offset + seq + 3,
+			Sqls:                s.initSlaveSqls(s.Master2Addr, replPwd),
 		})
 	}
 
@@ -253,13 +270,11 @@ func (s Settings) createInitSqls() []MySQLNode {
 // and relay log info repositories, deletes all the relay log files,
 // and starts a new relay log file. It also resets to 0 the replication delay specified
 // with the MASTER_DELAY option to CHANGE MASTER TO.
-func (s Settings) initMasterSqls(serverID int, masterTo, replPwd string) []string {
+func (s Settings) initMasterSqls(masterTo, replPwd string) []string {
 	return []string{
-		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
 		fmt.Sprintf("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
 		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
-		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+
-			"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
+		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
 		"RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
 			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, replPwd),
@@ -267,9 +282,8 @@ func (s Settings) initMasterSqls(serverID int, masterTo, replPwd string) []strin
 	}
 }
 
-func (s Settings) initSlaveSqls(serverID int, masterTo, replPwd string) []string {
+func (s Settings) initSlaveSqls(masterTo, replPwd string) []string {
 	return []string{
-		fmt.Sprintf("SET GLOBAL server_id=%d", serverID),
 		"RESET SLAVE",
 		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
 			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, replPwd),
