@@ -3,7 +3,6 @@ package mci
 import (
 	"database/sql"
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/bingoohuang/gossh/pbe"
@@ -12,10 +11,8 @@ import (
 
 	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/sqlmore"
-	"github.com/jedib0t/go-pretty/table"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	"github.com/tkrajina/go-reflector/reflector"
 )
 
 func (s Settings) createMySQCluster() ([]MySQLNode, error) {
@@ -28,18 +25,7 @@ func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 	}
 
 	if s.isLocalAddr(s.Master1Addr) && !s.Debug {
-		mysqlServers := []string{s.Master1Addr, s.Master2Addr}
-		mysqlServers = append(mysqlServers, s.SlaveAddrs...)
-
-		if err := s.stopSlaves(mysqlServers); err != nil {
-			return nodes, err
-		}
-
-		if err := s.backupTables(mysqlServers); err != nil {
-			return nodes, err
-		}
-
-		if err := s.createClusters(nodes); err != nil {
+		if err := s.master1LocalProcess(nodes); err != nil {
 			return nodes, err
 		}
 	}
@@ -49,6 +35,26 @@ func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 	}
 
 	return nodes, nil
+}
+
+func (s Settings) master1LocalProcess(nodes []MySQLNode) error {
+	mysqlServers := []string{s.Master1Addr, s.Master2Addr}
+	mysqlServers = append(mysqlServers, s.SlaveAddrs...)
+
+	if err := s.stopSlaves(mysqlServers); err != nil {
+		return err
+	}
+
+	backupServers := mysqlServers[1:]
+	if err := s.backupTables(backupServers); err != nil {
+		return err
+	}
+
+	if err := s.createClusters(nodes); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
@@ -85,7 +91,7 @@ func (s Settings) createClusters(nodes []MySQLNode) error {
 }
 
 func (s Settings) backupTables(servers []string) error {
-	for _, server := range servers[1:] {
+	for _, server := range servers {
 		s.Host = server
 		postfix := "_mci" + now.MakeNow().Format("yyyyMMdd")
 
@@ -110,16 +116,17 @@ func (s Settings) stopSlaves(servers []string) error {
 
 func (s Settings) prepareCluster(nodes []MySQLNode) error {
 	s.Host = "127.0.0.1"
+	fs := fmt.Sprintf
 
-	// 授权 GRANT ALL ON *.* TO root@'192.168.136.23' IDENTIFIED BY 'xx';
-	// 回收：DROP USER root@'192.168.136.23';
 	return s.execMultiSqls([]string{
-		fmt.Sprintf("SET GLOBAL server_id=%d", s.findServerID(nodes)),
-		fmt.Sprintf(`GRANT ALL ON *.* TO root@'%s' IDENTIFIED BY '%s'`, s.Master1Addr, s.Password),
+		fs("SET GLOBAL server_id=%d", s.findLocalServerID(nodes)),
+		fs(`DROP USER IF EXISTS '%s'@'%s'`, s.User, s.Master1Addr),
+		fs(`CREATE USER '%s'@'%s' IDENTIFIED BY '%s'`, s.User, s.Master1Addr, s.Password),
+		fs(`GRANT ALL PRIVILEGES ON *.* TO '%s'@'%s' WITH GRANT OPTION`, s.User, s.Master1Addr),
 	})
 }
 
-func (s Settings) findServerID(nodes []MySQLNode) int {
+func (s Settings) findLocalServerID(nodes []MySQLNode) int {
 	for _, node := range nodes {
 		if s.isLocalAddr(node.Addr) {
 			return node.ServerID
@@ -271,13 +278,15 @@ func (s Settings) createInitSqls() []MySQLNode {
 // and starts a new relay log file. It also resets to 0 the replication delay specified
 // with the MASTER_DELAY option to CHANGE MASTER TO.
 func (s Settings) initMasterSqls(masterTo, replPwd string) []string {
+	fs := fmt.Sprintf
+
 	return []string{
-		fmt.Sprintf("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
-		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
-		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* "+"TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
+		fs("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
+		fs("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
+		fs("GRANT REPLICATION SLAVE ON *.* TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
 		"RESET SLAVE",
-		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
-			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, replPwd),
+		fs(`CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', 
+			master_password='%s', master_auto_position = 1`, masterTo, s.Port, s.ReplUsr, replPwd),
 		"START SLAVE",
 	}
 }
@@ -316,127 +325,6 @@ func (s Settings) fixAutoIncrementOffset(offset int) error {
 		`(?i)auto[-_]increment[-_]offset\s*=\s*(\d+)`, fmt.Sprintf("%d", offset)); err != nil {
 		return fmt.Errorf("fixAutoIncrementOffset %s error %w", s.MySQLCnf, err)
 	}
-
-	return nil
-}
-
-// ShowTables show all tables
-func ShowTables(db *gorm.DB, postfix string) (beans []TableBean, err error) {
-	sql := `select * from information_schema.tables
-		where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys') 
-		and TABLE_NAME not like '%` + postfix + `'`
-
-	if s := db.Raw(sql).Scan(&beans); s.Error != nil {
-		logrus.Warnf("show slave status error: %v", s.Error)
-		return beans, s.Error
-	}
-
-	return beans, nil
-}
-
-// RenameTables rename the non-system databases' table to another name.
-func RenameTables(db *gorm.DB, postfix string) error {
-	tables, err := ShowTables(db, postfix)
-	if err != nil {
-		return err
-	}
-
-	if len(tables) == 0 {
-		return nil
-	}
-
-	renameSqls := make([]string, len(tables))
-	for i, t := range tables {
-		renameSqls[i] = fmt.Sprintf("%s.%s to %s.%s%s",
-			t.Schema, t.Name, t.Schema, t.Name, postfix)
-	}
-
-	// https://dev.mysql.com/doc/refman/5.7/en/rename-table.html
-	// RENAME TABLE
-	//    tbl_name TO new_tbl_name
-	//    [, tbl_name2 TO new_tbl_name2] ...
-	joined := "rename table " + strings.Join(renameSqls, ", ")
-	logrus.Infof("sql:%s", joined)
-
-	return db.Exec(joined).Error
-}
-
-// ShowSlaveStatus show slave status to bean
-func ShowSlaveStatus(db *gorm.DB) (bean ShowSlaveStatusBean, err error) {
-	if s := db.Raw("show slave status").Scan(&bean); s.Error != nil {
-		logrus.Warnf("show slave status error: %v", s.Error)
-		return bean, s.Error
-	}
-
-	return bean, nil
-}
-
-// ShowVariables shows variables to variables bean
-func ShowVariables(db *gorm.DB) (variables Variables, err error) {
-	fieldsMap := make(map[string]reflector.ObjField)
-
-	for _, f := range reflector.New(&variables).Fields() {
-		if tag, _ := f.Tag("var"); tag != "" {
-			fieldsMap[tag] = f
-		}
-	}
-
-	var beans []ShowVariablesBean
-
-	if s := db.Raw("show variables").Scan(&beans); s.Error != nil {
-		logrus.Warnf("show variables error: %v", s.Error)
-		return Variables{}, s.Error
-	}
-
-	for _, b := range beans {
-		if f, ok := fieldsMap[b.VariableName]; !ok {
-			continue
-		} else if err := f.Set(b.Value); err != nil {
-			logrus.Warnf("Set error: %v", err)
-		}
-	}
-
-	return variables, nil
-}
-
-// PrintSQLResult prints the result r of sqlStr execution
-func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResult) error {
-	if r.Error != nil {
-		fmt.Fprintf(stderr, "error %v\n", r.Error)
-		return r.Error
-	}
-
-	fmt.Fprintf(stdout, "SQL: %s\n", sqlStr)
-	fmt.Fprintf(stdout, "Cost: %s\n", r.CostTime.String())
-
-	if !r.IsQuerySQL {
-		return nil
-	}
-
-	cols := len(r.Headers) + 1
-	header := make(table.Row, cols)
-	header[0] = "#"
-
-	for i, h := range r.Headers {
-		header[i+1] = h
-	}
-
-	t := table.NewWriter()
-	t.SetOutputMirror(stdout)
-	t.AppendHeader(header)
-
-	for i, r := range r.Rows {
-		row := make(table.Row, cols)
-		row[0] = i + 1
-
-		for j, c := range r {
-			row[j+1] = c
-		}
-
-		t.AppendRow(row)
-	}
-
-	t.Render()
 
 	return nil
 }
