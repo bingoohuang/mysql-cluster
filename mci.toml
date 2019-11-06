@@ -1,0 +1,15 @@
+Master1Addr    = "mysqlmaster1" # Master1的网络地址
+Master2Addr    = "mysqlmaster2" # Master2的网络地址
+SlaveAddrs     = ["mysqlmaster3"] # Slave的网络地址
+Password       = "root"       # Root用户密码
+Port         = 3306           # MySQL 端口号
+ReplUsr      = "repl"         # 复制用用户名
+ReplPassword = "root"         # 复制用户密码
+Debug        = false          # 测试模式，只打印SQL和HAProxy配置, 不实际执行
+LocalAddr      = ""             # 指定本机的网络地址，不指定则自动从网卡中获取
+MySQLCnf     = "/etc/mysql/conf.d/my.cnf" # MySQL 配置文件的地址
+HAProxyCfg   = "/usr/local/etc/haproxy/haproxy.cfg" # HAProxy配置文件地址
+# HAProxyCfg   = "/etc/opt/rh/rh-haproxy18/haproxy/haproxy.cfg" # HAProxy配置文件地址
+HAProxyRestartShell = "" # HAProxy重启命令
+# HAProxyRestartShell = "systemctl restart haproxy" # HAProxy重启命令
+# systemctl status haproxy
