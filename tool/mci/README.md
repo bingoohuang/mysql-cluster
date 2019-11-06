@@ -6,6 +6,8 @@ a tool to setup MySQL cluster-cluster and haproxy config.
 
 `env GOOS=linux GOARCH=amd64 go install ./...`
 
+`go fmt ./...&&goimports -w .&&golint ./...&&golangci-lint run --enable-all&&env GOOS=linux GOARCH=amd64 go install ./...&&upx ~/go/bin/linux_amd64/mci`
+
 ## Usage
 
 ```bash
