@@ -39,13 +39,11 @@ func TestMaster1(t *testing.T) {
 	result, err := settings.InitMySQLCluster()
 	assert.Nil(t, err)
 	assert.Equal(t, []string{
-		"SET GLOBAL server_id=1",
 		"DROP USER IF EXISTS 'repl'@'%'",
 		"CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
-		"RESET SLAVE",
-		"CHANGE MASTER TO master_host='10.0.0.2', master_port=3306, " +
-			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
+		"CHANGE MASTER TO master_host='10.0.0.2', master_port=3306, master_user='repl', " +
+			"\n\t\t\tmaster_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",
 	}, result.Nodes[0].Sqls)
 	assert.Equal(t, ha, result.HAProxy)
@@ -66,13 +64,11 @@ func TestMaster2(t *testing.T) {
 	result, err := settings.InitMySQLCluster()
 	assert.Nil(t, err)
 	assert.Equal(t, []string{
-		"SET GLOBAL server_id=2",
 		"DROP USER IF EXISTS 'repl'@'%'",
 		"CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
-		"RESET SLAVE",
-		"CHANGE MASTER TO master_host='10.0.0.1', master_port=3306, " +
-			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
+		"CHANGE MASTER TO master_host='10.0.0.1', master_port=3306, master_user='repl', " +
+			"\n\t\t\tmaster_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",
 	}, result.Nodes[1].Sqls)
 	assert.Equal(t, ha, result.HAProxy)
@@ -93,10 +89,8 @@ func TestSlave(t *testing.T) {
 	result, err := settings.InitMySQLCluster()
 	assert.Nil(t, err)
 	assert.Equal(t, []string{
-		"SET GLOBAL server_id=3",
-		"RESET SLAVE",
-		"CHANGE MASTER TO master_host='10.0.0.2', master_port=3306, " +
-			"master_user='repl', master_password='repl_pwd', master_auto_position = 1",
+		"CHANGE MASTER TO master_host='10.0.0.2', master_port=3306, master_user='repl', " +
+			"master_password='repl_pwd', master_auto_position = 1",
 		"START SLAVE",
 	}, result.Nodes[2].Sqls)
 }

@@ -12,6 +12,9 @@ A docker-compose example for a mysql master master setup
 1. 停止1号 `docker-compose stop mysqlmaster1`
 1. 启动1号 `docker-compose start mysqlmaster1`
 1. 检查集群 `./MySQLReplicationCheck.sh`
+1. `/bin/bash -x /etc/mysql/conf.d/configure.sh`
+1. `MYSQL_PWD=root mysql -u root`
+1. `/tmp/mci -c /tmp/mci.toml`
 
 ## 测试场景
 

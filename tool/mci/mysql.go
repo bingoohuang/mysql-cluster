@@ -7,8 +7,6 @@ import (
 
 	"github.com/bingoohuang/gossh/pbe"
 
-	"github.com/bingoohuang/now"
-
 	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/sqlmore"
 	"github.com/jinzhu/gorm"
@@ -38,14 +36,9 @@ func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 }
 
 func (s Settings) master1LocalProcess(nodes []MySQLNode) error {
-	mysqlServers := []string{s.Master1Addr, s.Master2Addr}
-	mysqlServers = append(mysqlServers, s.SlaveAddrs...)
+	backupServers := []string{s.Master1Addr, s.Master2Addr}
+	backupServers = append(backupServers, s.SlaveAddrs...)
 
-	if err := s.stopSlaves(mysqlServers); err != nil {
-		return err
-	}
-
-	backupServers := mysqlServers[1:]
 	if err := s.backupTables(backupServers); err != nil {
 		return err
 	}
@@ -82,7 +75,7 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 func (s Settings) createClusters(nodes []MySQLNode) error {
 	for _, node := range nodes {
 		s.Host = node.Addr
-		if err := s.execMultiSqls(node.Sqls); err != nil {
+		if err := s.execSqls(node.Sqls); err != nil {
 			return err
 		}
 	}
@@ -93,20 +86,9 @@ func (s Settings) createClusters(nodes []MySQLNode) error {
 func (s Settings) backupTables(servers []string) error {
 	for _, server := range servers {
 		s.Host = server
-		postfix := "_mci" + now.MakeNow().Format("yyyyMMdd")
+		_, err := s.renameTables("_mci")
 
-		if err := s.renameTables(postfix); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (s Settings) stopSlaves(servers []string) error {
-	for _, server := range servers {
-		s.Host = server
-		if err := s.execSQL("stop slave"); err != nil {
+		if err != nil {
 			return err
 		}
 	}
@@ -118,8 +100,9 @@ func (s Settings) prepareCluster(nodes []MySQLNode) error {
 	s.Host = "127.0.0.1"
 	fs := fmt.Sprintf
 
-	return s.execMultiSqls([]string{
+	return s.execSqls([]string{
 		fs("SET GLOBAL server_id=%d", s.findLocalServerID(nodes)),
+		"STOP SLAVE", "RESET SLAVE ALL",
 		fs(`DROP USER IF EXISTS '%s'@'%s'`, s.User, s.Master1Addr),
 		fs(`CREATE USER '%s'@'%s' IDENTIFIED BY '%s'`, s.User, s.Master1Addr, s.Password),
 		fs(`GRANT ALL PRIVILEGES ON *.* TO '%s'@'%s' WITH GRANT OPTION`, s.User, s.Master1Addr),
@@ -138,7 +121,7 @@ func (s Settings) findLocalServerID(nodes []MySQLNode) int {
 
 // MustOpenDB must open the db.
 func (s Settings) MustOpenDB() *sql.DB {
-	pwd, err := ebpFix(s.Password)
+	pwd, err := pbe.Ebp(s.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -155,32 +138,14 @@ func (s Settings) MustOpenGormDB() *gorm.DB {
 	return gdb
 }
 
-func (s Settings) renameTables(postfix string) error {
+func (s Settings) renameTables(postfix string) (int, error) {
 	db := s.MustOpenGormDB()
 	defer db.Close()
 
 	return RenameTables(db, postfix)
 }
 
-func (s Settings) execSQL(sqlStr string) error {
-	if s.Debug {
-		fmt.Println(sqlStr + ";")
-		return nil
-	}
-
-	db := s.MustOpenDB()
-	defer db.Close()
-
-	if r := sqlmore.ExecSQL(db, sqlStr, 0, ""); r.Error != nil {
-		return fmt.Errorf("exec sql %s error %w", sqlStr, r.Error)
-	}
-
-	logrus.Infof("execSQL %s completed", sqlStr)
-
-	return nil
-}
-
-func (s Settings) execMultiSqls(sqls []string) error {
+func (s Settings) execSqls(sqls []string) error {
 	if s.Debug {
 		fmt.Print(strings.Join(sqls, ";\n"))
 		return nil
@@ -194,26 +159,29 @@ func (s Settings) execMultiSqls(sqls []string) error {
 			return fmt.Errorf("exec sql %s error %w", sqlStr, r.Error)
 		}
 
-		logrus.Infof("execSQL %s completed", sqlStr)
+		logrus.Infof("%s", sqlStr)
 	}
-
-	logrus.Infof("createMySQCluster completed")
 
 	return nil
 }
 
 func (s Settings) isLocalAddr(addr string) bool {
 	if s.LocalAddr == addr {
+		logrus.Infof("%s is local addr", addr)
 		return true
 	}
 
 	if s.LocalAddr != "" {
+		logrus.Infof("%s is not local addr", addr)
 		return false
 	}
 
 	if yes, _ := gonet.IsLocalAddr(addr); yes {
+		logrus.Infof("%s is local addr", addr)
 		return yes
 	}
+
+	logrus.Infof("%s is not local addr", addr)
 
 	return false
 }
@@ -226,46 +194,25 @@ type MySQLNode struct {
 	Sqls                []string
 }
 
-// ebpFix will be removed later after pbe upgraded.
-func ebpFix(p string) (string, error) {
-	if strings.HasPrefix(`{PBE}`, p) {
-		return pbe.Ebp(p)
-	}
-
-	return p, nil
-}
-
 func (s Settings) createInitSqls() []MySQLNode {
-	replPwd, err := ebpFix(s.ReplPassword)
+	replPwd, err := pbe.Ebp(s.ReplPassword)
 	if err != nil {
 		panic(err)
 	}
 
-	m := make([]MySQLNode, 0)
+	m := make([]MySQLNode, 2+len(s.SlaveAddrs))
 
 	const offset = 10000 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
 
-	m = append(m, MySQLNode{
-		Addr:                s.Master1Addr,
-		AutoIncrementOffset: 1,
-		ServerID:            offset + 1,
-		Sqls:                s.initMasterSqls(s.Master2Addr, replPwd),
-	})
+	m[0] = MySQLNode{Addr: s.Master1Addr, AutoIncrementOffset: 1, ServerID: offset + 1,
+		Sqls: s.initSlaveSqls(s.Master2Addr, replPwd)}
 
-	m = append(m, MySQLNode{
-		Addr:                s.Master2Addr,
-		AutoIncrementOffset: 2,
-		ServerID:            offset + 2,
-		Sqls:                s.initMasterSqls(s.Master1Addr, replPwd),
-	})
+	m[1] = MySQLNode{Addr: s.Master2Addr, AutoIncrementOffset: 2, ServerID: offset + 2,
+		Sqls: s.initSlaveSqls(s.Master1Addr, replPwd)}
 
 	for seq, slaveAddr := range s.SlaveAddrs {
-		m = append(m, MySQLNode{
-			Addr:                slaveAddr,
-			AutoIncrementOffset: seq + 3,
-			ServerID:            offset + seq + 3,
-			Sqls:                s.initSlaveSqls(s.Master2Addr, replPwd),
-		})
+		m[2+seq] = MySQLNode{Addr: slaveAddr, AutoIncrementOffset: seq + 3, ServerID: offset + seq + 3,
+			Sqls: s.initSlaveSqls(s.Master2Addr, replPwd)}
 	}
 
 	return m
@@ -277,25 +224,22 @@ func (s Settings) createInitSqls() []MySQLNode {
 // and relay log info repositories, deletes all the relay log files,
 // and starts a new relay log file. It also resets to 0 the replication delay specified
 // with the MASTER_DELAY option to CHANGE MASTER TO.
-func (s Settings) initMasterSqls(masterTo, replPwd string) []string {
-	fs := fmt.Sprintf
 
-	return []string{
-		fs("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
-		fs("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
-		fs("GRANT REPLICATION SLAVE ON *.* TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
-		"RESET SLAVE",
-		fs(`CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', 
-			master_password='%s', master_auto_position = 1`, masterTo, s.Port, s.ReplUsr, replPwd),
-		"START SLAVE",
-	}
-}
+// https://stackoverflow.com/a/32148683
+// RESET SLAVE will leave behind master.info file with "default" values in such a way
+// that SHOW SLAVE STATUS will still give output. So if you have slave monitoring on this host,
+//after it becomes the master, you would still get alarms that are checking for 'Slave_IO_Running: Yes'
+//
+// RESET SLAVE ALL wipes slave info clean away, deleting master.info and
+// SHOW SLAVE STATUS will report "Empty Set (0.00)"
 
 func (s Settings) initSlaveSqls(masterTo, replPwd string) []string {
 	return []string{
-		"RESET SLAVE",
-		fmt.Sprintf("CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', "+
-			"master_password='%s', master_auto_position = 1", masterTo, s.Port, s.ReplUsr, replPwd),
+		fmt.Sprintf("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
+		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
+		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
+		fmt.Sprintf(`CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', 
+			master_password='%s', master_auto_position = 1`, masterTo, s.Port, s.ReplUsr, replPwd),
 		"START SLAVE",
 	}
 }

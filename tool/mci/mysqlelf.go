@@ -20,10 +20,15 @@ type TableBean struct {
 }
 
 // ShowTables show all tables
-func ShowTables(db *gorm.DB, postfix string) (beans []TableBean, err error) {
+func ShowTables(db *gorm.DB, postfix string, excludedDbs ...string) (beans []TableBean, err error) {
 	sql := `select * from information_schema.tables
-		where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys') 
-		and TABLE_NAME not like '%` + postfix + `'`
+		where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys'`
+
+	if len(excludedDbs) > 0 {
+		sql += `,'` + strings.Join(excludedDbs, "','") + `'`
+	}
+
+	sql += `) and TABLE_NAME not like '%` + postfix + `'`
 
 	if s := db.Raw(sql).Scan(&beans); s.Error != nil {
 		logrus.Warnf("show slave status error: %v", s.Error)
@@ -34,15 +39,16 @@ func ShowTables(db *gorm.DB, postfix string) (beans []TableBean, err error) {
 }
 
 // RenameTables rename the non-system databases' table to another name.
-func RenameTables(db *gorm.DB, postfix string) error {
+// Returns the number of table renamed.
+func RenameTables(db *gorm.DB, postfix string) (int, error) {
 	tables, err := ShowTables(db, postfix)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if len(tables) == 0 {
 		logrus.Info("there is no tables to backup")
-		return nil
+		return 0, nil
 	}
 
 	renameSqls := make([]string, len(tables))
@@ -57,7 +63,22 @@ func RenameTables(db *gorm.DB, postfix string) error {
 	joined := "rename table " + strings.Join(renameSqls, ", ")
 	logrus.Infof("sql:%s", joined)
 
-	return db.Exec(joined).Error
+	if err := db.Exec(joined).Error; err != nil {
+		return 0, err
+	}
+
+	//time.Sleep(1 * time.Second) // 确保经过1秒
+	//
+	//timeNow := now.MakeNow().Format("yyyy-MM-dd HH:mm:ss")
+	//purgeSQL := fmt.Sprintf("PURGE BINARY LOGS BEFORE '%s'", timeNow)
+	//logrus.Infof("purgeSQL:%s", purgeSQL)
+	//
+	//// https://dev.mysql.com/doc/refman/5.7/en/purge-binary-logs.html
+	//if err := db.Exec(purgeSQL).Error; err != nil {
+	//	return err
+	//}
+
+	return len(tables), nil
 }
 
 // ShowSlaveStatusBean 表示MySQL Slave Status
