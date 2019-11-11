@@ -39,11 +39,19 @@ func (s Settings) master1LocalProcess(nodes []MySQLNode) error {
 	backupServers := []string{s.Master1Addr, s.Master2Addr}
 	backupServers = append(backupServers, s.SlaveAddrs...)
 
-	if err := s.backupTables(backupServers); err != nil {
+	if err := s.backupTables(backupServers[1:]); err != nil {
 		return err
 	}
 
 	if err := s.createClusters(nodes); err != nil {
+		return err
+	}
+
+	if err := s.resetMaster(backupServers[1:]); err != nil {
+		return err
+	}
+
+	if err := s.startSlaves(nodes); err != nil {
 		return err
 	}
 
@@ -83,12 +91,32 @@ func (s Settings) createClusters(nodes []MySQLNode) error {
 	return nil
 }
 
+func (s Settings) startSlaves(nodes []MySQLNode) error {
+	for _, node := range nodes {
+		s.Host = node.Addr
+		if err := s.execSqls([]string{"start slave"}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s Settings) resetMaster(servers []string) error {
+	for _, server := range servers {
+		s.Host = server
+		if err := s.execSqls([]string{"reset master"}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s Settings) backupTables(servers []string) error {
 	for _, server := range servers {
 		s.Host = server
-		_, err := s.renameTables("_mci")
-
-		if err != nil {
+		if _, err := s.renameTables("_mci"); err != nil {
 			return err
 		}
 	}
@@ -240,7 +268,6 @@ func (s Settings) initSlaveSqls(masterTo, replPwd string) []string {
 		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
 		fmt.Sprintf(`CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', 
 			master_password='%s', master_auto_position = 1`, masterTo, s.Port, s.ReplUsr, replPwd),
-		"START SLAVE",
 	}
 }
 

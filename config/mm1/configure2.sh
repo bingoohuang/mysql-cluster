@@ -1,7 +1,5 @@
 export MYSQL_PWD=$MYSQL_ROOT_PASSWORD;
 
-echo "* Create replication user"
-
 mysql -h 127.0.0.1 -uroot -AN -vvv <<InputComesFromHERE
 create database bjca;
 create table bjca.t2(age int);
