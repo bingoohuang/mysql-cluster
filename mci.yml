@@ -19,7 +19,7 @@ services:
   ha1:
     image: haproxy:1.7-alpine
     networks: [mysqlnet]
-    volumes:['./haproxy:/usr/local/etc/haproxy', './mci.toml:/tmp/mci.toml', '~/go/bin/linux_amd64/mci:/tmp/mci']
+    volumes: ['./haproxy:/usr/local/etc/haproxy', './mci.toml:/tmp/mci.toml', '~/go/bin/linux_amd64/mci:/tmp/mci']
 networks:
   mysqlnet:
     name: mysqlnet
