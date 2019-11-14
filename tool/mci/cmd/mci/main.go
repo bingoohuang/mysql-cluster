@@ -67,7 +67,7 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Version: 1.5.6\n")
+	fmt.Printf("Version: 1.6.0\n")
 
 	if _, err := settings.CreateMySQLCluster(); err != nil {
 		logrus.Errorf("error %v", err)
