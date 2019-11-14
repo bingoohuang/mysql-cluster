@@ -36,8 +36,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Version: 1.5.6\n")
-
 	if *ver {
 		return
 	}
@@ -47,6 +45,8 @@ func main() {
 	_ = viper.BindPFlags(pflag.CommandLine)
 
 	pbe.DealPflag()
+
+	viper.Set("NoneSetup", *checkmc || *readips || *checkmysql)
 
 	configFile, _ := homedir.Expand(*conf)
 	settings := mustLoadConfig(configFile)
@@ -66,6 +66,8 @@ func main() {
 	if *checkmc || *readips || *checkmysql {
 		return
 	}
+
+	fmt.Printf("Version: 1.5.6\n")
 
 	if _, err := settings.CreateMySQLCluster(); err != nil {
 		logrus.Errorf("error %v", err)
@@ -103,7 +105,10 @@ func loadConfig(configFile string) (config mci.Settings, err error) {
 func mustLoadConfig(configFile string) (config mci.Settings) {
 	config, _ = loadConfig(configFile)
 	mci.ViperToStruct(&config)
-	config.Setup()
+
+	if !viper.GetBool("NoneSetup") {
+		config.Setup()
+	}
 
 	return config
 }
