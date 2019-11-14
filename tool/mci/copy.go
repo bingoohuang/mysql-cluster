@@ -10,11 +10,11 @@ import (
 
 func (s *Settings) copyMaster1Data(slaveServers []string) error {
 	dumpTime := now.MakeNow().Format("yyyyMMddHHmmss")
-	env := `MYSQL_PWD='` + s.Password + `'`
-	dumpCmd := fmt.Sprintf(`%s %s  -u root -P %d -h %s --all-databases --set-gtid-purged=OFF > %s_mm1.sql`,
-		env, s.MySQLDumpCmd, s.Port, s.Master1Addr, dumpTime)
+	env := cmd.Env(`MYSQL_PWD=` + s.Password)
+	dumpCmd := fmt.Sprintf(`%s -u root -P %d -h %s --all-databases --set-gtid-purged=OFF>%s_mm1.sql`,
+		s.MySQLDumpCmd, s.Port, s.Master1Addr, dumpTime)
 	logrus.Infof("%s", dumpCmd)
-	_, status := cmd.Bash(dumpCmd)
+	_, status := cmd.Bash(dumpCmd, env)
 
 	if status.Error != nil {
 		return fmt.Errorf("exec %s fail error %w", dumpCmd, status.Error)
@@ -26,10 +26,9 @@ func (s *Settings) copyMaster1Data(slaveServers []string) error {
 	}
 
 	for _, slaveServer := range slaveServers {
-		importCmd := fmt.Sprintf(`%s %s -u root -P %d -h %s < %s_mm1.sql`,
-			env, s.MySQLCmd, s.Port, slaveServer, dumpTime)
+		importCmd := fmt.Sprintf(`%s -u root -P %d -h %s<%s_mm1.sql`, s.MySQLCmd, s.Port, slaveServer, dumpTime)
 		logrus.Infof("%s", importCmd)
-		_, status := cmd.Bash(importCmd, cmd.Env(`MYSQL_PWD='`+s.Password+`'`))
+		_, status := cmd.Bash(importCmd, env)
 
 		if status.Error != nil {
 			return fmt.Errorf("exec %s fail error %w", importCmd, status.Error)
