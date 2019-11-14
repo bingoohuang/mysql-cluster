@@ -36,8 +36,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Printf("Version: 1.5.6\n")
+
 	if *ver {
-		fmt.Printf("Version: 1.5.6\n")
 		return
 	}
 
@@ -66,7 +67,7 @@ func main() {
 		return
 	}
 
-	if _, err := settings.InitMySQLCluster(); err != nil {
+	if _, err := settings.CreateMySQLCluster(); err != nil {
 		logrus.Errorf("error %v", err)
 		os.Exit(1)
 	}
@@ -102,6 +103,7 @@ func loadConfig(configFile string) (config mci.Settings, err error) {
 func mustLoadConfig(configFile string) (config mci.Settings) {
 	config, _ = loadConfig(configFile)
 	mci.ViperToStruct(&config)
+	config.Setup()
 
 	return config
 }

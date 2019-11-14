@@ -279,3 +279,12 @@ func PurifyString(s string) string {
 		return -1
 	}, s)
 }
+
+// Left get the max n letters from s
+func Left(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+
+	return s[0:n]
+}

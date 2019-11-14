@@ -9,8 +9,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// InitMySQLCluster 初始化MySQL Master-Master集群
-func (s Settings) InitMySQLCluster() (r Result, err error) {
+// CreateMySQLCluster 初始化MySQL Master-Master集群
+func (s Settings) CreateMySQLCluster() (r Result, err error) {
 	if s.ValidateAndSetDefault(Validate, SetDefault) != nil {
 		os.Exit(1)
 	}

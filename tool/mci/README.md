@@ -123,3 +123,75 @@ NetstatListen error netstat  netstat -tunlp | grep ":3307" result empty
 # echo $?
 1
 ```
+
+
+一些验证脚本
+
+```bash
+# 启动docker集群
+docker-compose -f mci.yml rm -fsv && docker-compose -f mci.yml up
+# 登录主1
+docker-compose -f mci.yml exec mm1 bash
+# 登录主2
+docker-compose -f mci.yml exec mm2 bash
+# 登录MySQL服务
+MYSQL_PWD=root mysql -u root -P 3306
+
+# 主1导出数据
+MYSQL_PWD=root mysqldump -u root -P 3306 -h mm1 --all-databases > mm1.sql
+# 主2，从1，从2，...，从n 导入数据
+MYSQL_PWD=root mysql -u root -P 3306 -h mm2 <  mm1.sql
+
+# 执行mci工具，顺序: 主2，从1，从2，...，从n, 主1
+/tmp/mci -c /tmp/mci.toml
+
+MYSQL_PWD=root mysql -u root -P 3306  -vvv -e "SHOW SLAVE STATUS \G"
+
+```
+
+```sql
+-- 主1上制造已有数据
+create database bjca; create table bjca.t1(age int); insert into bjca.t1 values(100); select * from bjca.t1;
+-- 主2上制造已有数据
+create database bjca; create table bjca.t1(age int); insert into bjca.t1 values(200); select * from bjca.t1;
+
+-- 重置主1
+SET GLOBAL server_id=10001; STOP SLAVE; RESET SLAVE ALL; 
+DROP USER IF EXISTS 'root'@'mm1'; REATE USER 'root'@'mm1' IDENTIFIED BY 'root';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'mm1' WITH GRANT OPTION;
+DROP USER IF EXISTS 'repl'@'%';
+-- 重置主2
+SET GLOBAL server_id=10002; STOP SLAVE; RESET SLAVE ALL; 
+DROP USER IF EXISTS 'root'@'mm1'; REATE USER 'root'@'mm1' IDENTIFIED BY 'root';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'mm1' WITH GRANT OPTION;
+DROP USER IF EXISTS 'repl'@'%';
+
+-- 重置主1 Master信息
+RESET MASTER;
+-- 重置主2 Master信息
+RESET MASTER;
+
+-- 主1主2 创建复制用户
+CREATE USER 'repl'@'%' IDENTIFIED BY 'repl'; GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl';
+
+-- 主1指向主2
+CHANGE MASTER TO master_host='mm2', master_port=3306, master_user='repl', master_password='repl', master_auto_position = 1;
+-- 主2指向主1
+CHANGE MASTER TO master_host='mm1', master_port=3306, master_user='repl', master_password='repl', master_auto_position = 1;
+
+-- 主1主2 启动复制进程
+START SLAVE;
+-- 查看复制状态
+SHOW SLAVE STATUS\G
+
+-- 主1上
+insert into bjca.t1 values(101);
+create table bjca.t2(age int);
+-- 主2上
+select * from bjca.t1;
+insert into bjca.t1 values(200);
+insert into bjca.t2 values(200);
+-- 主1上
+select * from bjca.t2;
+
+```

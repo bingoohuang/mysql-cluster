@@ -3,23 +3,16 @@ version: '3.7'
 services:
   mm1:
     image: mysql:5.7
-    networks: [mysqlnet]
     environment: [MYSQL_ROOT_PASSWORD=root]
     volumes: ['./config/mm1:/etc/mysql/conf.d/', './mci.toml:/tmp/mci.toml', '~/go/bin/linux_amd64/mci:/tmp/mci']
   mm2:
     image: mysql:5.7
-    networks: [mysqlnet]
     environment: [MYSQL_ROOT_PASSWORD=root]
     volumes: ['./config/mm1:/etc/mysql/conf.d/', './mci.toml:/tmp/mci.toml', '~/go/bin/linux_amd64/mci:/tmp/mci']
-  ms1:
-    image: mysql:5.7
-    networks: [mysqlnet]
-    environment: [MYSQL_ROOT_PASSWORD=root]
-    volumes: ['./config/mm1:/etc/mysql/conf.d/', './mci.toml:/tmp/mci.toml', '~/go/bin/linux_amd64/mci:/tmp/mci']
-  ha1:
-    image: haproxy:1.7-alpine
-    networks: [mysqlnet]
-    volumes: ['./haproxy:/usr/local/etc/haproxy', './mci.toml:/tmp/mci.toml', '~/go/bin/linux_amd64/mci:/tmp/mci']
-networks:
-  mysqlnet:
-    name: mysqlnet
+  # s1:
+  #   image: mysql:5.7
+  #   environment: [MYSQL_ROOT_PASSWORD=root]
+  #   volumes: ['./config/mm1:/etc/mysql/conf.d/', './mci.toml:/tmp/mci.toml', '~/go/bin/linux_amd64/mci:/tmp/mci']
+  # h1:
+  #   image: haproxy:1.7-alpine
+  #   volumes: ['./haproxy:/usr/local/etc/haproxy', './mci.toml:/tmp/mci.toml', '~/go/bin/linux_amd64/mci:/tmp/mci']

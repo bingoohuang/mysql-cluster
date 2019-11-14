@@ -2,6 +2,7 @@ package mci
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -20,7 +21,7 @@ type TableBean struct {
 }
 
 // ShowTables show all tables
-func ShowTables(db *gorm.DB, postfix string, excludedDbs ...string) (beans []TableBean, err error) {
+func ShowTables(db *gorm.DB, excludedDbs ...string) (beans []TableBean, err error) {
 	sql := `select * from information_schema.tables
 		where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys'`
 
@@ -28,7 +29,7 @@ func ShowTables(db *gorm.DB, postfix string, excludedDbs ...string) (beans []Tab
 		sql += `,'` + strings.Join(excludedDbs, "','") + `'`
 	}
 
-	sql += `) and TABLE_NAME not like '%` + postfix + `'`
+	sql += `)`
 
 	if s := db.Raw(sql).Scan(&beans); s.Error != nil {
 		logrus.Warnf("show slave status error: %v", s.Error)
@@ -40,30 +41,20 @@ func ShowTables(db *gorm.DB, postfix string, excludedDbs ...string) (beans []Tab
 
 // RenameTables rename the non-system databases' table to another name.
 // Returns the number of table renamed.
-func RenameTables(db *gorm.DB, postfix string) (int, error) {
-	tables, err := ShowTables(db, postfix)
+func RenameTables(db *gorm.DB) (int, error) {
+	tables, err := ShowTables(db)
 	if err != nil {
 		return 0, err
 	}
 
-	if len(tables) == 0 {
-		logrus.Info("there is no tables to backup")
+	renameSQL := createRenameSQL(tables)
+	if renameSQL == "" {
 		return 0, nil
 	}
 
-	renameSqls := make([]string, len(tables))
-	for i, t := range tables {
-		renameSqls[i] = fmt.Sprintf("%s.%s to %s.%s%s", t.Schema, t.Name, t.Schema, t.Name, postfix)
-	}
+	logrus.Infof("sql:%s", renameSQL)
 
-	// https://dev.mysql.com/doc/refman/5.7/en/rename-table.html
-	// RENAME TABLE
-	//    tbl_name TO new_tbl_name
-	//    [, tbl_name2 TO new_tbl_name2] ...
-	joined := "rename table " + strings.Join(renameSqls, ", ")
-	logrus.Infof("sql:%s", joined)
-
-	if err := db.Exec(joined).Error; err != nil {
+	if err := db.Exec(renameSQL).Error; err != nil {
 		return 0, err
 	}
 
@@ -81,6 +72,48 @@ func RenameTables(db *gorm.DB, postfix string) (int, error) {
 	return len(tables), nil
 }
 
+func createRenameSQL(tables []TableBean) string {
+	oldBackMap := map[string]bool{}
+	newBackMap := map[string]TableBean{}
+	reg := regexp.MustCompile(`.+_mci\d*`)
+
+	for _, t := range tables {
+		if reg.MatchString(t.Name) {
+			oldBackMap[t.Schema+"."+t.Name] = true
+		} else {
+			newBackMap[t.Schema+"."+t.Name] = t
+		}
+	}
+
+	if len(newBackMap) == 0 {
+		logrus.Info("there is no tables to backup")
+		return ""
+	}
+
+	needBackups := make(map[string]string)
+
+	for k, t := range newBackMap {
+		for i := 1; i < 9999999; i++ {
+			k2 := fmt.Sprintf("%s.%s_mci%d", t.Schema, t.Name, i)
+			if _, ok := oldBackMap[k2]; !ok {
+				needBackups[k2] = k
+				break
+			}
+		}
+	}
+
+	parts := make([]string, 0, len(needBackups))
+	for nk, k := range needBackups {
+		parts = append(parts, fmt.Sprintf("%s to %s", k, nk))
+	}
+
+	// https://dev.mysql.com/doc/refman/5.7/en/rename-table.html
+	// RENAME TABLE
+	//    tbl_name TO new_tbl_name
+	//    [, tbl_name2 TO new_tbl_name2] ...
+	return "rename table " + strings.Join(parts, ", ")
+}
+
 // ShowSlaveStatusBean 表示MySQL Slave Status
 type ShowSlaveStatusBean struct {
 	SlaveIOState         string `gorm:"column:Slave_IO_State"`
@@ -93,6 +126,7 @@ type ShowSlaveStatusBean struct {
 	SlaveSQLRunning      string `gorm:"column:Slave_SQL_Running"`
 	MasterServerID       string `gorm:"column:Master_Server_Id"`
 	SecondsBehindMaster  string `gorm:"column:Seconds_Behind_Master"`
+	LastIOError          string `gorm:"column:Last_IO_Error"`
 }
 
 // ShowSlaveStatus show slave status to bean

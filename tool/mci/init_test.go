@@ -36,7 +36,7 @@ func TestMaster1(t *testing.T) {
 		LocalAddr:    "10.0.0.1",
 	}
 
-	result, err := settings.InitMySQLCluster()
+	result, err := settings.CreateMySQLCluster()
 	assert.Nil(t, err)
 	assert.Equal(t, []string{
 		"DROP USER IF EXISTS 'repl'@'%'",
@@ -61,7 +61,7 @@ func TestMaster2(t *testing.T) {
 		LocalAddr:    "10.0.0.2",
 	}
 
-	result, err := settings.InitMySQLCluster()
+	result, err := settings.CreateMySQLCluster()
 	assert.Nil(t, err)
 	assert.Equal(t, []string{
 		"DROP USER IF EXISTS 'repl'@'%'",
@@ -86,7 +86,7 @@ func TestSlave(t *testing.T) {
 		LocalAddr:    "10.0.0.3",
 	}
 
-	result, err := settings.InitMySQLCluster()
+	result, err := settings.CreateMySQLCluster()
 	assert.Nil(t, err)
 	assert.Equal(t, []string{
 		"CHANGE MASTER TO master_host='10.0.0.2', master_port=3306, master_user='repl', " +
@@ -107,7 +107,7 @@ func TestNone(t *testing.T) {
 		LocalAddr:    "",
 	}
 
-	result, err := settings.InitMySQLCluster()
+	result, err := settings.CreateMySQLCluster()
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(result.Nodes))
 	assert.Equal(t, ha, result.HAProxy)

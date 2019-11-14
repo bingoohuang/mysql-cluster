@@ -25,22 +25,4 @@
     ```
 
 1. 使用 `mysql -uroot -p` 输入密码后，检查是否可以正常连接MySQL。
-1. 参考 [Removing the MySQL root password](https://medium.com/@benmorel/remove-the-mysql-root-password-ba3fcbe29870)
 
-    * On MySQL 5.7:
-
-        ```bash
-        password=$(grep -oP 'temporary password(.*): \K(\S+)' /var/log/mysqld.log)
-        mysqladmin --user=root --password="$password" password aaBB@@cc1122
-        mysql --user=root --password=aaBB@@cc1122 -e "UNINSTALL PLUGIN validate_password;"
-        mysqladmin --user=root --password="aaBB@@cc1122" password ""
-        ```
-
-    * On MySQL 8.0:
-
-        ```bash
-        password=$(grep -oP 'temporary password(.*): \K(\S+)' /var/log/mysqld.log)
-        mysqladmin --user=root --password="$password" password aaBB@@cc1122
-        mysql --user=root --password=aaBB@@cc1122 -e "UNINSTALL COMPONENT 'file://component_validate_password';"
-        mysqladmin --user=root --password="aaBB@@cc1122" password ""
-        ```

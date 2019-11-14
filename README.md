@@ -265,3 +265,7 @@ If the read_only system variable is enabled, the server permits client updates o
 Changes to super_read_only on a master server are not replicated to slave servers. The value can be set on a slave server independent of the setting on the master.
 
 super_read_only was added in MySQL 5.7.8.
+
+
+
+MYSQL_PWD=root mysqldump -u root -p --all-databases > /a/path/mysqldump.sql

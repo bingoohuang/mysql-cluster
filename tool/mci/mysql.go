@@ -36,10 +36,10 @@ func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 }
 
 func (s Settings) master1LocalProcess(nodes []MySQLNode) error {
-	backupServers := []string{s.Master1Addr, s.Master2Addr}
+	backupServers := []string{s.Master2Addr}
 	backupServers = append(backupServers, s.SlaveAddrs...)
 
-	if err := s.backupTables(backupServers[1:]); err != nil {
+	if err := s.backupTables(backupServers); err != nil {
 		return err
 	}
 
@@ -47,7 +47,11 @@ func (s Settings) master1LocalProcess(nodes []MySQLNode) error {
 		return err
 	}
 
-	if err := s.resetMaster(backupServers[1:]); err != nil {
+	if err := s.copyMaster1Data(backupServers); err != nil {
+		return err
+	}
+
+	if err := s.resetMaster(nodes); err != nil {
 		return err
 	}
 
@@ -75,7 +79,7 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 		return nil
 	}
 
-	logrus.Infof("InitMySQLCluster bypassed, neither master nor slave for host %v", gonet.ListLocalIps())
+	logrus.Infof("CreateMySQLCluster bypassed, neither master nor slave for host %v", gonet.ListLocalIps())
 
 	return nil
 }
@@ -102,9 +106,9 @@ func (s Settings) startSlaves(nodes []MySQLNode) error {
 	return nil
 }
 
-func (s Settings) resetMaster(servers []string) error {
-	for _, server := range servers {
-		s.Host = server
+func (s Settings) resetMaster(nodes []MySQLNode) error {
+	for _, node := range nodes {
+		s.Host = node.Addr
 		if err := s.execSqls([]string{"reset master"}); err != nil {
 			return err
 		}
@@ -116,7 +120,7 @@ func (s Settings) resetMaster(servers []string) error {
 func (s Settings) backupTables(servers []string) error {
 	for _, server := range servers {
 		s.Host = server
-		if _, err := s.renameTables("_mci"); err != nil {
+		if _, err := s.renameTables(); err != nil {
 			return err
 		}
 	}
@@ -134,6 +138,7 @@ func (s Settings) prepareCluster(nodes []MySQLNode) error {
 		fs(`DROP USER IF EXISTS '%s'@'%s'`, s.User, s.Master1Addr),
 		fs(`CREATE USER '%s'@'%s' IDENTIFIED BY '%s'`, s.User, s.Master1Addr, s.Password),
 		fs(`GRANT ALL PRIVILEGES ON *.* TO '%s'@'%s' WITH GRANT OPTION`, s.User, s.Master1Addr),
+		fs("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
 	})
 }
 
@@ -166,11 +171,11 @@ func (s Settings) MustOpenGormDB() *gorm.DB {
 	return gdb
 }
 
-func (s Settings) renameTables(postfix string) (int, error) {
+func (s Settings) renameTables() (int, error) {
 	db := s.MustOpenGormDB()
 	defer db.Close()
 
-	return RenameTables(db, postfix)
+	return RenameTables(db)
 }
 
 func (s Settings) execSqls(sqls []string) error {
@@ -194,6 +199,10 @@ func (s Settings) execSqls(sqls []string) error {
 }
 
 func (s Settings) isLocalAddr(addr string) bool {
+	if yes, ok := s.LocalAddrMap[addr]; ok {
+		return yes
+	}
+
 	if s.LocalAddr == addr {
 		logrus.Infof("%s is local addr", addr)
 		return true
@@ -220,6 +229,7 @@ type MySQLNode struct {
 	AutoIncrementOffset int
 	ServerID            int
 	Sqls                []string
+	IsLocal             bool
 }
 
 func (s Settings) createInitSqls() []MySQLNode {
@@ -263,7 +273,6 @@ func (s Settings) createInitSqls() []MySQLNode {
 
 func (s Settings) initSlaveSqls(masterTo, replPwd string) []string {
 	return []string{
-		fmt.Sprintf("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
 		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
 		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
 		fmt.Sprintf(`CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', 
