@@ -3,7 +3,6 @@ package mci
 import (
 	"github.com/bingoohuang/goreflect"
 	"github.com/creasty/defaults"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/dealancer/validate.v2"
 )
@@ -82,7 +81,7 @@ func (s *Settings) Setup() {
 	}
 
 	if s.ReplPassword == "" {
-		s.ReplPassword = Left(uuid.New().String(), 16)
+		s.ReplPassword = GeneratePasswordBySet(16, UpperLetters, DigitsLetters, LowerLetters, "-#")
 	}
 }
 

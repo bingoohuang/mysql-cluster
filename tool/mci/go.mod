@@ -12,8 +12,7 @@ require (
 	github.com/bingoohuang/sqlmore v0.0.0-20190711152446-8687de30af5c
 	github.com/creasty/defaults v1.3.0
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/gobars/cmd v0.0.0-20191114054518-0f10c935e318
-	github.com/google/uuid v1.1.1
+	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/jinzhu/gorm v1.9.11
 	github.com/leodido/go-urn v1.2.0 // indirect

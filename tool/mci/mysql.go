@@ -130,15 +130,13 @@ func (s Settings) backupTables(servers []string) error {
 
 func (s Settings) prepareCluster(nodes []MySQLNode) error {
 	s.Host = "127.0.0.1"
-	fs := fmt.Sprintf
 
 	return s.execSqls([]string{
-		fs("SET GLOBAL server_id=%d", s.findLocalServerID(nodes)),
+		fmt.Sprintf("SET GLOBAL server_id=%d", s.findLocalServerID(nodes)),
 		"STOP SLAVE", "RESET SLAVE ALL",
-		fs(`DROP USER IF EXISTS '%s'@'%s'`, s.User, s.Master1Addr),
-		fs(`CREATE USER '%s'@'%s' IDENTIFIED BY '%s'`, s.User, s.Master1Addr, s.Password),
-		fs(`GRANT ALL PRIVILEGES ON *.* TO '%s'@'%s' WITH GRANT OPTION`, s.User, s.Master1Addr),
-		fs("DROP USER IF EXISTS '%s'@'%%'", s.ReplUsr),
+		fmt.Sprintf(`DROP USER IF EXISTS '%s'@'%s'`, s.User, s.Master1Addr),
+		fmt.Sprintf(`CREATE USER '%s'@'%s' IDENTIFIED BY '%s'`, s.User, s.Master1Addr, s.Password),
+		fmt.Sprintf(`GRANT ALL PRIVILEGES ON *.* TO '%s'@'%s' WITH GRANT OPTION`, s.User, s.Master1Addr),
 	})
 }
 
@@ -272,12 +270,20 @@ func (s Settings) createInitSqls() []MySQLNode {
 // SHOW SLAVE STATUS will report "Empty Set (0.00)"
 
 func (s Settings) initSlaveSqls(masterTo, replPwd string) []string {
-	return []string{
-		fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
-		fmt.Sprintf("GRANT REPLICATION SLAVE ON *.* TO '%s'@'%%' IDENTIFIED BY '%s'", s.ReplUsr, replPwd),
-		fmt.Sprintf(`CHANGE MASTER TO master_host='%s', master_port=%d, master_user='%s', 
-			master_password='%s', master_auto_position = 1`, masterTo, s.Port, s.ReplUsr, replPwd),
-	}
+	const (
+		deleteUsers  = "DELETE FROM mysql.user WHERE user='%s'"
+		createUser   = "CREATE USER '%s'@'%s' IDENTIFIED BY '%s'"
+		grantSlave   = "GRANT REPLICATION SLAVE ON *.* TO '%s'@'%s' IDENTIFIED BY '%s'"
+		changeMaster = `CHANGE MASTER TO master_host='%s',master_port=%d,master_user='%s',` +
+			`master_password='%s',master_auto_position=1`
+	)
+
+	sqls := []string{fmt.Sprintf(deleteUsers, s.ReplUsr), "FLUSH PRIVILEGES"}
+
+	args := []interface{}{s.ReplUsr, "%", replPwd}
+	sqls = append(sqls, fmt.Sprintf(createUser, args...), fmt.Sprintf(grantSlave, args...))
+
+	return append(sqls, fmt.Sprintf(changeMaster, masterTo, s.Port, s.ReplUsr, replPwd))
 }
 
 func (s Settings) fixMySQLConfServerID(serverID int) error {
