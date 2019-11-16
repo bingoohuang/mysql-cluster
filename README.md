@@ -56,6 +56,7 @@ insert into bjca.t1(a) values(3);
 1. [MySQL Master Slave Docker部署例子](https://chanjarster.github.io/post/mysql-master-slave-docker-example/) and its related [github rep](https://github.com/chanjarster/mysql-master-slave-docker-example)
 1. [玩转一下MySQL双主集群](https://github.com/bingoohuang/blog/issues/118)
 1. [High-Availability MySQL cluster with load balancing using HAProxy and Heartbeat.](https://github.com/bingoohuang/docker-compose-mysql-master-master)
+1. [开启GTID的情况下导出导入库的注意事项](https://docs.lvrui.io/2016/10/28/%E5%BC%80%E5%90%AFGTID%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E5%AF%BC%E5%87%BA%E5%AF%BC%E5%85%A5%E5%BA%93%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/)
 
 ## tips
 
