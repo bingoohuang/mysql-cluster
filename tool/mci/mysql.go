@@ -3,7 +3,12 @@ package mci
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+	"time"
+
+	"github.com/gobars/cmd"
 
 	"github.com/bingoohuang/gossh/pbe"
 
@@ -16,6 +21,10 @@ import (
 func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 	nodes := s.createInitSqls()
 
+	if err := s.fixMySQLConf(nodes); err != nil {
+		return nodes, err
+	}
+
 	if !s.Debug { // 所有节点都做root向master1的root授权
 		if err := s.prepareCluster(nodes); err != nil {
 			return nodes, err
@@ -26,10 +35,6 @@ func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 		if err := s.master1LocalProcess(nodes); err != nil {
 			return nodes, err
 		}
-	}
-
-	if err := s.fixMySQLConf(nodes); err != nil {
-		return nodes, err
 	}
 
 	return nodes, nil
@@ -63,10 +68,14 @@ func (s Settings) master1LocalProcess(nodes []MySQLNode) error {
 }
 
 func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
+	processed := 0
+
 	for _, node := range nodes {
 		if !s.isLocalAddr(node.Addr) {
 			continue
 		}
+
+		processed++
 
 		if err := s.fixMySQLConfServerID(node.ServerID); err != nil {
 			return err
@@ -76,10 +85,55 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 			return err
 		}
 
+		if err := s.fixServerUUID(); err != nil {
+			return err
+		}
+
+		if err := executeBash("MySQLRestartShell", s.MySQLRestartShell); err != nil {
+			return err
+		}
+	}
+
+	if processed == 0 {
+		logrus.Infof("CreateMySQLCluster bypassed, neither master nor slave for host %v", gonet.ListLocalIps())
+	}
+
+	return nil
+}
+
+func executeBash(name, bash string) error {
+	if bash == "" {
+		logrus.Warnf("%s is empty", name)
 		return nil
 	}
 
-	logrus.Infof("CreateMySQLCluster bypassed, neither master nor slave for host %v", gonet.ListLocalIps())
+	logrus.Infof("start execute %s %s", name, bash)
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
+
+	start := time.Now()
+
+	_, status := cmd.Bash(bash, cmd.Timeout(10*time.Second), cmd.Buffered(false))
+	if status.Error != nil {
+		logrus.Infof("start execute %s %s error %v", name, bash, status.Error)
+		return fmt.Errorf("execute %s %s error %w", name, bash, status.Error)
+	}
+
+	if status.Exit != 0 {
+		logrus.Infof("start execute %s %s exiting code %d, stdout:%s, stderr:%s",
+			name, bash, status.Exit, status.Stdout, status.Stderr)
+
+		return fmt.Errorf("execute %s %s exiting code %d, stdout:%s, stderr:%s",
+			name, bash, status.Exit, status.Stdout, status.Stderr)
+	}
+
+	end := time.Now()
+
+	logrus.Infof("completed execute %s %s cost %v", name, bash, end.Sub(start))
 
 	return nil
 }
@@ -284,6 +338,27 @@ func (s Settings) initSlaveSqls(masterTo, replPwd string) []string {
 	sqls = append(sqls, fmt.Sprintf(createUser, args...), fmt.Sprintf(grantSlave, args...))
 
 	return append(sqls, fmt.Sprintf(changeMaster, masterTo, s.Port, s.ReplUsr, replPwd))
+}
+
+func (s *Settings) fixServerUUID() error {
+	if s.Debug {
+		fmt.Println("fix fixServerUUID")
+		return nil
+	}
+
+	if values, err := SearchFileContent(s.MySQLCnf,
+		`(?i)datadir\s*=\s*(.+)`); err != nil {
+		logrus.Warnf("overwriteHAProxyCnf error: %v", err)
+
+		return err
+	} else if len(values) > 0 {
+		autoCnf := filepath.Join(strings.TrimSpace(values[0]), "auto.cnf")
+		logrus.Infof("remove auto.cnf %s", autoCnf)
+
+		return os.Remove(autoCnf)
+	}
+
+	return fmt.Errorf("unable to find datadir in %s", s.MySQLCnf)
 }
 
 func (s Settings) fixMySQLConfServerID(serverID int) error {

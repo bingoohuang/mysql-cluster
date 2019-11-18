@@ -199,3 +199,7 @@ insert into bjca.t2 values(200);
 select * from bjca.t2;
 
 ```
+
+## Problems
+
+1. [master and slave have equal MySQL server UUIDs](doc/serverUUID.md)

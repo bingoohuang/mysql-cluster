@@ -3,9 +3,7 @@ package mci
 import (
 	"errors"
 	"fmt"
-	"time"
 
-	"github.com/gobars/cmd"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,25 +32,6 @@ listen mysql-ro
 	}
 
 	return rwConfig + rConfig
-}
-
-func (s Settings) restartHAProxy() error {
-	if s.HAProxyRestartShell == "" {
-		logrus.Warnf("HAProxyRestartShell is empty")
-		return nil
-	}
-
-	_, status := cmd.Bash(s.HAProxyRestartShell, cmd.Timeout(5*time.Second), cmd.Buffered(false))
-	if status.Error != nil {
-		return status.Error
-	}
-
-	if status.Exit != 0 {
-		return fmt.Errorf("error exiting code %d, stdout:%s, stderr:%s",
-			status.Exit, status.Stdout, status.Stderr)
-	}
-
-	return nil
 }
 
 func (s Settings) overwriteHAProxyCnf(r *Result) error {

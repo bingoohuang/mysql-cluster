@@ -23,6 +23,8 @@ type Settings struct {
 	MySQLCnf     string   `default:"/etc/my.cnf"`      // MySQL 配置文件的地址， 例如：/etc/mysql/conf.d/my.cnf, /etc/my.cnf
 	HAProxyCfg   string   `default:"/etc/haproxy.cfg"` // HAProxy配置文件地址，
 	// 例如：/etc/haproxy/haproxy.cfg, /etc/opt/rh/rh-haproxy18/haproxy/haproxy.cfg
+
+	MySQLRestartShell   string `default:"systemctl restart mysqld"`  // MySQL重启命令
 	HAProxyRestartShell string `default:"systemctl restart haproxy"` // HAProxy重启命令
 
 	CheckSQL string `default:"select current_date()"` // 检查MySQL可用性的SQL

@@ -157,6 +157,7 @@ type Variables struct {
 	MasterInfoRepository   string `var:"master_info_repository"`
 	RelayLogInfoRepository string `var:"relay_log_info_repository"`
 	InnodbVersion          string `var:"innodb_version"`
+	ServerUUID             string `var:"server_uuid"`
 }
 
 // ShowVariables shows variables to variables bean

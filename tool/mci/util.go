@@ -37,6 +37,16 @@ func ReplaceFileContent(filename, regexStr, repl string) error {
 	return ioutil.WriteFile(filename, []byte(fixed), 0644)
 }
 
+// SearchFileContent 使用正则表达式查找模式正则1号捕获分组
+func SearchFileContent(filename, regexStr string) ([]string, error) {
+	conf, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("ReadFile %s error %w", filename, err)
+	}
+
+	return FindRegexGroup1(string(conf), regexStr)
+}
+
 // FileExists 检查文件是否存在，并且不是目录
 func FileExists(filename string) error {
 	if fi, err := os.Stat(filename); err != nil {
