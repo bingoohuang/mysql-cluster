@@ -137,10 +137,14 @@ docker-compose -f mci.yml exec mm2 bash
 # 登录MySQL服务
 MYSQL_PWD=root mysql -u root -P 3306
 
+# 主1锁定表，准备导出数据 
+FLUSH TABLES WITH READ LOCK;
 # 主1导出数据
 MYSQL_PWD=root mysqldump -u root -P 3306 -h mm1 --all-databases > mm1.sql
 # 主2，从1，从2，...，从n 导入数据
 MYSQL_PWD=root mysql -u root -P 3306 -h mm2 <  mm1.sql
+# 主1解除表锁定 
+UNLOCK TABLES;
 
 # 执行mci工具，顺序: 主2，从1，从2，...，从n, 主1
 /tmp/mci -c /tmp/mci.toml
