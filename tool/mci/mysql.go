@@ -89,8 +89,10 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 			return err
 		}
 
-		if err := executeBash("MySQLRestartShell", s.MySQLRestartShell); err != nil {
-			return err
+		if s.MySQLUUIDClear {
+			if err := executeBash("MySQLRestartShell", 0, s.MySQLRestartShell); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -101,7 +103,7 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 	return nil
 }
 
-func executeBash(name, bash string) error {
+func executeBash(name string, shellTimeout time.Duration, bash string) error {
 	if bash == "" {
 		logrus.Warnf("%s is empty", name)
 		return nil
@@ -117,7 +119,7 @@ func executeBash(name, bash string) error {
 
 	start := time.Now()
 
-	_, status := cmd.Bash(bash, cmd.Timeout(10*time.Second), cmd.Buffered(false))
+	_, status := cmd.Bash(bash, cmd.Timeout(shellTimeout), cmd.Buffered(false))
 	if status.Error != nil {
 		logrus.Infof("start execute %s %s error %v", name, bash, status.Error)
 		return fmt.Errorf("execute %s %s error %w", name, bash, status.Error)
@@ -251,7 +253,7 @@ func (s Settings) execSqls(sqls []string) error {
 }
 
 func (s Settings) isLocalAddr(addr string) bool {
-	if yes, ok := s.LocalAddrMap[addr]; ok {
+	if yes, ok := s.localAddrMap[addr]; ok {
 		return yes
 	}
 
@@ -341,6 +343,10 @@ func (s Settings) initSlaveSqls(masterTo, replPwd string) []string {
 }
 
 func (s *Settings) fixServerUUID() error {
+	if !s.MySQLUUIDClear {
+		return nil
+	}
+
 	if s.Debug {
 		fmt.Println("fix fixServerUUID")
 		return nil

@@ -49,7 +49,7 @@ func (s Settings) CheckMySQL() {
 		os.Exit(1)
 	}
 
-	psLines, err := Ps([]string{"mysqld"}, []string{"mysqld_safe"})
+	psLines, err := Ps([]string{"mysqld"}, []string{"mysqld_safe"}, s.shellTimeoutDuration)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Ps error %v\n", err)
 		os.Exit(1)

@@ -14,7 +14,7 @@ func (s *Settings) copyMaster1Data(slaveServers []string) error {
 	dumpCmd := fmt.Sprintf(`%s -u root -P %d -h %s --all-databases --set-gtid-purged=OFF %s>%s_mm1.sql`,
 		s.MySQLDumpCmd, s.Port, s.Master1Addr, s.MySQLDumpOptions, dumpTime)
 	logrus.Infof("%s", dumpCmd)
-	_, status := cmd.Bash(dumpCmd, env)
+	_, status := cmd.Bash(dumpCmd, cmd.Timeout(s.shellTimeoutDuration), env)
 
 	if status.Error != nil {
 		return fmt.Errorf("exec %s fail error %w", dumpCmd, status.Error)
@@ -28,7 +28,7 @@ func (s *Settings) copyMaster1Data(slaveServers []string) error {
 	for _, slaveServer := range slaveServers {
 		importCmd := fmt.Sprintf(`%s -u root -P %d -h %s<%s_mm1.sql`, s.MySQLCmd, s.Port, slaveServer, dumpTime)
 		logrus.Infof("%s", importCmd)
-		_, status := cmd.Bash(importCmd, env)
+		_, status := cmd.Bash(importCmd, cmd.Timeout(s.shellTimeoutDuration), env)
 
 		if status.Error != nil {
 			return fmt.Errorf("exec %s fail error %w", importCmd, status.Error)

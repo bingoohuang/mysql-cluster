@@ -30,7 +30,7 @@ func (s Settings) CreateMySQLCluster() (r Result, err error) {
 		return r, err
 	}
 
-	if err := executeBash("HAProxyRestartShell", s.HAProxyRestartShell); err != nil {
+	if err := executeBash("HAProxyRestartShell", s.shellTimeoutDuration, s.HAProxyRestartShell); err != nil {
 		return r, err
 	}
 

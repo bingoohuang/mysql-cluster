@@ -250,7 +250,7 @@ func NetstatListen(listenPort int) (pid int, cmdName string, err error) {
 }
 
 // Ps get the result of ps in pattern with invert match
-func Ps(patterns, invertMatches []string) ([]string, error) {
+func Ps(patterns, invertMatches []string, shellTimeout time.Duration) ([]string, error) {
 	shell := `ps -ef`
 
 	for _, p := range patterns {
@@ -270,7 +270,7 @@ func Ps(patterns, invertMatches []string) ([]string, error) {
 	_, status := cmd.BashLiner(shell, func(line string) bool {
 		lines = append(lines, line)
 		return true
-	}, cmd.Timeout(1*time.Second))
+	}, cmd.Timeout(shellTimeout))
 
 	if status.Error != nil {
 		return nil, fmt.Errorf("exec %s error %w", shell, status.Error)
