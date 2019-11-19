@@ -29,10 +29,14 @@ type Settings struct {
 
 	CheckSQL string `default:"select current_date()"` // 检查MySQL可用性的SQL
 
+	// nolint
+	MySQLDumpOptions string `default:"--ignore-table=mysql.help_topic --ignore-table=mysql.help_keyword --ignore-table=mysql.help_relation --ignore-table=mysql.help_category"` //  msyqldump命令选项
+
 	MySQLDumpCmd string `default:"mysqldump"` // mysqldump命令路径
 	MySQLCmd     string `default:"mysql"`     // mysql命令路径
 
 	LocalAddrMap map[string]bool //  本地地址
+
 }
 
 // SettingsOption  stands for option of settings.

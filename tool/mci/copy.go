@@ -11,8 +11,8 @@ import (
 func (s *Settings) copyMaster1Data(slaveServers []string) error {
 	dumpTime := now.MakeNow().Format("yyyyMMddHHmmss")
 	env := cmd.Env(`MYSQL_PWD=` + s.Password)
-	dumpCmd := fmt.Sprintf(`%s -u root -P %d -h %s --all-databases --set-gtid-purged=OFF>%s_mm1.sql`,
-		s.MySQLDumpCmd, s.Port, s.Master1Addr, dumpTime)
+	dumpCmd := fmt.Sprintf(`%s -u root -P %d -h %s --all-databases --set-gtid-purged=OFF %s>%s_mm1.sql`,
+		s.MySQLDumpCmd, s.Port, s.Master1Addr, s.MySQLDumpOptions, dumpTime)
 	logrus.Infof("%s", dumpCmd)
 	_, status := cmd.Bash(dumpCmd, env)
 
