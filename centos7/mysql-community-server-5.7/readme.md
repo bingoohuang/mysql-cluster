@@ -2,10 +2,10 @@
 
 准备MySQL安装包：
 
-1. mysql-community-client-5.7.27-1.el7.x86_64.rpm
-1. mysql-community-common-5.7.27-1.el7.x86_64.rpm
-1. mysql-community-libs-5.7.27-1.el7.x86_64.rpm
-1. mysql-community-server-5.7.27-1.el7.x86_64.rpm
+1. mysql-community-client-5.7.28-1.el7.x86_64.rpm
+1. mysql-community-common-5.7.28-1.el7.x86_64.rpm
+1. mysql-community-libs-5.7.28-1.el7.x86_64.rpm
+1. mysql-community-server-5.7.28-1.el7.x86_64.rpm
 
 执行安装脚本 `sudo ./install.sh`
 
