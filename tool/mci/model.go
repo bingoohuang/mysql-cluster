@@ -37,7 +37,7 @@ type Settings struct {
 
 	MySQLDumpCmd string `default:"mysqldump"` // mysqldump命令路径
 	MySQLCmd     string `default:"mysql"`     // mysql命令路径
-	ShellTimeout string `default:"30s"`       // 执行shell的超时时间
+	ShellTimeout string // 执行shell的超时时间
 
 	localAddrMap         map[string]bool //  本地地址
 	shellTimeoutDuration time.Duration
@@ -92,10 +92,6 @@ func (s *Settings) Setup() {
 
 	if s.ReplPassword == "" {
 		s.ReplPassword = GeneratePasswordBySet(16, UpperLetters, DigitsLetters, LowerLetters, "-#")
-	}
-
-	if s.ShellTimeout == "" {
-		s.ShellTimeout = "30s"
 	}
 
 	shellTimeoutDuration, err := time.ParseDuration(s.ShellTimeout)
