@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bingoohuang/gonet"
+
 	"github.com/bingoohuang/gou/str"
 
 	"github.com/bingoohuang/sqlmore"
@@ -46,7 +48,7 @@ func (s Settings) CheckHAProxyServers() {
 
 	lines := str.SplitTrim(roConfig[0], "\n")
 
-	const re = `(?i)^\s*server\s+\S+\s([\w.]+)(:\d+)?`
+	const re = `(?i)^\s*server\s+\S+\s([\w.]+)(:\d+)`
 
 	addresses := make([]string, 0)
 
@@ -56,8 +58,27 @@ func (s Settings) CheckHAProxyServers() {
 		}
 
 		vv, _ := FindRegexGroup1(line, re)
-		if len(vv) == 1 {
-			addresses = append(addresses, vv[0])
+		if len(vv) >= 1 {
+			crossIndex := strings.Index(line, "#")
+			if crossIndex < 0 {
+				addresses = append(addresses, vv[len(vv)-1])
+			} else {
+				commentPart := strings.TrimSpace(line[crossIndex+1:])
+				vv, _ := FindRegexGroup1(commentPart, `([\w.]+)(:\d+)`)
+				if len(vv) >= 1 {
+					addresses = append(addresses, vv[0])
+				}
+			}
+		}
+	}
+
+	gonet.ListLocalIps()
+
+	primaryIP, _, _ := HostIP("eth0", "en0")
+
+	for i, addr := range addresses {
+		if addr == "127.0.0.1" {
+			addresses[i] = primaryIP
 		}
 	}
 
