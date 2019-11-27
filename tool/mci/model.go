@@ -94,12 +94,14 @@ func (s *Settings) Setup() {
 		s.ReplPassword = GeneratePasswordBySet(16, UpperLetters, DigitsLetters, LowerLetters, "-#")
 	}
 
-	shellTimeoutDuration, err := time.ParseDuration(s.ShellTimeout)
-	if err != nil {
-		logrus.Fatalf("error to parse %s error %v", s.ShellTimeout, err)
-	}
+	if s.ShellTimeout != "" {
+		shellTimeoutDuration, err := time.ParseDuration(s.ShellTimeout)
+		if err != nil {
+			logrus.Fatalf("error to parse ShellTimeout %s error %v", s.ShellTimeout, err)
+		}
 
-	s.shellTimeoutDuration = shellTimeoutDuration
+		s.shellTimeoutDuration = shellTimeoutDuration
+	}
 }
 
 // Result 表示初始化结果

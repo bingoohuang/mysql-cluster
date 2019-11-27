@@ -18,6 +18,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func (s Settings) resetMySQCluster() error {
+	s.Host = localhost
+	resetSqls := s.resetSlaveSqls()
+
+	return s.execSqls(resetSqls)
+}
+
 func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 	nodes := s.createInitSqls()
 
@@ -185,7 +192,7 @@ func (s Settings) backupTables(servers []string) error {
 }
 
 func (s Settings) prepareCluster(nodes []MySQLNode) error {
-	s.Host = "127.0.0.1"
+	s.Host = localhost
 
 	return s.execSqls([]string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", s.findLocalServerID(nodes)),
@@ -283,7 +290,6 @@ type MySQLNode struct {
 	AutoIncrementOffset int
 	ServerID            int
 	Sqls                []string
-	IsLocal             bool
 }
 
 func (s Settings) createInitSqls() []MySQLNode {
@@ -310,6 +316,14 @@ func (s Settings) createInitSqls() []MySQLNode {
 	return m
 }
 
+const (
+	deleteUsers  = "DELETE FROM mysql.user WHERE user='%s'"
+	createUser   = "CREATE USER '%s'@'%s' IDENTIFIED BY '%s'"
+	grantSlave   = "GRANT REPLICATION SLAVE ON *.* TO '%s'@'%s' IDENTIFIED BY '%s'"
+	changeMaster = `CHANGE MASTER TO master_host='%s',master_port=%d,master_user='%s',` +
+		`master_password='%s',master_auto_position=1`
+)
+
 // https://dev.mysql.com/doc/refman/5.7/en/reset-slave.html
 // RESET SLAVE makes the slave forget its replication position in the master's binary log.
 // This statement is meant to be used for a clean start: It clears the master info
@@ -326,20 +340,21 @@ func (s Settings) createInitSqls() []MySQLNode {
 // SHOW SLAVE STATUS will report "Empty Set (0.00)"
 
 func (s Settings) initSlaveSqls(masterTo, replPwd string) []string {
-	const (
-		deleteUsers  = "DELETE FROM mysql.user WHERE user='%s'"
-		createUser   = "CREATE USER '%s'@'%s' IDENTIFIED BY '%s'"
-		grantSlave   = "GRANT REPLICATION SLAVE ON *.* TO '%s'@'%s' IDENTIFIED BY '%s'"
-		changeMaster = `CHANGE MASTER TO master_host='%s',master_port=%d,master_user='%s',` +
-			`master_password='%s',master_auto_position=1`
-	)
-
 	sqls := []string{fmt.Sprintf(deleteUsers, s.ReplUsr), "FLUSH PRIVILEGES"}
 
 	args := []interface{}{s.ReplUsr, "%", replPwd}
 	sqls = append(sqls, fmt.Sprintf(createUser, args...), fmt.Sprintf(grantSlave, args...))
 
 	return append(sqls, fmt.Sprintf(changeMaster, masterTo, s.Port, s.ReplUsr, replPwd))
+}
+
+func (s Settings) resetSlaveSqls() []string {
+	return []string{
+		fmt.Sprintf(deleteUsers, s.ReplUsr),
+		"STOP SLAVE", "RESET SLAVE ALL",
+		fmt.Sprintf(`DROP USER IF EXISTS '%s'@'%s'`, s.User, s.Master1Addr),
+		"FLUSH PRIVILEGES",
+	}
 }
 
 func (s *Settings) fixServerUUID() error {

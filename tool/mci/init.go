@@ -36,3 +36,20 @@ func (s Settings) CreateMySQLCluster() (r Result, err error) {
 
 	return r, err
 }
+
+// ResetMySQLCluster 重置MySQL集群
+func (s Settings) ResetMySQLCluster() (err error) {
+	if s.ValidateAndSetDefault(Validate, SetDefault) != nil {
+		os.Exit(1)
+	}
+
+	if err = s.resetMySQCluster(); err != nil {
+		return err
+	}
+
+	if err := s.resetHAProxyCnf(); err != nil {
+		return err
+	}
+
+	return err
+}

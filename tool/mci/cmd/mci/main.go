@@ -16,7 +16,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+const version = "Version: 1.7.1"
+
 func main() {
+	resetMySQLCluster := pflag.BoolP("reset", "", false, "reset MySQL cluster")
 	readips := pflag.BoolP("readips", "r", false, "read haproxy server ips")
 	checkmc := pflag.BoolP("checkmc", "m", false, "check mysql cluster")
 	checkmysql := pflag.BoolP("checkmysql", "", false, "check mysql connection")
@@ -29,17 +32,8 @@ func main() {
 
 	pflag.Parse()
 
-	args := pflag.Args()
-	if len(args) > 0 {
-		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
-		pflag.PrintDefaults()
-		os.Exit(1)
-	}
-
-	if *ver {
-		fmt.Printf("Version: 1.6.3\n")
-		return
-	}
+	checkIllegalArgs()
+	printVersion(*ver, version)
 
 	viper.SetEnvPrefix("MCI")
 	viper.AutomaticEnv()
@@ -52,28 +46,63 @@ func main() {
 	configFile, _ := homedir.Expand(*conf)
 	settings := mustLoadConfig(configFile)
 
-	if *checkmc {
+	checkSth(settings, *checkmc, *checkmysql, *readips)
+	fmt.Println(version)
+
+	resetMySQL(*resetMySQLCluster, settings)
+
+	if _, err := settings.CreateMySQLCluster(); err != nil {
+		logrus.Errorf("CreateMySQLCluster %v", err)
+		os.Exit(1)
+	}
+}
+
+func printVersion(ver bool, version string) {
+	if ver {
+		fmt.Println(version)
+		os.Exit(0)
+	}
+}
+
+func checkIllegalArgs() {
+	args := pflag.Args()
+	if len(args) > 0 {
+		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
+		pflag.PrintDefaults()
+
+		os.Exit(1)
+	}
+}
+
+func checkSth(settings *mci.Settings, checkmc, checkmysql, readips bool) {
+	if checkmc {
 		settings.CheckMySQLCluster()
 	}
 
-	if *checkmysql {
+	if checkmysql {
 		settings.CheckMySQL()
 	}
 
-	if *readips {
+	if readips {
 		settings.CheckHAProxyServers()
 	}
 
-	if *checkmc || *readips || *checkmysql {
+	if checkmc || readips || checkmysql {
+		os.Exit(0)
+	}
+}
+
+func resetMySQL(resetMySQLCluster bool, settings *mci.Settings) {
+	if !resetMySQLCluster {
 		return
 	}
 
-	fmt.Printf("Version: 1.6.2\n")
-
-	if _, err := settings.CreateMySQLCluster(); err != nil {
-		logrus.Errorf("error %v", err)
+	if err := settings.ResetMySQLCluster(); err != nil {
+		logrus.Errorf("ResetMySQLCluster %v", err)
 		os.Exit(1)
 	}
+
+	os.Exit(0)
 }
 
 func findConfigFile(configFile string) (string, error) {
@@ -103,13 +132,13 @@ func loadConfig(configFile string) (config mci.Settings, err error) {
 	return config, err
 }
 
-func mustLoadConfig(configFile string) (config mci.Settings) {
-	config, _ = loadConfig(configFile)
-	mci.ViperToStruct(&config)
+func mustLoadConfig(configFile string) *mci.Settings {
+	c, _ := loadConfig(configFile)
+	mci.ViperToStruct(&c)
 
 	if !viper.GetBool("NoneSetup") {
-		config.Setup()
+		c.Setup()
 	}
 
-	return config
+	return &c
 }

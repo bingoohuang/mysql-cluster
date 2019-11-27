@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 yum install -y libaio*
-cp my.cnf /etc/my.cnf
+yes | cp my.cnf /etc/my.cnf
 rpm -ivh *.rpm --nodeps --force
 chown mysql:mysql /var/lib/mysql
 systemctl daemon-reload

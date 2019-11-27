@@ -15,7 +15,7 @@ listen mysql-rw
   option tcpka
   server mysql-1 %s:%d check inter 1s
   server mysql-2 %s:%d check inter 1s backup
-`, s.Master1Addr, s.Port, s.Master2Addr, s.Port)
+`, s.replaceIPToLocalhost(s.Master1Addr), s.Port, s.replaceIPToLocalhost(s.Master2Addr), s.Port)
 	rConfig := fmt.Sprintf(`
 listen mysql-ro
   bind 127.0.0.1:23306
@@ -23,15 +23,26 @@ listen mysql-ro
   option tcpka
   server mysql-1 %s:%d check inter 1s
   server mysql-2 %s:%d check inter 1s
-`, s.Master1Addr, s.Port, s.Master2Addr, s.Port)
+`, s.replaceIPToLocalhost(s.Master1Addr), s.Port, s.replaceIPToLocalhost(s.Master2Addr), s.Port)
 
 	for seq, slaveIP := range s.SlaveAddrs {
 		if slaveIP != "" {
-			rConfig += fmt.Sprintf("  server mysql-%d %s:%d check inter 1s\n", seq+3, slaveIP, s.Port)
+			rConfig += fmt.Sprintf("  server mysql-%d %s:%d check inter 1s\n",
+				seq+3, s.replaceIPToLocalhost(slaveIP), s.Port)
 		}
 	}
 
 	return rwConfig + rConfig
+}
+
+const localhost = "127.0.0.1"
+
+func (s Settings) replaceIPToLocalhost(ip string) string {
+	if s.isLocalAddr(ip) {
+		return localhost
+	}
+
+	return ip
 }
 
 func (s Settings) overwriteHAProxyCnf(r *Result) error {
@@ -52,6 +63,37 @@ func (s Settings) overwriteHAProxyCnf(r *Result) error {
 	}
 
 	logrus.Infof("overwriteHAProxyCnf completed")
+
+	return nil
+}
+
+func (s Settings) resetHAProxyCnf() error {
+	if err := FileExists(s.HAProxyCfg); err != nil {
+		return err
+	}
+
+	logrus.Infof("prepare to resetHAProxyCnf %s")
+
+	cnf := fmt.Sprintf(`
+listen mysql-rw
+  bind 127.0.0.1:13306
+  mode tcp
+  option tcpka
+  server mysql-1 127.0.0.1:%d check inter 1s
+listen mysql-ro
+  bind 127.0.0.1:23306
+  mode tcp
+  option tcpka
+  server mysql-1 127.0.0.1:%d check inter 1s
+`, s.Port, s.Port)
+
+	if err := ReplaceFileContent(s.HAProxyCfg,
+		`(?is)#\s*MySQLClusterConfigStart(.+)#\s*MySQLClusterConfigEnd`, cnf); err != nil {
+		logrus.Warnf("resetHAProxyCnf error: %v", err)
+		return err
+	}
+
+	logrus.Infof("resetHAProxyCnf completed")
 
 	return nil
 }
