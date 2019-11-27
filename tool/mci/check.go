@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bingoohuang/gou/str"
+
 	"github.com/bingoohuang/sqlmore"
 )
 
@@ -32,14 +34,34 @@ func (s Settings) CheckHAProxyServers() {
 		os.Exit(1)
 	}
 
-	linesInFile, err := SearchPatternLinesInFile(s.HAProxyCfg,
-		`(?is)mysql-ro(.+)MySQLClusterConfigEnd`, `(?i)server\s+\S+\s(\d+(\.\d+){3})(:\d+)?`)
+	roConfig, err := SearchFileContent(s.HAProxyCfg, `(?is)mysql-ro(.+)MySQLClusterConfigEnd`)
 	if err != nil {
 		fmt.Printf("SearchPatternLinesInFile error %v\n", err)
 		return
 	}
 
-	fmt.Println(strings.Join(linesInFile, "\n"))
+	if len(roConfig) == 0 {
+		return
+	}
+
+	lines := str.SplitTrim(roConfig[0], "\n")
+
+	const re = `(?i)^\s*server\s+\S+\s([\w.]+)(:\d+)?`
+
+	addresses := make([]string, 0)
+
+	for _, line := range lines {
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		vv, _ := FindRegexGroup1(line, re)
+		if len(vv) == 1 {
+			addresses = append(addresses, vv[0])
+		}
+	}
+
+	fmt.Println(strings.Join(addresses, "\n"))
 }
 
 // CheckMySQL 检查MySQL连接

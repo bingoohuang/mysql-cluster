@@ -72,7 +72,7 @@ func (s Settings) resetHAProxyCnf() error {
 		return err
 	}
 
-	logrus.Infof("prepare to resetHAProxyCnf %s")
+	logrus.Infof("prepare to resetHAProxyCnf")
 
 	cnf := fmt.Sprintf(`
 listen mysql-rw

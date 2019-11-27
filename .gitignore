@@ -11,12 +11,13 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 .idea
-centos7/mysql-community-server-5.7.27-1.el7.x86_64/mysql-community-client-5.7.27-1.el7.x86_64.rpm
-centos7/mysql-community-server-5.7.27-1.el7.x86_64/mysql-community-common-5.7.27-1.el7.x86_64.rpm
-centos7/mysql-community-server-5.7.27-1.el7.x86_64/mysql-community-libs-5.7.27-1.el7.x86_64.rpm
-centos7/mysql-community-server-5.7.27-1.el7.x86_64/mysql-community-server-5.7.27-1.el7.x86_64.rpm
 centos7/mysqlclusterinit/mysql
-centos7/mysqlclusterinit/mysqlclusterinit
 centos7/haproxy-1.8.21/haproxy
 .vagrant
 dist/
+centos7/mysql-community-server-5.7/libnuma.so.1
+centos7/mysql-community-server-5.7/mysql-community-client-5.7.28-1.el7.x86_64.rpm
+centos7/mysql-community-server-5.7/mysql-community-common-5.7.28-1.el7.x86_64.rpm
+centos7/mysql-community-server-5.7/mysql-community-libs-5.7.28-1.el7.x86_64.rpm
+centos7/mysql-community-server-5.7/mysql-community-libs-compat-5.7.28-1.el7.x86_64.rpm
+centos7/mysql-community-server-5.7/mysql-community-server-5.7.28-1.el7.x86_64.rpm

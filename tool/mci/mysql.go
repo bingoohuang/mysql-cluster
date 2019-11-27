@@ -260,6 +260,10 @@ func (s Settings) execSqls(sqls []string) error {
 }
 
 func (s Settings) isLocalAddr(addr string) bool {
+	if addr == "" {
+		return false
+	}
+
 	if yes, ok := s.localAddrMap[addr]; ok {
 		return yes
 	}

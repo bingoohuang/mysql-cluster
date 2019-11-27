@@ -16,10 +16,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-const version = "Version: 1.7.1"
+const version = "Version: 1.8.0"
 
 func main() {
-	resetMySQLCluster := pflag.BoolP("reset", "", false, "reset MySQL cluster")
+	removeSlaves := pflag.StringP("removeSlaves", "", "", "remove slave nodes from cluster, eg 192.168.1.1,192.168.1.2")
+	resetLocal := pflag.BoolP("reset", "", false, "reset MySQL cluster")
 	readips := pflag.BoolP("readips", "r", false, "read haproxy server ips")
 	checkmc := pflag.BoolP("checkmc", "m", false, "check mysql cluster")
 	checkmysql := pflag.BoolP("checkmysql", "", false, "check mysql connection")
@@ -49,7 +50,8 @@ func main() {
 	checkSth(settings, *checkmc, *checkmysql, *readips)
 	fmt.Println(version)
 
-	resetMySQL(*resetMySQLCluster, settings)
+	removeSlavesFromCluster(*removeSlaves, settings)
+	resetLocalMySQLClusterNode(*resetLocal, settings)
 
 	if _, err := settings.CreateMySQLCluster(); err != nil {
 		logrus.Errorf("CreateMySQLCluster %v", err)
@@ -66,12 +68,14 @@ func printVersion(ver bool, version string) {
 
 func checkIllegalArgs() {
 	args := pflag.Args()
-	if len(args) > 0 {
-		fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
-		pflag.PrintDefaults()
-
-		os.Exit(1)
+	if len(args) == 0 {
+		return
 	}
+
+	fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
+	pflag.PrintDefaults()
+
+	os.Exit(1)
 }
 
 func checkSth(settings *mci.Settings, checkmc, checkmysql, readips bool) {
@@ -92,13 +96,26 @@ func checkSth(settings *mci.Settings, checkmc, checkmysql, readips bool) {
 	}
 }
 
-func resetMySQL(resetMySQLCluster bool, settings *mci.Settings) {
-	if !resetMySQLCluster {
+func removeSlavesFromCluster(removeSlaves string, settings *mci.Settings) {
+	if removeSlaves == "" {
 		return
 	}
 
-	if err := settings.ResetMySQLCluster(); err != nil {
-		logrus.Errorf("ResetMySQLCluster %v", err)
+	if err := settings.RemoveSlavesFromCluster(removeSlaves); err != nil {
+		logrus.Errorf("ResetLocalMySQLClusterNode %v", err)
+		os.Exit(1)
+	}
+
+	os.Exit(0)
+}
+
+func resetLocalMySQLClusterNode(resetMe bool, settings *mci.Settings) {
+	if !resetMe {
+		return
+	}
+
+	if err := settings.ResetLocalMySQLClusterNode(); err != nil {
+		logrus.Errorf("ResetLocalMySQLClusterNode %v", err)
 		os.Exit(1)
 	}
 
