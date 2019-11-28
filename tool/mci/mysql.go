@@ -181,7 +181,10 @@ func (s Settings) MustOpenDB() *sql.DB {
 	}
 
 	ds := fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, pwd, s.Host, s.Port)
-	logrus.Infof("mysql ds:%s", ds)
+
+	if !s.NoLog {
+		logrus.Infof("mysql ds:%s", ds)
+	}
 
 	return sqlmore.NewSQLMore("mysql", ds).MustOpen()
 }

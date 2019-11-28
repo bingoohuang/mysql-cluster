@@ -11,6 +11,7 @@ require (
 	github.com/bingoohuang/now v0.0.0-20190715150822-ba8e4a91e3d9
 	github.com/bingoohuang/sqlmore v0.0.0-20191128031816-516eca22d8de
 	github.com/creasty/defaults v1.3.0
+	github.com/elliotchance/pie v1.34.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
 	github.com/jedib0t/go-pretty v4.3.0+incompatible

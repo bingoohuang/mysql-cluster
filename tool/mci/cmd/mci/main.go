@@ -7,22 +7,25 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bingoohuang/gou/str"
+
 	"github.com/BurntSushi/toml"
 	"github.com/bingoohuang/gossh/pbe"
 	"github.com/bingoohuang/tool/mci"
+	"github.com/elliotchance/pie/pie"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
-const version = "Version: 1.8.1"
+const version = "Version: 1.9.0"
 
 func main() {
 	removeSlaves := pflag.StringP("removeSlaves", "", "", "remove slave nodes from cluster, eg 192.168.1.1,192.168.1.2")
 	resetLocal := pflag.BoolP("reset", "", false, "reset MySQL cluster")
 	readips := pflag.BoolP("readips", "r", false, "read haproxy server ips")
-	checkmc := pflag.BoolP("checkmc", "m", false, "check mysql cluster")
+	checkmc := pflag.StringP("checkmc", "", "", "check mysql cluster, format json/table")
 	checkmysql := pflag.BoolP("checkmysql", "", false, "check mysql connection")
 	ver := pflag.BoolP("version", "v", false, "show version")
 	conf := pflag.StringP("config", "c", "./config.toml", "config file path")
@@ -42,7 +45,7 @@ func main() {
 
 	pbe.DealPflag()
 
-	viper.Set("NoneSetup", *checkmc || *readips || *checkmysql)
+	viper.Set("NoneSetup", *checkmc != "" || *readips || *checkmysql)
 
 	configFile, _ := homedir.Expand(*conf)
 	settings := mustLoadConfig(configFile)
@@ -78,20 +81,32 @@ func checkIllegalArgs() {
 	os.Exit(1)
 }
 
-func checkSth(settings *mci.Settings, checkmc, checkmysql, readips bool) {
-	if checkmc {
-		settings.CheckMySQLCluster()
+func checkSth(settings *mci.Settings, checkmc string, checkmysql, readips bool) {
+	if checkmc != "" || checkmysql || readips {
+		settings.NoLog = true
+	}
+
+	if checkmc != "" {
+		settings.CheckMySQLCluster(checkmc)
+		os.Exit(0)
 	}
 
 	if checkmysql {
 		settings.CheckMySQL()
+		os.Exit(0)
 	}
 
 	if readips {
-		settings.CheckHAProxyServers()
-	}
+		if mysqlServerAddrs, err := settings.ReadMySQLServersFromHAProxyCfg(); err != nil {
+			logrus.Fatal(err)
+		} else {
+			mysqlServerIPs := pie.Strings(mysqlServerAddrs).Map(func(address string) string {
+				host, _ := str.Split2(address, ":", true, true)
+				return host
+			}).Join("\n")
+			fmt.Println(mysqlServerIPs)
+		}
 
-	if checkmc || readips || checkmysql {
 		os.Exit(0)
 	}
 }

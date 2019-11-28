@@ -5,48 +5,89 @@ import (
 	"os"
 	"strings"
 
+	"github.com/elliotchance/pie/pie"
+	"github.com/sirupsen/logrus"
+
 	"github.com/bingoohuang/gou/str"
 
 	"github.com/bingoohuang/sqlmore"
 )
 
 // CheckMySQLCluster 检查MySQL集群配置
-func (s Settings) CheckMySQLCluster() {
-	if s.ValidateAndSetDefault(SetDefault) != nil {
-		os.Exit(1)
+func (s Settings) CheckMySQLCluster(outputFmt string) {
+	if err := s.ValidateAndSetDefault(SetDefault); err != nil {
+		logrus.Fatal(err)
 	}
 
-	db := s.MustOpenGormDB()
-	defer db.Close()
+	mysqlServerAddrs, err := s.ReadMySQLServersFromHAProxyCfg()
 
-	if status, err := ShowSlaveStatus(db); err == nil {
-		fmt.Printf("ShowSlaveStatus:%s\n", JSONPretty(status))
+	if err != nil {
+		logrus.Fatal(err)
 	}
 
-	if variables, err := ShowVariables(db); err == nil {
-		fmt.Printf("Variables:%s\n", JSONPretty(variables))
+	type result struct {
+		Address              string
+		SlaveIOState         string
+		MasterHost           string
+		SlaveSQLRunningState string
+		SlaveIoRunning       string
+		SlaveSQLRunning      string
+		SecondsBehindMaster  string
+		LastIOError          string
+	}
+
+	results := make([]result, 0)
+
+	pie.Strings(mysqlServerAddrs).Each(func(address string) {
+		host, port := str.Split2(address, ":", true, true)
+		s.Host, _ = ReplaceAddr2Local(host)
+		s.Port = str.ParseInt(port)
+
+		db := s.MustOpenGormDB()
+		defer db.Close()
+
+		status, err := ShowSlaveStatus(db)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+
+		results = append(results, result{
+			Address:              address,
+			SlaveIOState:         status.SlaveIOState,
+			MasterHost:           status.MasterHost,
+			SlaveSQLRunningState: status.SlaveSQLRunningState,
+			SlaveIoRunning:       status.SlaveIoRunning,
+			SlaveSQLRunning:      status.SlaveSQLRunning,
+			SecondsBehindMaster:  status.SecondsBehindMaster,
+			LastIOError:          status.LastIOError,
+		})
+	})
+
+	if outputFmt == "json" {
+		fmt.Println(JSONPretty(results))
+	} else {
+		TablePrinter{}.Print(results)
 	}
 }
 
-// CheckHAProxyServers 检查HAProxy中的MySQL集群配置
-func (s Settings) CheckHAProxyServers() {
-	if s.ValidateAndSetDefault(SetDefault) != nil {
-		os.Exit(1)
+// ReadMySQLServersFromHAProxyCfg 检查HAProxy中的MySQL集群配置
+func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
+	if err := s.ValidateAndSetDefault(SetDefault); err != nil {
+		logrus.Fatal(err)
 	}
 
 	roConfig, err := SearchFileContent(s.HAProxyCfg, `(?is)mysql-ro(.+)MySQLClusterConfigEnd`)
 	if err != nil {
-		fmt.Printf("SearchPatternLinesInFile error %v\n", err)
-		return
+		return nil, fmt.Errorf("searchPatternLinesInFile error %w", err)
 	}
 
 	if len(roConfig) == 0 {
-		return
+		return nil, fmt.Errorf("no config found in %s", s.HAProxyCfg)
 	}
 
 	lines := str.SplitTrim(roConfig[0], "\n")
 
-	const re = `(?i)^\s*server\s+\S+\s([\w.]+)(:\d+)`
+	const re = `(?i)^\s*server\s+\S+\s([\w.]+:\d+)`
 
 	addresses := make([]string, 0)
 
@@ -67,16 +108,14 @@ func (s Settings) CheckHAProxyServers() {
 		}
 
 		commentPart := strings.TrimSpace(line[crossIndex+1:])
-		vv, _ = FindRegexGroup1(commentPart, `([\w.]+)(:\d+)`)
+		vv, _ = FindRegexGroup1(commentPart, `([\w.]+:\d+)`)
 
 		if len(vv) >= 1 {
 			addresses = append(addresses, vv[0])
 		}
 	}
 
-	addresses = ReplaceLocalAddr2MainIPAll(addresses)
-
-	fmt.Println(strings.Join(addresses, "\n"))
+	return ReplaceLocalAddr2MainIPAll(addresses), nil
 }
 
 // CheckMySQL 检查MySQL连接
