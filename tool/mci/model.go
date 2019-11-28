@@ -39,7 +39,6 @@ type Settings struct {
 	MySQLCmd     string `default:"mysql"`     // mysql命令路径
 	ShellTimeout string // 执行shell的超时时间
 
-	localAddrMap         map[string]bool //  本地地址
 	shellTimeoutDuration time.Duration
 }
 
@@ -78,18 +77,6 @@ func (s *Settings) ValidateAndSetDefault(options ...SettingsOption) error {
 
 // Setup setups settings.
 func (s *Settings) Setup() {
-	s.localAddrMap = make(map[string]bool)
-	if s.LocalAddr != "" {
-		s.localAddrMap[s.LocalAddr] = true
-	}
-
-	s.localAddrMap[s.Master1Addr] = s.isLocalAddr(s.Master1Addr)
-	s.localAddrMap[s.Master2Addr] = s.isLocalAddr(s.Master2Addr)
-
-	for _, slaveAddr := range s.SlaveAddrs {
-		s.localAddrMap[slaveAddr] = s.isLocalAddr(slaveAddr)
-	}
-
 	if s.ReplPassword == "" {
 		s.ReplPassword = GeneratePasswordBySet(16, UpperLetters, DigitsLetters, LowerLetters, "-#")
 	}

@@ -7,7 +7,6 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	"github.com/tkrajina/go-reflector/reflector"
 )
 
 // TableBean means the table information in MySQL.
@@ -57,17 +56,6 @@ func RenameTables(db *gorm.DB) (int, error) {
 	if err := db.Exec(renameSQL).Error; err != nil {
 		return 0, err
 	}
-
-	//time.Sleep(1 * time.Second) // 确保经过1秒
-	//
-	//timeNow := now.MakeNow().Format("yyyy-MM-dd HH:mm:ss")
-	//purgeSQL := fmt.Sprintf("PURGE BINARY LOGS BEFORE '%s'", timeNow)
-	//logrus.Infof("purgeSQL:%s", purgeSQL)
-	//
-	//// https://dev.mysql.com/doc/refman/5.7/en/purge-binary-logs.html
-	//if err := db.Exec(purgeSQL).Error; err != nil {
-	//	return err
-	//}
 
 	return len(tables), nil
 }
@@ -141,8 +129,8 @@ func ShowSlaveStatus(db *gorm.DB) (bean ShowSlaveStatusBean, err error) {
 
 // ShowVariablesBean 表示MySQL 服务器参数结果行
 type ShowVariablesBean struct {
-	VariableName string `gorm:"column:Variable_name"`
-	Value        string `gorm:"column:Value"`
+	VariableName string `gorm:"column:Variable_name" var:"field"`
+	Value        string `gorm:"column:Value" var:"value"`
 }
 
 // Variables 表示MySQL 服务器参数
@@ -162,14 +150,6 @@ type Variables struct {
 
 // ShowVariables shows variables to variables bean
 func ShowVariables(db *gorm.DB) (variables Variables, err error) {
-	fieldsMap := make(map[string]reflector.ObjField)
-
-	for _, f := range reflector.New(&variables).Fields() {
-		if tag, _ := f.Tag("var"); tag != "" {
-			fieldsMap[tag] = f
-		}
-	}
-
 	var beans []ShowVariablesBean
 
 	if s := db.Raw("show variables").Scan(&beans); s.Error != nil {
@@ -177,13 +157,7 @@ func ShowVariables(db *gorm.DB) (variables Variables, err error) {
 		return Variables{}, s.Error
 	}
 
-	for _, b := range beans {
-		if f, ok := fieldsMap[b.VariableName]; !ok {
-			continue
-		} else if err := f.Set(b.Value); err != nil {
-			logrus.Warnf("Set error: %v", err)
-		}
-	}
+	err = FlattenBeans(beans, &variables, "var")
 
-	return variables, nil
+	return variables, err
 }

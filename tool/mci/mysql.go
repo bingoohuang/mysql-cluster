@@ -38,7 +38,7 @@ func (s Settings) createMySQCluster() ([]MySQLNode, error) {
 		}
 	}
 
-	if s.isLocalAddr(s.Master1Addr) && !s.Debug {
+	if IsLocalAddr(s.Master1Addr) && !s.Debug {
 		if err := s.master1LocalProcess(nodes); err != nil {
 			return nodes, err
 		}
@@ -78,7 +78,7 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 	processed := 0
 
 	for _, node := range nodes {
-		if !s.isLocalAddr(node.Addr) {
+		if !IsLocalAddr(node.Addr) {
 			continue
 		}
 
@@ -205,7 +205,7 @@ func (s Settings) prepareCluster(nodes []MySQLNode) error {
 
 func (s Settings) findLocalServerID(nodes []MySQLNode) int {
 	for _, node := range nodes {
-		if s.isLocalAddr(node.Addr) {
+		if IsLocalAddr(node.Addr) {
 			return node.ServerID
 		}
 	}
@@ -257,35 +257,6 @@ func (s Settings) execSqls(sqls []string) error {
 	}
 
 	return nil
-}
-
-func (s Settings) isLocalAddr(addr string) bool {
-	if addr == "" {
-		return false
-	}
-
-	if yes, ok := s.localAddrMap[addr]; ok {
-		return yes
-	}
-
-	if s.LocalAddr == addr {
-		logrus.Infof("%s is local addr", addr)
-		return true
-	}
-
-	if s.LocalAddr != "" {
-		logrus.Infof("%s is not local addr", addr)
-		return false
-	}
-
-	if yes, _ := gonet.IsLocalAddr(addr); yes {
-		logrus.Infof("%s is local addr", addr)
-		return yes
-	}
-
-	logrus.Infof("%s is not local addr", addr)
-
-	return false
 }
 
 // MySQLNode means the information of MySQLNode in the cluster.

@@ -97,7 +97,7 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 			continue
 		}
 
-		if containsSub(line, slavesToRemove) {
+		if ContainsSub(line, slavesToRemove...) {
 			lines[i] = "# " + line
 			changes++
 		}
@@ -119,14 +119,4 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 	}
 
 	return nil
-}
-
-func containsSub(s string, subs []string) bool {
-	for _, sub := range subs {
-		if strings.Contains(s, sub) {
-			return true
-		}
-	}
-
-	return false
 }
