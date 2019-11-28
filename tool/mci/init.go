@@ -34,7 +34,7 @@ func (s Settings) CreateMySQLCluster() (r Result, err error) {
 		return r, err
 	}
 
-	if err := executeBash("HAProxyRestartShell", s.shellTimeoutDuration, s.HAProxyRestartShell); err != nil {
+	if err := s.restartHAProxy(); err != nil {
 		return r, err
 	}
 
@@ -55,7 +55,7 @@ func (s Settings) ResetLocalMySQLClusterNode() error {
 		return err
 	}
 
-	if err := executeBash("HAProxyRestartShell", s.shellTimeoutDuration, s.HAProxyRestartShell); err != nil {
+	if err := s.restartHAProxy(); err != nil {
 		return err
 	}
 
@@ -114,9 +114,13 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 		return fmt.Errorf("ReplaceFileContent HAProxyCfg error %w", err)
 	}
 
-	if err := executeBash("HAProxyRestartShell", s.shellTimeoutDuration, s.HAProxyRestartShell); err != nil {
+	if err := s.restartHAProxy(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (s Settings) restartHAProxy() error {
+	return ExecuteBash("HAProxyRestartShell", s.HAProxyRestartShell, s.shellTimeoutDuration)
 }

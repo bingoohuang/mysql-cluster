@@ -6,9 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
-
-	"github.com/gobars/cmd"
 
 	"github.com/bingoohuang/gossh/pbe"
 
@@ -97,7 +94,7 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 		}
 
 		if s.MySQLUUIDClear {
-			if err := executeBash("MySQLRestartShell", 0, s.MySQLRestartShell); err != nil {
+			if err := ExecuteBash("MySQLRestartShell", s.MySQLRestartShell, 0); err != nil {
 				return err
 			}
 		}
@@ -106,43 +103,6 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 	if processed == 0 {
 		logrus.Infof("CreateMySQLCluster bypassed, neither master nor slave for host %v", gonet.ListLocalIps())
 	}
-
-	return nil
-}
-
-func executeBash(name string, shellTimeout time.Duration, bash string) error {
-	if bash == "" {
-		logrus.Warnf("%s is empty", name)
-		return nil
-	}
-
-	logrus.Infof("start execute %s %s", name, bash)
-
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered in f", r)
-		}
-	}()
-
-	start := time.Now()
-
-	_, status := cmd.Bash(bash, cmd.Timeout(shellTimeout), cmd.Buffered(false))
-	if status.Error != nil {
-		logrus.Infof("start execute %s %s error %v", name, bash, status.Error)
-		return fmt.Errorf("execute %s %s error %w", name, bash, status.Error)
-	}
-
-	if status.Exit != 0 {
-		logrus.Infof("start execute %s %s exiting code %d, stdout:%s, stderr:%s",
-			name, bash, status.Exit, status.Stdout, status.Stderr)
-
-		return fmt.Errorf("execute %s %s exiting code %d, stdout:%s, stderr:%s",
-			name, bash, status.Exit, status.Stdout, status.Stderr)
-	}
-
-	end := time.Now()
-
-	logrus.Infof("completed execute %s %s cost %v", name, bash, end.Sub(start))
 
 	return nil
 }
