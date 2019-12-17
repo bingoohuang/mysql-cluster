@@ -13,4 +13,4 @@
 1. innodb_flush_method
 1. innodb_log_file_size
 
-    innodb_log_file_size表示每个文件的大小。因此总的redo log大小为innodb_log_files_in_group * innodb_log_file_size。
+    表示每个文件的大小。因此总的redo log大小为innodb_log_files_in_group * innodb_log_file_size。
