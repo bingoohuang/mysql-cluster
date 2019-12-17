@@ -10,7 +10,6 @@
     默认值：28800秒（8小时）
 
 1. innodb_flush_log_at_timeout
-1. wait_timeout
 1. innodb_flush_method
 1. innodb_log_file_size
   
