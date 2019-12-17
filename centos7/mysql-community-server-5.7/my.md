@@ -14,3 +14,14 @@
 1. innodb_log_file_size
 
     表示每个文件的大小。因此总的redo log大小为innodb_log_files_in_group * innodb_log_file_size。
+
+1. [半同步](https://dev.mysql.com/doc/refman/8.0/en/replication-options-master.html#sysvar_rpl_semi_sync_master_wait_for_slave_count)
+    
+    ```
+    rpl_semi_sync_master_enabled        = 1                             #    0
+    rpl_semi_sync_slave_enabled         = 1                             #    0
+    rpl_semi_sync_master_timeout        = 1000                          #    1000(1 second) 同步复制中由于网络原因导致复制时间超过1s后，增强半同步复制就变成了异步复制了
+    rpl_semi_sync_master_wait_for_slave_count = 1
+    plugin_load_add                     = semisync_master.so            #
+    plugin_load_add                     = semisync_slave.so             #
+    ```
