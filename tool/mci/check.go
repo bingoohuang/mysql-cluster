@@ -13,6 +13,18 @@ import (
 	"github.com/bingoohuang/sqlmore"
 )
 
+// SlaveStatus contains the slave status information for `show slave status\G`.
+type SlaveStatus struct {
+	Address              string
+	SlaveIOState         string
+	MasterHost           string
+	SlaveSQLRunningState string
+	SlaveIoRunning       string
+	SlaveSQLRunning      string
+	SecondsBehindMaster  string
+	LastIOError          string
+}
+
 // CheckMySQLCluster 检查MySQL集群配置
 func (s Settings) CheckMySQLCluster(outputFmt string) {
 	if err := s.ValidateAndSetDefault(SetDefault); err != nil {
@@ -25,18 +37,7 @@ func (s Settings) CheckMySQLCluster(outputFmt string) {
 		logrus.Fatal(err)
 	}
 
-	type result struct {
-		Address              string
-		SlaveIOState         string
-		MasterHost           string
-		SlaveSQLRunningState string
-		SlaveIoRunning       string
-		SlaveSQLRunning      string
-		SecondsBehindMaster  string
-		LastIOError          string
-	}
-
-	results := make([]result, 0)
+	results := make([]SlaveStatus, 0)
 
 	pie.Strings(mysqlServerAddrs).Each(func(address string) {
 		host, port := str.Split2(address, ":", true, true)
@@ -51,7 +52,7 @@ func (s Settings) CheckMySQLCluster(outputFmt string) {
 			logrus.Fatal(err)
 		}
 
-		results = append(results, result{
+		results = append(results, SlaveStatus{
 			Address:              address,
 			SlaveIOState:         status.SlaveIOState,
 			MasterHost:           status.MasterHost,
@@ -63,11 +64,36 @@ func (s Settings) CheckMySQLCluster(outputFmt string) {
 		})
 	})
 
-	if outputFmt == "json" {
-		fmt.Println(JSONPretty(results))
-	} else {
+	switch outputFmt {
+	case "table":
 		TablePrinter{}.Print(results)
+	case "json":
+		fmt.Println(JSONPretty(results))
+	default:
+		s.checkMySQLClusterStatus(results)
 	}
+}
+
+func (s Settings) checkMySQLClusterStatus(results []SlaveStatus) {
+	checkResult := ""
+
+	for _, r := range results {
+		if r.LastIOError == "" &&
+			strings.EqualFold(r.SlaveIoRunning, "Yes") &&
+			strings.EqualFold(r.SlaveSQLRunning, "Yes") {
+			continue
+		}
+
+		checkResult += fmt.Sprintf(
+			"Address:%s\nSlaveIoRunning:%s\nSlaveSQLRunning:%s\nLastIOError:%s\n",
+			r.Address, r.SlaveIoRunning, r.SlaveSQLRunning, r.LastIOError)
+	}
+
+	if checkResult == "" {
+		checkResult = "OK"
+	}
+
+	fmt.Print(checkResult)
 }
 
 // ReadMySQLServersFromHAProxyCfg 检查HAProxy中的MySQL集群配置

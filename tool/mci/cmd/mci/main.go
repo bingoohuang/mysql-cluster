@@ -19,13 +19,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-const version = "Version: 1.9.1"
+const version = "Version: 1.9.2"
 
 func main() {
 	removeSlaves := pflag.StringP("removeSlaves", "", "", "remove slave nodes from cluster, eg 192.168.1.1,192.168.1.2")
 	resetLocal := pflag.BoolP("reset", "", false, "reset MySQL cluster")
 	readips := pflag.BoolP("readips", "r", false, "read haproxy server ips")
-	checkmc := pflag.StringP("checkmc", "", "", "check mysql cluster, format json/table")
+	checkmc := pflag.StringP("checkmc", "", "", "check mysql cluster, format checkmc/json/table")
 	checkmysql := pflag.BoolP("checkmysql", "", false, "check mysql connection")
 	ver := pflag.BoolP("version", "v", false, "show version")
 	conf := pflag.StringP("config", "c", "./config.toml", "config file path")
