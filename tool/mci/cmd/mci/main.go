@@ -25,6 +25,8 @@ func main() {
 	removeSlaves := pflag.StringP("removeSlaves", "", "", "remove slave nodes from cluster, eg 192.168.1.1,192.168.1.2")
 	resetLocal := pflag.BoolP("reset", "", false, "reset MySQL cluster")
 	readips := pflag.BoolP("readips", "r", false, "read haproxy server ips")
+
+	// --checkmc=checkmc，输出OK表示集群状态是好的，输出其它内容，为详细错误
 	checkmc := pflag.StringP("checkmc", "", "", "check mysql cluster, format checkmc/json/table")
 	checkmysql := pflag.BoolP("checkmysql", "", false, "check mysql connection")
 	ver := pflag.BoolP("version", "v", false, "show version")
