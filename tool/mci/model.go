@@ -21,9 +21,8 @@ type Settings struct {
 	ReplUsr      string   `default:"repl"`         // 复制用用户名，默认repl
 	ReplPassword string   // 复制用户密码，如果不指定，则使用uuid生成
 
-	Debug          bool // 测试模式，只打印SQL和HAProxy配置, 不实际执行
-	MySQLUUIDClear bool // 是否清除MySQL的uuid文件
-	NoLog          bool
+	Debug bool // 测试模式，只打印SQL和HAProxy配置, 不实际执行
+	NoLog bool
 
 	LocalAddr  string // 指定本机的IP地址，不指定则自动从网卡中获取
 	MySQLCnf   string `default:"/etc/my.cnf"`      // MySQL 配置文件的地址， 例如：/etc/mysql/conf.d/my.cnf, /etc/my.cnf

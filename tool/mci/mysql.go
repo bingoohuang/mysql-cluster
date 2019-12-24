@@ -93,10 +93,8 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 			return err
 		}
 
-		if s.MySQLUUIDClear {
-			if err := ExecuteBash("MySQLRestartShell", s.MySQLRestartShell, 0); err != nil {
-				return err
-			}
+		if err := ExecuteBash("MySQLRestartShell", s.MySQLRestartShell, 0); err != nil {
+			return err
 		}
 	}
 
@@ -160,6 +158,8 @@ func (s Settings) prepareCluster(nodes []MySQLNode) error {
 		fmt.Sprintf(`DROP USER IF EXISTS '%s'@'%s'`, s.User, s.Master1Addr),
 		fmt.Sprintf(`CREATE USER '%s'@'%s' IDENTIFIED BY '%s'`, s.User, s.Master1Addr, s.Password),
 		fmt.Sprintf(`GRANT ALL PRIVILEGES ON *.* TO '%s'@'%s' WITH GRANT OPTION`, s.User, s.Master1Addr),
+		// DROP USER IF EXISTS 'root'@'%'; CREATE USER 'root'@'%' IDENTIFIED BY 'C2D747DB89F6_a';
+		// GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 	})
 }
 
@@ -296,10 +296,6 @@ func (s Settings) resetSlaveSqls() []string {
 }
 
 func (s *Settings) fixServerUUID() error {
-	if !s.MySQLUUIDClear {
-		return nil
-	}
-
 	if s.Debug {
 		fmt.Println("fix fixServerUUID")
 		return nil
@@ -307,7 +303,7 @@ func (s *Settings) fixServerUUID() error {
 
 	if values, err := SearchFileContent(s.MySQLCnf,
 		`(?i)datadir\s*=\s*(.+)`); err != nil {
-		logrus.Warnf("overwriteHAProxyCnf error: %v", err)
+		logrus.Warnf("SearchFileContent error: %v", err)
 
 		return err
 	} else if len(values) > 0 {
