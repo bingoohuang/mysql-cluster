@@ -3,6 +3,7 @@ package mci
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -10,7 +11,7 @@ import (
 func (s Settings) createHAProxyConfig() string {
 	rwConfig := fmt.Sprintf(`
 listen mysql-rw
-  bind 127.0.0.1:13306
+  #binding#
   mode tcp
   option tcpka
   server mysql-1 %s:%d check inter 1s
@@ -20,23 +21,12 @@ listen mysql-rw
 	replaceIP1, originalIP1 := ReplaceAddr2Local(s.Master1Addr)
 	replaceIP2, originalIP2 := ReplaceAddr2Local(s.Master2Addr)
 
-	head := `
-listen mysql-ro
-  bind 127.0.0.1:23306
-`
-
-	if s.IPv6Enabled {
-		head += `
-  bind ::1:23306
-`
-	}
-
-	head += `  
-  mode tcp
-  option tcpka
-`
 	rConfig := fmt.Sprintf(
 		`
+listen mysql-ro
+  #binding#
+  mode tcp
+  option tcpka
   server mysql-1 %s:%d check inter 1s # %s:%d
   server mysql-2 %s:%d check inter 1s # %s:%d
 `, replaceIP1, s.Port, originalIP1, s.Port, replaceIP2, s.Port, originalIP2, s.Port)
@@ -49,7 +39,20 @@ listen mysql-ro
 		}
 	}
 
-	return head + rwConfig + rConfig
+	bindingRw := `bind 127.0.0.1:13306`
+
+	if s.IPv6Enabled {
+		bindingRw += "\n  bind ::1:13306"
+	}
+
+	bindingRo := `bind 127.0.0.1:23306`
+
+	if s.IPv6Enabled {
+		bindingRo += "\n  bind ::1:23306"
+	}
+
+	return strings.Replace(rwConfig, `#binding#`, bindingRw, 1) +
+		strings.Replace(rConfig, `#binding#`, bindingRo, 1)
 }
 
 func (s Settings) overwriteHAProxyCnf(r *Result) error {

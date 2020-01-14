@@ -27,12 +27,17 @@ func IsLocalAddr(addr string) bool {
 	return yes
 }
 
-const localhost = "127.0.0.1"
+const localhostIPv4 = "127.0.0.1"
+const localhostIPv6 = "::1"
 
 // ReplaceAddr2Local try to replace an local IP to localhost
 func ReplaceAddr2Local(ip string) (replaced, original string) {
 	if IsLocalAddr(ip) {
-		return localhost, ip
+		if gonet.IsIPv6(ip) {
+			return localhostIPv6, ip
+		}
+
+		return localhostIPv4, ip
 	}
 
 	return ip, ip

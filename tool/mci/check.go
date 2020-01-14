@@ -40,7 +40,8 @@ func (s Settings) CheckMySQLCluster(outputFmt string) {
 	results := make([]SlaveStatus, 0)
 
 	pie.Strings(mysqlServerAddrs).Each(func(address string) {
-		host, port := str.Split2(address, ":", true, true)
+		sepPos := strings.LastIndex(address, ":")
+		host, port := address[0:sepPos], address[sepPos+1:]
 		s.Host, _ = ReplaceAddr2Local(host)
 		s.Port = str.ParseInt(port)
 
@@ -98,10 +99,6 @@ func (s Settings) checkMySQLClusterStatus(results []SlaveStatus) {
 
 // ReadMySQLServersFromHAProxyCfg 检查HAProxy中的MySQL集群配置
 func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
-	if err := s.ValidateAndSetDefault(SetDefault); err != nil {
-		logrus.Fatal(err)
-	}
-
 	roConfig, err := SearchFileContent(s.HAProxyCfg, `(?is)mysql-ro(.+)MySQLClusterConfigEnd`)
 	if err != nil {
 		return nil, fmt.Errorf("searchPatternLinesInFile error %w", err)
@@ -141,7 +138,7 @@ func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
 		}
 	}
 
-	return ReplaceLocalAddr2MainIPAll(addresses), nil
+	return addresses, nil
 }
 
 // CheckMySQL 检查MySQL连接

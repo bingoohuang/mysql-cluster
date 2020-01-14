@@ -16,7 +16,7 @@ import (
 )
 
 func (s Settings) resetMySQCluster() error {
-	s.Host = localhost
+	s.Host = localhostIPv4
 	resetSqls := s.resetSlaveSqls()
 
 	return s.execSqls(resetSqls)
@@ -150,7 +150,7 @@ func (s Settings) backupTables(servers []string) error {
 }
 
 func (s Settings) prepareCluster(nodes []MySQLNode) error {
-	s.Host = localhost
+	s.Host = localhostIPv4
 
 	return s.execSqls([]string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", s.findLocalServerID(nodes)),
@@ -180,9 +180,12 @@ func (s Settings) MustOpenDB() *sql.DB {
 		panic(err)
 	}
 
-	ds := fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, pwd, s.Host, s.Port)
+	ds := ""
+
 	if gonet.IsIPv6(s.Host) {
 		ds = fmt.Sprintf("%s:%s@tcp([%s]:%d)/", s.User, pwd, s.Host, s.Port)
+	} else {
+		ds = fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, pwd, s.Host, s.Port)
 	}
 
 	if !s.NoLog {
