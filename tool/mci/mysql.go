@@ -181,6 +181,9 @@ func (s Settings) MustOpenDB() *sql.DB {
 	}
 
 	ds := fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, pwd, s.Host, s.Port)
+	if gonet.IsIPv6(s.Host) {
+		ds = fmt.Sprintf("%s:%s@tcp([%s]:%d)/", s.User, pwd, s.Host, s.Port)
+	}
 
 	if !s.NoLog {
 		logrus.Infof("mysql ds:%s", ds)
