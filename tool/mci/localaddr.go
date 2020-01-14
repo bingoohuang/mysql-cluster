@@ -1,11 +1,8 @@
 package mci
 
 import (
-	"fmt"
-	"net/http"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/bingoohuang/gou/str"
 
@@ -22,15 +19,11 @@ func IsLocalAddr(addr string) bool {
 		return false
 	}
 
-	if addr == localhost || addr == "localhost" {
-		return true
-	}
-
 	if yes, ok := localAddrMap.Load(addr); ok {
 		return yes.(bool)
 	}
 
-	yes, _ := TellIsLocalAddr(addr)
+	yes, _ := gonet.IsLocalAddr(addr)
 	localAddrMap.Store(addr, yes)
 
 	return yes
@@ -78,7 +71,7 @@ func ReplaceLocalAddr2MainIPAll(addresses []string) []string {
 // HostIP 根据 primaryIfaceName 确定的名字，返回主IP primaryIP，以及以空格分隔的本机IP列表 ipList
 // PrimaryIfaceName 表示主网卡的名称，用于获取主IP(v4)，不设置时，从eth0(linux), en0(darwin)，或者第一个ip v4的地址
 func HostIP(primaryIfaceNames ...string) (primaryIP string, ipList []string, err error) {
-	ips, err := gonet.ListLocalIfaceAddrs()
+	ips, err := gonet.ListIfaces()
 	if err != nil {
 		return
 	}
@@ -87,10 +80,10 @@ func HostIP(primaryIfaceNames ...string) (primaryIP string, ipList []string, err
 
 	for _, addr := range ips {
 		if goreflect.SliceContains(primaryIfaceNames, addr.IfaceName) {
-			primaryIP = addr.IP
+			primaryIP = addr.IP.String()
 		}
 
-		ipList = append(ipList, addr.IP)
+		ipList = append(ipList, addr.IP.String())
 	}
 
 	if primaryIP == "" && len(ipList) > 0 {
@@ -98,51 +91,4 @@ func HostIP(primaryIfaceNames ...string) (primaryIP string, ipList []string, err
 	}
 
 	return
-}
-
-// TellIsLocalAddr 判断addr（ip，域名等）是否指向本机
-// 由于IP可能经由iptable指向，或者可能是域名，或者其它，不能直接与本机IP做对比
-// 本方法构建一个临时的HTTP服务，然后使用指定的addr去连接改HTTP服务，如果能连接上，说明addr是指向本机的地址
-func TellIsLocalAddr(addr string) (bool, error) {
-	if addr == "127.0.0.1" {
-		return true, nil
-	}
-
-	localIPMap := gonet.ListLocalIPMap()
-	if _, ok := localIPMap[addr]; ok {
-		return true, nil
-	}
-
-	port, err := gonet.FreePort()
-	if err != nil {
-		return false, err
-	}
-
-	radStr := gonet.RandString(512)
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprint(w, radStr)
-	})
-
-	server := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: mux}
-	exitChan := make(chan bool)
-
-	go func() {
-		_ = server.ListenAndServe()
-		exitChan <- true
-	}()
-
-	resp, err := gonet.HTTPGet(fmt.Sprintf("http://%s:%d", addr, port))
-	_ = server.Close()
-
-	if err != nil {
-		return false, err
-	}
-
-	select {
-	case <-time.After(10 * time.Second):
-	case <-exitChan:
-	}
-
-	return string(resp) == radStr, nil
 }

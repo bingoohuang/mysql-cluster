@@ -13,7 +13,7 @@ func TestIsLocalAddr(t *testing.T) {
 	assert.True(t, mci.IsLocalAddr("localhost"))
 	assert.False(t, mci.IsLocalAddr(""))
 
-	for _, ip := range gonet.ListLocalIps() {
+	for _, ip := range gonet.ListIps() {
 		assert.True(t, mci.IsLocalAddr(ip))
 	}
 }

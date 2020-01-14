@@ -113,7 +113,7 @@ func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
 
 	lines := str.SplitTrim(roConfig[0], "\n")
 
-	const re = `(?i)^\s*server\s+\S+\s([\w.]+:\d+)`
+	const re = `(?i)^\s*server\s+\S+\s([\w.:]+:\d+)`
 
 	addresses := make([]string, 0)
 
@@ -134,9 +134,9 @@ func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
 		}
 
 		commentPart := strings.TrimSpace(line[crossIndex+1:])
-		vv, _ = FindRegexGroup1(commentPart, `([\w.]+:\d+)`)
+		vv, _ = FindRegexGroup1(commentPart, `([\w.:]+:\d+)`)
 
-		if len(vv) >= 1 {
+		if len(vv) >= 1 { // nolint gomnd
 			addresses = append(addresses, vv[0])
 		}
 	}
@@ -148,18 +148,18 @@ func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
 // refer https://github.com/zhishutech/mysqlha-keepalived-3node/blob/master/keepalived/checkMySQL.py
 func (s Settings) CheckMySQL() {
 	if s.ValidateAndSetDefault(SetDefault) != nil {
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	psLines, err := Ps([]string{"mysqld"}, []string{"mysqld_safe"}, s.shellTimeoutDuration)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Ps error %v\n", err)
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	if len(psLines) == 0 {
 		fmt.Fprintf(os.Stderr, "Ps result is empty\n")
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	fmt.Println(strings.Join(psLines, "\n"))
@@ -167,14 +167,14 @@ func (s Settings) CheckMySQL() {
 	pid, cmdName, err := NetstatListen(s.Port)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "NetstatListen error %v\n", err)
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	fmt.Printf("netstat found cmd %s with pid %d\n", cmdName, pid)
 
 	if !strings.HasPrefix(cmdName, "mysqld") {
 		fmt.Printf("cmd %s is not msyqld\n", cmdName)
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	db := s.MustOpenDB()
@@ -183,6 +183,6 @@ func (s Settings) CheckMySQL() {
 	result := sqlmore.ExecSQL(db, s.CheckSQL, 100, "NULL")
 	if err := PrintSQLResult(os.Stdout, os.Stderr, s.CheckSQL, result); err != nil {
 		fmt.Printf("PrintSQLResult error %v\n", err)
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 }

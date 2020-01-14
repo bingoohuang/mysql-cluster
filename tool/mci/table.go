@@ -56,7 +56,7 @@ func (p TablePrinter) Print(value interface{}) {
 
 func createRow(fields []reflec.StructField, rowIndex int, v reflect.Value, rows *[]table.Row) {
 	row := make(table.Row, 0)
-	row = append(row, rowIndex+1)
+	row = append(row, rowIndex+1) // nolint gomnd
 
 	for _, f := range fields {
 		row = append(row, v.Field(f.Index).Interface())

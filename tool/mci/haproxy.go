@@ -19,11 +19,24 @@ listen mysql-rw
 
 	replaceIP1, originalIP1 := ReplaceAddr2Local(s.Master1Addr)
 	replaceIP2, originalIP2 := ReplaceAddr2Local(s.Master2Addr)
-	rConfig := fmt.Sprintf(`
+
+	head := `
 listen mysql-ro
   bind 127.0.0.1:23306
+`
+
+	if s.IPv6Enabled {
+		head += `
+  bind ::1:23306
+`
+	}
+
+	head += `  
   mode tcp
   option tcpka
+`
+	rConfig := fmt.Sprintf(
+		`
   server mysql-1 %s:%d check inter 1s # %s:%d
   server mysql-2 %s:%d check inter 1s # %s:%d
 `, replaceIP1, s.Port, originalIP1, s.Port, replaceIP2, s.Port, originalIP2, s.Port)
@@ -32,11 +45,11 @@ listen mysql-ro
 		if slaveIP != "" {
 			replaceIP, originalIP := ReplaceAddr2Local(slaveIP)
 			rConfig += fmt.Sprintf("  server mysql-%d %s:%d check inter 1s # %s:%d\n",
-				seq+3, replaceIP, s.Port, originalIP, s.Port)
+				seq+3, replaceIP, s.Port, originalIP, s.Port) // nolint gomnd
 		}
 	}
 
-	return rwConfig + rConfig
+	return head + rwConfig + rConfig
 }
 
 func (s Settings) overwriteHAProxyCnf(r *Result) error {

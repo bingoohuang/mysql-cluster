@@ -99,7 +99,7 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 	}
 
 	if processed == 0 {
-		logrus.Infof("CreateMySQLCluster bypassed, neither master nor slave for host %v", gonet.ListLocalIps())
+		logrus.Infof("CreateMySQLCluster bypassed, neither master nor slave for host %v", gonet.ListIps())
 	}
 
 	return nil
@@ -236,18 +236,18 @@ func (s Settings) createInitSqls() []MySQLNode {
 		panic(err)
 	}
 
-	m := make([]MySQLNode, 2+len(s.SlaveAddrs))
+	m := make([]MySQLNode, 2+len(s.SlaveAddrs)) // nolint gomnd
 
 	const offset = 10000 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
 
-	m[0] = MySQLNode{Addr: s.Master1Addr, AutoIncrementOffset: 1, ServerID: offset + 1,
+	m[0] = MySQLNode{Addr: s.Master1Addr, AutoIncrementOffset: 1, ServerID: offset + 1, // nolint gomnd
 		Sqls: s.initSlaveSqls(s.Master2Addr, replPwd)}
 
-	m[1] = MySQLNode{Addr: s.Master2Addr, AutoIncrementOffset: 2, ServerID: offset + 2,
+	m[1] = MySQLNode{Addr: s.Master2Addr, AutoIncrementOffset: 2, ServerID: offset + 2, // nolint gomnd
 		Sqls: s.initSlaveSqls(s.Master1Addr, replPwd)}
 
 	for seq, slaveAddr := range s.SlaveAddrs {
-		m[2+seq] = MySQLNode{Addr: slaveAddr, AutoIncrementOffset: seq + 3, ServerID: offset + seq + 3,
+		m[2+seq] = MySQLNode{Addr: slaveAddr, AutoIncrementOffset: seq + 3, ServerID: offset + seq + 3, // nolint gomnd
 			Sqls: s.initSlaveSqls(s.Master2Addr, replPwd)}
 	}
 

@@ -100,7 +100,7 @@ func FindRegexGroup1(str, regexStr string) ([]string, error) {
 	group1s := make([]string, 0)
 
 	for _, v := range re.FindAllStringSubmatch(str, -1) {
-		if len(v) < 2 {
+		if len(v) < 2 { // nolint gomnd
 			return nil, fmt.Errorf("regexp %s should have at least one capturing group", regexStr)
 		}
 
@@ -121,7 +121,7 @@ func ReplaceRegexGroup1(str, regexStr, repl string) (string, error) {
 	lastIndex := 0
 
 	for _, v := range re.FindAllStringSubmatchIndex(str, -1) {
-		if len(v) < 4 {
+		if len(v) < 4 { // nolint gomnd
 			return "", fmt.Errorf("regexp %s should have at least one capturing group", regexStr)
 		}
 
@@ -225,7 +225,7 @@ func ViperToStruct(structVar interface{}) {
 // NetstatListen exec netstat to find pid and cmdName for specified listenPort
 func NetstatListen(listenPort int) (pid int, cmdName string, err error) {
 	shell := fmt.Sprintf(`netstat -tunlp | grep ":%d"`, listenPort)
-	_, status := cmd.Bash(shell, cmd.Timeout(1*time.Second))
+	_, status := cmd.Bash(shell, cmd.Timeout(1*time.Second)) // nolint gomnd
 
 	if status.Error != nil {
 		return 0, "", fmt.Errorf("exec %s error %w", shell, status.Error)
@@ -242,7 +242,7 @@ func NetstatListen(listenPort int) (pid int, cmdName string, err error) {
 	logrus.Infof("netstat result: %s", stdout)
 
 	subs := re.FindAllStringSubmatch(stdout, -1)
-	if len(subs) != 1 {
+	if len(subs) != 1 { // nolint gomnd
 		return 0, "", fmt.Errorf("netstat  %s result more than one result %s", shell, stdout)
 	}
 

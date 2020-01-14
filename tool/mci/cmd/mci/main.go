@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const version = "Version: 1.9.2"
+const version = "Version: 1.10.0"
 
 func main() {
 	removeSlaves := pflag.StringP("removeSlaves", "", "", "remove slave nodes from cluster, eg 192.168.1.1,192.168.1.2")
@@ -60,7 +60,7 @@ func main() {
 
 	if _, err := settings.CreateMySQLCluster(); err != nil {
 		logrus.Errorf("CreateMySQLCluster %v", err)
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 }
 
@@ -80,7 +80,7 @@ func checkIllegalArgs() {
 	fmt.Printf("Unknown args %s\n", strings.Join(args, " "))
 	pflag.PrintDefaults()
 
-	os.Exit(1)
+	os.Exit(1) // nolint gomnd
 }
 
 func checkSth(settings *mci.Settings, checkmc string, checkmysql, readips bool) {
@@ -120,7 +120,7 @@ func removeSlavesFromCluster(removeSlaves string, settings *mci.Settings) {
 
 	if err := settings.RemoveSlavesFromCluster(removeSlaves); err != nil {
 		logrus.Errorf("ResetLocalMySQLClusterNode %v", err)
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	os.Exit(0)
@@ -133,7 +133,7 @@ func resetLocalMySQLClusterNode(resetMe bool, settings *mci.Settings) {
 
 	if err := settings.ResetLocalMySQLClusterNode(); err != nil {
 		logrus.Errorf("ResetLocalMySQLClusterNode %v", err)
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	os.Exit(0)

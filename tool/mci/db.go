@@ -22,7 +22,7 @@ func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResul
 		return nil
 	}
 
-	cols := len(r.Headers) + 1
+	cols := len(r.Headers) + 1 // nolint gomnd
 	header := make(table.Row, cols)
 	header[0] = "#"
 
@@ -36,7 +36,7 @@ func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResul
 
 	for i, r := range r.Rows {
 		row := make(table.Row, cols)
-		row[0] = i + 1
+		row[0] = i + 1 // nolint gomnd
 
 		for j, c := range r {
 			row[j+1] = c

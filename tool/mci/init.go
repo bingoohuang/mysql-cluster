@@ -16,7 +16,7 @@ import (
 // CreateMySQLCluster 初始化MySQL Master-Master集群
 func (s Settings) CreateMySQLCluster() (r Result, err error) {
 	if s.ValidateAndSetDefault(Validate, SetDefault) != nil {
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	if r.Nodes, err = s.createMySQCluster(); err != nil {
@@ -44,7 +44,7 @@ func (s Settings) CreateMySQLCluster() (r Result, err error) {
 // ResetLocalMySQLClusterNode 重置MySQL集群
 func (s Settings) ResetLocalMySQLClusterNode() error {
 	if s.ValidateAndSetDefault(Validate, SetDefault) != nil {
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	if err := s.resetMySQCluster(); err != nil {
@@ -72,7 +72,7 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 	}
 
 	if s.ValidateAndSetDefault(SetDefault) != nil {
-		os.Exit(1)
+		os.Exit(1) // nolint gomnd
 	}
 
 	mySQLClusterConfig, err := SearchFileContent(s.HAProxyCfg, reMySQLClusterConfig)
@@ -85,7 +85,7 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 		return fmt.Errorf("RemoveSlavesFromCluster error : no MySQLClusterConfig found in %s", s.HAProxyCfg)
 	}
 
-	if len(mySQLClusterConfig) > 1 {
+	if len(mySQLClusterConfig) > 1 { // nolint gomnd
 		return fmt.Errorf("RemoveSlavesFromCluster error : more than one MySQLClusterConfig found in %s", s.HAProxyCfg)
 	}
 

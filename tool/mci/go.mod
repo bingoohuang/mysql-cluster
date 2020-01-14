@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/bingoohuang/gonet v0.0.0-20191125104325-28d67509f1a2
+	github.com/bingoohuang/gonet v0.0.0-20200114063917-487794879f8b
 	github.com/bingoohuang/goreflect v0.0.0-20190712052741-f9e6d0b5f7fd
 	github.com/bingoohuang/gossh v0.2.0
 	github.com/bingoohuang/gou v0.0.0-20190724062522-59c35e658334

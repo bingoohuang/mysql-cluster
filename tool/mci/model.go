@@ -21,10 +21,10 @@ type Settings struct {
 	ReplUsr      string   `default:"repl"`         // 复制用用户名，默认repl
 	ReplPassword string   // 复制用户密码，如果不指定，则使用uuid生成
 
-	Debug bool // 测试模式，只打印SQL和HAProxy配置, 不实际执行
-	NoLog bool
+	Debug       bool // 测试模式，只打印SQL和HAProxy配置, 不实际执行
+	NoLog       bool
+	IPv6Enabled bool // 是否支持IPv6
 
-	LocalAddr  string // 指定本机的IP地址，不指定则自动从网卡中获取
 	MySQLCnf   string `default:"/etc/my.cnf"`      // MySQL 配置文件的地址， 例如：/etc/mysql/conf.d/my.cnf, /etc/my.cnf
 	HAProxyCfg string `default:"/etc/haproxy.cfg"` // HAProxy配置文件地址，
 	// 例如：/etc/haproxy/haproxy.cfg, /etc/opt/rh/rh-haproxy18/haproxy/haproxy.cfg
@@ -80,7 +80,7 @@ func (s *Settings) ValidateAndSetDefault(options ...SettingsOption) error {
 // Setup setups settings.
 func (s *Settings) Setup() {
 	if s.ReplPassword == "" {
-		s.ReplPassword = GeneratePasswordBySet(16, UpperLetters, DigitsLetters, LowerLetters, "-#")
+		s.ReplPassword = GeneratePasswordBySet(16, UpperLetters, DigitsLetters, LowerLetters, "-#") // nolint gomnd
 	}
 
 	if s.ShellTimeout != "" {
