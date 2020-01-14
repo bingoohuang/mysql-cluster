@@ -4,8 +4,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bingoohuang/gou/str"
-
 	"github.com/bingoohuang/goreflect"
 
 	"github.com/bingoohuang/gonet"
@@ -51,7 +49,13 @@ var primaryIP, _, _ = HostIP("eth0", "en0") // nolint
 
 // ReplaceLocalAddr2MainIP replace a single local address to main iface ip
 func ReplaceLocalAddr2MainIP(address string) string {
-	host, _ := str.Split2(address, ":", true, true)
+	sepPos := strings.LastIndex(address, ":")
+
+	host := address
+	if sepPos > 0 {
+		host = address[:sepPos]
+	}
+
 	if IsLocalAddr(host) {
 		return strings.ReplaceAll(address, host, primaryIP)
 	}
