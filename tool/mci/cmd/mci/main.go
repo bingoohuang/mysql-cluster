@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bingoohuang/gou/str"
-
 	"github.com/BurntSushi/toml"
 	"github.com/bingoohuang/gossh/pbe"
 	"github.com/bingoohuang/tool/mci"
@@ -19,7 +17,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const version = "Version: 1.10.6"
+const version = "Version: 1.10.8"
 
 func main() {
 	removeSlaves := pflag.StringP("removeSlaves", "", "", "remove slave nodes from cluster, eg 192.168.1.1,192.168.1.2")
@@ -103,8 +101,8 @@ func checkSth(settings *mci.Settings, checkmc string, checkmysql, readips bool) 
 			logrus.Fatal(err)
 		} else {
 			mysqlServerIPs := pie.Strings(mysqlServerAddrs).Map(func(address string) string {
-				host, _ := str.Split2(address, ":", true, true)
-				return host
+				pos := strings.LastIndex(address, ":")
+				return address[:pos]
 			}).Join("\n")
 			fmt.Println(mysqlServerIPs)
 		}
