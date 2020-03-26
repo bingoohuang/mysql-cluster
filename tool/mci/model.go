@@ -41,6 +41,10 @@ type Settings struct {
 	MySQLCmd     string `default:"mysql"`     // mysql命令路径
 	ShellTimeout string // 执行shell的超时时间
 
+	// https://github.com/go-sql-driver/mysql#parameters
+	MySQLDSNParams string `default:"timeout=120s&writeTimeout=120s&readTimeout=120s"` // MySQL DSN 参数
+	LogLevel       string // logrus 日志产别
+
 	shellTimeoutDuration time.Duration
 }
 
@@ -67,6 +71,12 @@ func (s *Settings) ValidateAndSetDefault(options ...SettingsOption) error {
 		if err := defaults.Set(s); err != nil {
 			logrus.Errorf("defaults set %v", err)
 			return err
+		}
+	}
+
+	if s.LogLevel != "" {
+		if level, err := logrus.ParseLevel(s.LogLevel); err == nil {
+			logrus.SetLevel(level)
 		}
 	}
 

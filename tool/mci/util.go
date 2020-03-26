@@ -34,7 +34,9 @@ func ReplaceFileContent(filename, regexStr, repl string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(filename, []byte(fixed), 0644)
+	stat, _ := os.Stat(filename)
+
+	return ioutil.WriteFile(filename, []byte(fixed), stat.Mode())
 }
 
 // SearchFileContent 使用正则表达式查找模式正则1号捕获分组

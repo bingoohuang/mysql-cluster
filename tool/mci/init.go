@@ -55,11 +55,7 @@ func (s Settings) ResetLocalMySQLClusterNode() error {
 		return err
 	}
 
-	if err := s.restartHAProxy(); err != nil {
-		return err
-	}
-
-	return nil
+	return s.restartHAProxy()
 }
 
 const reMySQLClusterConfig = `(?is)#\s*MySQLClusterConfigStart(.+)#\s*MySQLClusterConfigEnd`
@@ -114,11 +110,7 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 		return fmt.Errorf("ReplaceFileContent HAProxyCfg error %w", err)
 	}
 
-	if err := s.restartHAProxy(); err != nil {
-		return err
-	}
-
-	return nil
+	return s.restartHAProxy()
 }
 
 func (s Settings) restartHAProxy() error {

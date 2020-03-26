@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/bingoohuang/gossh/pbe"
 
@@ -64,11 +65,7 @@ func (s Settings) master1LocalProcess(nodes []MySQLNode) error {
 		return err
 	}
 
-	if err := s.startSlaves(nodes); err != nil {
-		return err
-	}
-
-	return nil
+	return s.startSlaves(nodes)
 }
 
 func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
@@ -174,6 +171,7 @@ func (s Settings) findLocalServerID(nodes []MySQLNode) int {
 }
 
 // MustOpenDB must open the db.
+// nolint gomnd
 func (s Settings) MustOpenDB() *sql.DB {
 	pwd, err := pbe.Ebp(s.Password)
 	if err != nil {
@@ -188,11 +186,20 @@ func (s Settings) MustOpenDB() *sql.DB {
 		ds = fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, pwd, s.Host, s.Port)
 	}
 
+	ds += `?` + s.MySQLDSNParams
+
+	sqlMore := sqlmore.NewSQLMore("mysql", ds)
+
 	if !s.NoLog {
-		logrus.Infof("mysql ds:%s", ds)
+		logrus.Debugf("DSN: %s", sqlMore.EnhancedDbURI)
 	}
 
-	return sqlmore.NewSQLMore("mysql", ds).MustOpen()
+	db := sqlMore.MustOpen()
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	db.SetConnMaxLifetime(60 * time.Second)
+
+	return db
 }
 
 // MustOpenGormDB must open the db.
@@ -218,11 +225,12 @@ func (s Settings) execSqls(sqls []string) error {
 	defer db.Close()
 
 	for _, sqlStr := range sqls {
-		if r := sqlmore.ExecSQL(db, sqlStr, 0, ""); r.Error != nil {
+		r := sqlmore.ExecSQL(db, sqlStr, 0, "")
+		if r.Error != nil {
 			return fmt.Errorf("exec sql %s error %w", sqlStr, r.Error)
 		}
 
-		logrus.Infof("%s", sqlStr)
+		logrus.Infof("SQL:%s, %+v", sqlStr, r)
 	}
 
 	return nil
