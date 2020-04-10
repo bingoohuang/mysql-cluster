@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  mysql-a:
+    image: 'mysql:5.7.29'
+    ports:
+      - '3311:3306'
+    networks:
+      - otter-net
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+    volumes:
+      - './config/mysql-otter-a:/etc/mysql/conf.d/'
+  mysql-b:
+    image: 'mysql:5.7.29'
+    ports:
+      - '3312:3306'
+    networks:
+      - otter-net
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+    volumes:
+      - './config/mysql-otter-b:/etc/mysql/conf.d/'
+
+
+networks:
+  otter-net:
+    name: otter-net

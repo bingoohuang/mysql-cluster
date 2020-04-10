@@ -1,0 +1,106 @@
+version: '2'
+services:
+    zk1:
+        image: zookeeper:3.4.14
+        restart: always
+        container_name: zk1
+        ports:
+            - 2001:2181
+        environment:
+            ZOO_MY_ID: 1
+            ZOO_SERVERS: server.1=zk1:2888:3888 server.2=zk2:2888:3888 server.3=zk3:2888:3888 server.4=zk4:2888:3888:observer server.5=zk5:2888:3888:observer
+    zk2:
+        image: zookeeper:3.4.14
+        restart: always
+        container_name: zk2
+        ports:
+            - "2002:2181"
+        environment:
+            ZOO_MY_ID: 2
+            ZOO_SERVERS: server.1=zk1:2888:3888 server.2=zk2:2888:3888 server.3=zk3:2888:3888 server.4=zk4:2888:3888:observer server.5=zk5:2888:3888:observer
+
+    zk3:
+        image: zookeeper:3.4.14
+        restart: always
+        container_name: zk3
+        ports:
+            - 2003:2181
+        environment:
+            ZOO_MY_ID: 3
+            ZOO_SERVERS: server.1=zk1:2888:3888 server.2=zk2:2888:3888 server.3=zk3:2888:3888 server.4=zk4:2888:3888:observer server.5=zk5:2888:3888:observer
+    zk4:
+        image: zookeeper:3.4.14
+        restart: always
+        container_name: zk4
+        ports:
+            - 2004:2181
+        environment:
+            ZOO_MY_ID: 4
+            PEER_TYPE: observer
+            ZOO_SERVERS: server.1=zk1:2888:3888 server.2=zk2:2888:3888 server.3=zk3:2888:3888 server.4=zk4:2888:3888:observer server.5=zk5:2888:3888:observer
+    zk5:
+        image: zookeeper:3.4.14
+        restart: always
+        container_name: zk5
+        ports:
+            - 2005:2181
+        environment:
+            ZOO_MY_ID: 5
+            PEER_TYPE: observer
+            ZOO_SERVERS: server.1=zk1:2888:3888 server.2=zk2:2888:3888 server.3=zk3:2888:3888 server.5=zk4:2888:3888:observer server.5=zk5:2888:3888:observer
+    zn:
+        image: elkozmon/zoonavigator:0.8.0
+        restart: unless-stopped
+        container_name: zn
+        ports:
+            - 2900:9000
+        environment:
+            HTTP_PORT: 9000
+            AUTO_CONNECT_CONNECTION_STRING: "zk1:2181,zk2:2181,zk3:2181,zk4:2181,zk5:2181"
+    ma:
+        image: 'mysql:5.7.29'
+        container_name: ma
+        ports:
+            - 3311:3306
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+        volumes:
+            - ~/github/otter/manager/deployer/src/main/resources/sql:/docker-entrypoint-initdb.d
+    mb:
+        image: 'mysql:5.7.29'
+        container_name: mb
+        ports:
+            - 3312:3306
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+        volumes:
+            - ~/github/otter/manager/deployer/src/main/resources/sql:/docker-entrypoint-initdb.d
+    mr:
+        image: openjdk:8u242
+        container_name: mr
+        ports:
+          - 2901:2901
+        volumes:
+            - ~/github/otter/target/manager:/app
+            - ./config/otter-manager:/otter
+        command: "sh /otter/app.sh"
+        depends_on:
+            - ma
+    nd1:
+        image: openjdk:8u242
+        container_name: nd1
+        volumes:
+            - ~/github/otter/target/node1:/app
+            - ./config/otter-node:/otter
+        command: "sh /otter/app.sh"
+        depends_on:
+            - mr
+    nd2:
+        image: openjdk:8u242
+        container_name: nd2
+        volumes:
+            - ~/github/otter/target/node2:/app
+            - ./config/otter-node:/otter
+        command: "sh /otter/app.sh"
+        depends_on:
+            - mr

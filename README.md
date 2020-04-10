@@ -215,8 +215,7 @@ Slave_IO_Running: Yes
 Slave_SQL_Running: Yes
 That's it!
 
-
-每日MySQL之024：FLUSH TABLES https://blog.csdn.net/qingsong3333/article/details/77170864
+[每日MySQL之024：FLUSH TABLES](https://blog.csdn.net/qingsong3333/article/details/77170864)
 
 FLUSH TABLES 作用是 flush 表，并根据参数加上相应的锁。默认是写日志的，如果不希望写日志，可以设置加上参数 NO_WRITE_TO_BINLOG。另外， FLUSH TABLES 命令执行前会隐式地发出commit命令，常见语法如下：
 
@@ -235,10 +234,7 @@ FLUSH TABLES 作用是 flush 表，并根据参数加上相应的锁。默认是
 • FLUSH TABLES tbl_name [, tbl_name] ... FOR EXPORT
 只针对 InnoDB 表，可以确保对表的修改被刷新到磁盘上，MySQL可以通过直接拷贝底层文件的方式来复制表，参考链接。
 
-
-Should a MySQL replication slave be set to read only?
-
-https://dba.stackexchange.com/a/30129
+[Should a MySQL replication slave be set to read only?](https://dba.stackexchange.com/a/30129)
 
 When a Slave is read-only, it is not 100% shielded from the world.
 
@@ -267,6 +263,4 @@ Changes to super_read_only on a master server are not replicated to slave server
 
 super_read_only was added in MySQL 5.7.8.
 
-
-
-MYSQL_PWD=root mysqldump -u root -p --all-databases > /a/path/mysqldump.sql
+`MYSQL_PWD=root mysqldump -u root -p --all-databases > /a/path/mysqldump.sql`
