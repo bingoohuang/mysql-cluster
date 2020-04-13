@@ -19,6 +19,7 @@ waitterm() {
         wait "${PID}" 2>/dev/null || true
 }
 
+cp /otter/file /bin/
 cp /otter/aria2c /bin/
 rm -fr /app/bin/*.pid
 sh /app/bin/startup.sh /otter/otter.properties
