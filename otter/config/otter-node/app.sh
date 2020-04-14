@@ -22,7 +22,8 @@ waitterm() {
 cp /otter/file /bin/
 cp /otter/aria2c /bin/
 rm -fr /app/bin/*.pid
-sh /app/bin/startup.sh /otter/otter.properties
+rm -fr /app/log/*
+bash /app/bin/startup.sh
 
 tail -f /dev/null &
 # wait TERM signal

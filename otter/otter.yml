@@ -65,7 +65,8 @@ services:
         environment:
             - MYSQL_ROOT_PASSWORD=root
         volumes:
-            - ~/github/otter/manager/deployer/src/main/resources/sql:/docker-entrypoint-initdb.d
+            - ./config/mysql-otter-a:/etc/mysql/conf.d/
+            - ./config/sql:/docker-entrypoint-initdb.d
     mb:
         image: 'mysql:5.7.29'
         container_name: mb
@@ -74,7 +75,8 @@ services:
         environment:
             - MYSQL_ROOT_PASSWORD=root
         volumes:
-            - ~/github/otter/manager/deployer/src/main/resources/sql:/docker-entrypoint-initdb.d
+            - ./config/mysql-otter-b:/etc/mysql/conf.d/
+            - ./config/sql:/docker-entrypoint-initdb.d
     mr:
         image: openjdk:8u242
         container_name: mr
