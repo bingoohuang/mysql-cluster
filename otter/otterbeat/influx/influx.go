@@ -56,12 +56,12 @@ func ParseLine(v interface{}) (*Line, error) {
 }
 
 func (su *Line) buildSu(rtf reflect.StructField, rv reflect.Value) {
-	if rtf.PkgPath != "" {
+	if rtf.Type == tType {
+		su.Measurement = rtf.Tag.Get("measurement")
 		return
 	}
 
-	if rtf.Type == tType {
-		su.Measurement = rtf.Tag.Get("measurement")
+	if rtf.PkgPath != "" {
 		return
 	}
 

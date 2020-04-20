@@ -13,9 +13,9 @@ type PipelineDelay struct {
 	_ influx.T `measurement:"otter_delay_stat"`
 
 	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
-	PipelineID   string    `influx:"tag"`             // 流水线ID
-	DelayTime    float64   `influx:"field"`           // 单位ms
-	ID           uint64    `influx:"field" name:"ID"` // 对应的数据库表自增ID
+	PipelineID   string    `influx:"tag"`   // 流水线ID
+	DelayTime    float64   `influx:"field"` // 单位ms
+	ID           uint64    `influx:"field"` // 对应的数据库表自增ID
 }
 
 // LogRecord maps to table LOG_RECORD record.
@@ -29,7 +29,7 @@ type LogRecord struct {
 	DeleteCount  uint64    `influx:"field"`
 	StartTime    time.Time `influx:"field"`
 	EndTime      time.Time `influx:"field"`
-	ID           uint64    `influx:"field" name:"ID"` // 对应的数据库表自增ID
+	ID           uint64    `influx:"field"` // 对应的数据库表自增ID
 }
 
 // TableHistoryStat maps to table TABLE_HISTORY_STAT record.
@@ -43,7 +43,7 @@ type TableHistoryStat struct {
 	DeleteCount  uint64    `influx:"field"`
 	StartTime    time.Time `influx:"field"`
 	EndTime      time.Time `influx:"field"`
-	ID           uint64    `influx:"field" name:"ID"` // 对应的数据库表自增ID
+	ID           uint64    `influx:"field"` // 对应的数据库表自增ID
 }
 
 // TableStat maps to table TABLE_STAT record.
@@ -55,7 +55,7 @@ type TableStat struct {
 	InsertCount  uint64    `influx:"field"`
 	UpdateCount  uint64    `influx:"field"`
 	DeleteCount  uint64    `influx:"field"`
-	ID           uint64    `influx:"field" name:"ID"` // 对应的数据库表自增ID
+	ID           uint64    `influx:"field"` // 对应的数据库表自增ID
 }
 
 // ThroughputStat maps to table THROUGHPUT_STAT record.
@@ -69,7 +69,7 @@ type ThroughputStat struct {
 	Size         uint64    `influx:"field"`
 	StartTime    time.Time `influx:"field"`
 	EndTime      time.Time `influx:"field"`
-	ID           uint64    `influx:"field" name:"ID"` // 对应的数据库表自增ID
+	ID           uint64    `influx:"field"` // 对应的数据库表自增ID
 }
 
 // DaoFn defines the dao functions to operate on table DELAY_STAT.
