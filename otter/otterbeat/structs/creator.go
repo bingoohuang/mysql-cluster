@@ -1,4 +1,4 @@
-package otterbeat
+package structs
 
 import (
 	"reflect"
@@ -49,8 +49,8 @@ type itemStructField struct {
 	ColumnName string
 }
 
-// NewStructCreator creates a new StructCreator.
-func NewStructCreator(slicePtr interface{}) *StructCreator {
+// NewCreator creates a new StructCreator.
+func NewCreator(slicePtr interface{}) *StructCreator {
 	SlicePtr := reflect.ValueOf(slicePtr)
 	sliceValue := SlicePtr.Elem()
 

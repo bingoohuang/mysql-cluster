@@ -1,9 +1,11 @@
-package otterbeat
+package otter
 
 import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/bingoohuang/otterbeat/structs"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
@@ -47,7 +49,7 @@ func GraspPipeLineList(pipelineListURL string) ([]PipeLine, error) {
 	}
 
 	pipelines := make([]PipeLine, 0)
-	creator := NewStructCreator(&pipelines)
+	creator := structs.NewCreator(&pipelines)
 
 	doc.Find("table.list tr").Each(func(i int, s *goquery.Selection) {
 		columns := make([]string, 0)

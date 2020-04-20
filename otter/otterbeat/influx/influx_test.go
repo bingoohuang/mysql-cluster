@@ -11,7 +11,7 @@ import (
 type delay struct {
 	_            T         `measurement:"pipeline_delay"`
 	ModifiedTime time.Time `influx:"time"`
-	ID           string    `influx:"tag" name:"delay_id"`
+	ID           uint64    `influx:"tag" name:"delay_id"`
 	Delay        float64   `influx:"field"`
 	Something    uint64    `influx:"-"`
 	IncrID       uint64
@@ -25,7 +25,7 @@ func TestCreateLine(t *testing.T) {
 			delay{
 				ModifiedTime: lang.ParseTime("2006-01-02 15:04:05", "2020-04-20 16:30:16"),
 				Something:    332333,
-				ID:           "1",
+				ID:           1,
 				Delay:        123456,
 				IncrID:       100,
 				MyNote:       "测试",
