@@ -5,29 +5,26 @@
 
 moreArgs="${*:2}"
 
-map='up:up, \
-     upd:up -d, \
-     exec:exec ${moreArgs}, \
-     ps: ps, \
-     rm: rm -fsv, \
-     reup: rm -fsv;up;, \
-     reupd: m -fsv;up -d;'
+map='up:docker-compose -f otter.yml up, \
+     upd:docker-compose -f otter.yml up -d, \
+     exec:docker-compose -f otter.yml exec ${moreArgs}, \
+     ps: docker-compose -f otter.yml ps, \
+     rm: docker-compose -f otter.yml rm -fsv, \
+     reup: docker-compose -f otter.yml rm -fsv; docker-compose -f otter.yml up;, \
+     reupd: docker-compose -f otter.yml rm -fsv; docker-compose -f otter.yml up -d;'
 
 getRealCommand(){
-   subCommand=$1
-   moreArgs="${*:2}"
+   local dataMap=$1
+   local key=$2
    NL="\n"
    if [[ $uname -eq "Darwin" ]]; then
        NL=$'\\\n'
    fi
-   echo $map | sed "s|,|${NL}|g"|sed 's/^[ \t]*//g'|grep -E "^$subCommand:"|awk -F":" '{print $2}'|sed "s|;|${NL}|g"|sed 's/^[ \t]*//g;/^[ \t]*$/d'|sed 's/^/docker-compose -f otter.yml /'
+   echo $dataMap | sed "s|,|${NL}|g"|sed 's/^[ \t]*//g'|grep -E "^$key:"|awk -F":" '{print $2}'|sed 's/^[ \t]*//g;/^[ \t]*$/d'
 }     	
 
-realCommand=`getRealCommand $*`
+realCommand=`getRealCommand "$map" $1`
 echo $realCommand
-#realCommand=${map["$subCommand"]}
-#echo ""----"${!map[@]}"
-#eho "command="$subCommand $realCommand$￥[ -z "$realCommand" ] && echo "command not exits" && exit 1
 
 [ -z "$realCommand" ] && echo "command not exits" && exit 1
 
