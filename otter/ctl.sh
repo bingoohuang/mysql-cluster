@@ -5,13 +5,13 @@
 
 moreArgs="${*:2}"
 
-map='up:docker-compose -f otter.yml up, \
+map="up:docker-compose -f otter.yml up, \
      upd:docker-compose -f otter.yml up -d, \
      exec:docker-compose -f otter.yml exec ${moreArgs}, \
      ps: docker-compose -f otter.yml ps, \
      rm: docker-compose -f otter.yml rm -fsv, \
      reup: docker-compose -f otter.yml rm -fsv; docker-compose -f otter.yml up;, \
-     reupd: docker-compose -f otter.yml rm -fsv; docker-compose -f otter.yml up -d;'
+     reupd: docker-compose -f otter.yml rm -fsv; docker-compose -f otter.yml up -d;"
 
 getRealCommand(){
    local dataMap=$1
