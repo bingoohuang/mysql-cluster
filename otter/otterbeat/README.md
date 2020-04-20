@@ -9,11 +9,13 @@
 
 ## 从数据库采集指标
 
-1. DELAY_STAT 延时统计表
-1. LOG_RECORD 日志记录表
-1. TABLE_HISTORY_STAT 同步明细统计表
-1. TABLE_STAT 表同步汇总统计表
-1. THROUGHPUT_STAT 同步流量统计表
+表名|含义|更新频率|使用方式
+---|---|---|---
+DELAY_STAT | 延时统计表 | 60秒 |  按GMT_MODIFIED取变化值
+LOG_RECORD | 日志记录表 | NA | 按ID取
+TABLE_HISTORY_STAT | 同步明细统计表 |  NA | 按GMT_MODIFIED取变化值
+TABLE_STAT |表同步汇总统计表 |  NA | 按GMT_MODIFIED取变化值
+THROUGHPUT_STAT | 同步流量统计表 |  60秒 | 按GMT_MODIFIED取变化值
 
 <details><summary>DELAY_STAT</summary>
 
@@ -58,7 +60,7 @@ CREATE TABLE `LOG_RECORD` (
   `GMT_MODIFIED` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`ID`),
   KEY `logRecord_pipelineId` (`PIPELINE_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8```
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8
 ```
 
 ID|NID|CHANNEL_ID|PIPELINE_ID|TITLE          |MESSAGE                                                                                                                                                                                                                                                        |GMT_CREATE           |GMT_MODIFIED         |
