@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/bingoohuang/gou/lang"
+
+	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/otterbeat/influx"
 
 	"github.com/bingoohuang/otterbeat/structs"
 
@@ -27,6 +33,30 @@ type PipeLine struct {
 	Delay            string `col:"延迟时间"`
 	LastSyncTime     string `col:"最后同步时间"`
 	LastPositionTime string `col:"最后位点时间"`
+}
+
+// PipeLineInflux defines the structure to write to influx DB.
+type PipeLineInflux struct {
+	_ influx.T `measurement:"otter_pipeline"`
+
+	Time             time.Time `influx:"time"`
+	PipelineID       string    `influx:"tag"`   // 流水线ID
+	State            string    `influx:"field"` // 流水线ID
+	DelayTime        float64   `influx:"field"` // 单位ms
+	LastSyncTime     time.Time `influx:"field"` // 单位ms
+	LastPositionTime time.Time `influx:"field"` // 单位ms
+}
+
+// ToPipeLineInflux converts a PipeLine to PipeLineInflux.
+func (p PipeLine) ToPipeLineInflux() PipeLineInflux {
+	return PipeLineInflux{
+		Time:             time.Now(),
+		PipelineID:       p.Seq,
+		State:            p.State,
+		DelayTime:        float64(str.ParseDuration(p.Delay).Milliseconds()),
+		LastSyncTime:     lang.ParseTime("2006-01-02 15:04:05", p.LastSyncTime),
+		LastPositionTime: lang.ParseTime("2006-01-02 15:04:05", p.LastPositionTime),
+	}
 }
 
 // GraspPipeLineList 从PipeLine管理列表页面抓获数据
