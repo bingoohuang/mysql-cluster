@@ -1,0 +1,5 @@
+DSN="root:root@localhost:3311/otter"
+PipelineListURL="http://127.0.0.1:2901/pipeline_list.htm?channelId=1"
+InfluxWriteURL="http://b.i.cn:10014/write?db=metrics"
+PrintConfig=true
+Interval="60s"
