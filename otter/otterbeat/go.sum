@@ -26,6 +26,8 @@ github.com/averagesecurityguy/random v0.0.0-20180326012618-37cce341d2af h1:P1psV
 github.com/averagesecurityguy/random v0.0.0-20180326012618-37cce341d2af/go.mod h1:xlqW8P0gOqVMB8Kp0mMuUznEi1PzjF+mhHTSC+ymalU=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
+github.com/bingoohuang/funk v0.0.0-20200423042928-65e8bf43640b h1:P2BGFra+Xy6Wk69pay4Xvq7eEUTDJw6tt17p6sv7lXk=
+github.com/bingoohuang/funk v0.0.0-20200423042928-65e8bf43640b/go.mod h1:8S5BftvEy7DKhQLDAMSgcv9rinhi5f9GOMswagfZkfI=
 github.com/bingoohuang/gonet v0.0.0-20190716021716-fd516efe8b31/go.mod h1:lSe5gMXAiQESg/xTshM6sByKvDkMGdDffZSXt0d64JI=
 github.com/bingoohuang/gonet v0.0.0-20200415140402-62e0fdfd7528 h1:D8zpYT5QS8qdDPp4b36hVlArnZelzOJDqkbs5qatmmU=
 github.com/bingoohuang/gonet v0.0.0-20200415140402-62e0fdfd7528/go.mod h1:6rpAU/HWrk2XJFlVVfc+VrqExeGmuJ8X2AhYomb6n98=
@@ -35,8 +37,8 @@ github.com/bingoohuang/goreflect v0.0.0-20200220033105-a0faf449f649 h1:Y4Un87LBj
 github.com/bingoohuang/goreflect v0.0.0-20200220033105-a0faf449f649/go.mod h1:Jkc9aAuGnMb+GnhLEVtdDnyIZ6Lh6APIITuY+X0HQRU=
 github.com/bingoohuang/gou v0.0.0-20200225004418-9b3655665c46 h1:18kysBxDTlkUYNhzPgJ7o4T8OnZws9WzVPprRgZRcj4=
 github.com/bingoohuang/gou v0.0.0-20200225004418-9b3655665c46/go.mod h1:lfM/iBkZzlmnl23C+mpqiXAgC6npikzZkKVfNAdC+o4=
-github.com/bingoohuang/gou v0.0.0-20200422105435-1bba059e311e h1:nshOKSU9JqJCwoxUEVpnz0MQXey1Spew427Zhwllj7k=
-github.com/bingoohuang/gou v0.0.0-20200422105435-1bba059e311e/go.mod h1:aDOwtkuv68JHEEsHoWJhqyUODo79t5k/erZCZllNBhc=
+github.com/bingoohuang/gou v0.0.0-20200423044816-7bdc8217a13f h1:ONHr7O1zGTD3pRfl9jCgHWTDohsLUaplrR/LQfZ7eGA=
+github.com/bingoohuang/gou v0.0.0-20200423044816-7bdc8217a13f/go.mod h1:aDOwtkuv68JHEEsHoWJhqyUODo79t5k/erZCZllNBhc=
 github.com/bingoohuang/shellwords v0.0.0-20200303142623-5c675e52d3e1 h1:ZOxJ0X7A0Y0hJHVuPfERGZO34N6DUFZj4aH2Kw1Y1J4=
 github.com/bingoohuang/shellwords v0.0.0-20200303142623-5c675e52d3e1/go.mod h1:4ETdbVSa47WB7cYJb4ke+44RDYW6WHMIe+YbvQRmcKk=
 github.com/bingoohuang/sqlx v0.0.0-20200420100153-534d70ae143b h1:je39IpImA+rgzxHbfby4uedfj1q2VEnUrifTAs6eSa0=
