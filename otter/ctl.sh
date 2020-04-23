@@ -7,6 +7,8 @@ moreArgs="${*:2}"
 
 map="up:docker-compose -f otter.yml up, \
      upd:docker-compose -f otter.yml up -d, \
+     rd:docker-compose -f otter.yml stop;docker-compose -f otter.yml up -d, \     
+     stop:docker-compose -f otter.yml stop, \
      exec:docker-compose -f otter.yml exec ${moreArgs}, \
      ps: docker-compose -f otter.yml ps, \
      rm: docker-compose -f otter.yml rm -fsv, \

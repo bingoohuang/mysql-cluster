@@ -1,4 +1,4 @@
-version: '2'
+version: '2.1'
 services:
     zk1:
         image: zookeeper:3.4.14
@@ -78,31 +78,33 @@ services:
             - ./config/mysql-otter-b:/etc/mysql/conf.d/
             - ./config/sql:/docker-entrypoint-initdb.d
     mr:
-        image: openjdk:8u242
+        image: footstone-otter-manager:v0.0.1
         container_name: mr
         ports:
           - 2901:2901
         volumes:
-            - ~/github/otter/target/manager:/app
             - ./config/otter-manager:/otter
-        command: "sh /otter/app.sh"
+        command: bash -c "cp /otter/otter.properties /app/conf/otter.properties;sh /otter/app.sh"
         depends_on:
             - ma
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://mr:2901" ]
+            interval: 10s
+            timeout: 3s
+            retries: 2
     nd1:
-        image: openjdk:8u242
+        image: footstone-otter-node:v0.0.1
         container_name: nd1
         volumes:
-            - ~/github/otter/target/node1:/app
             - ./config/otter-node:/otter
-        command: "sh /otter/app.sh"
+        command: bash -c "/otter/wait-for mr:2901 -- ls;echo 1 > /app/conf/nid; cp /otter/otter.properties /app/conf/otter.properties;sh /otter/app.sh;"
         depends_on:
             - mr
     nd2:
-        image: openjdk:8u242
+        image: footstone-otter-node:v0.0.1
         container_name: nd2
         volumes:
-            - ~/github/otter/target/node2:/app
             - ./config/otter-node:/otter
-        command: "sh /otter/app.sh"
+        command: bash -c "/otter/wait-for mr:2901 -- ls;echo 3 > /app/conf/nid;cp /otter/otter.properties /app/conf/otter.properties;sh /otter/app.sh;"
         depends_on:
             - mr
