@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bingoohuang/gonet/man"
+
 	"github.com/bingoohuang/gou/str"
 
-	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/strcase"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // ToLine creates a new line string suitable for the influxdb line protocol.
@@ -192,28 +192,19 @@ func stringToInfluxRepresentation(v string) (string, error) {
 	return fmt.Sprintf("%q", v), nil
 }
 
+type poster struct {
+	man.URL
+
+	Write func(string) (string, error) `method:"POST"`
+}
+
+// PostMan  writes line protocol to the influxdb.
+// nolint gochecknoglobals
+var PostMan = func() *poster { p := new(poster); man.New(p); return p }()
+
 // Write 写入打点值
 // refer https://github.com/DCSO/fluxline/blob/master/encoder.go
-func Write(influxDBWriteAddr, line string) error {
-	req, err := gonet.Post(influxDBWriteAddr)
-	if err != nil {
-		return err
-	}
-
-	req.Body([]byte(line))
-
-	rsp, err := req.SendOut()
-	if err != nil {
-		return err
-	}
-
-	rspBody, err := req.ReadResponseBody(rsp)
-	if err != nil {
-		logrus.Warnf("influx write error %v", err)
-		return err
-	}
-
-	logrus.Infof("influx write %s returned status %s msg %s", line, rsp.Status, string(rspBody))
-
-	return nil
+func Write(line string) error {
+	_, err := PostMan.Write(line)
+	return err
 }

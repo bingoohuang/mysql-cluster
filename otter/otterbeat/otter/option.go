@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bingoohuang/gonet/man"
+
 	"github.com/bingoohuang/gou/enc"
 
 	"github.com/bingoohuang/gou/str"
@@ -45,6 +47,14 @@ func (c *Config) SetUp() {
 	if c.Interval == 0 {
 		c.Interval = time.Minute
 	}
+
+	if c.InfluxWriteURL != "" {
+		influx.PostMan.URL = man.URL(c.InfluxWriteURL)
+	}
+
+	if c.PipelineListURL != "" {
+		PostMan.URL = man.URL(c.PipelineListURL)
+	}
 }
 
 // Run runs  the otter beat by the config.
@@ -78,7 +88,7 @@ func (c *Config) collectPipelineListPage() {
 		return
 	}
 
-	list, err := GraspPipeLineList(c.PipelineListURL)
+	list, err := GraspPipeLineList()
 	if err != nil {
 		logrus.Errorf("failed to GraspPipeLineList %s error %v", c.PipelineListURL, err)
 		return
@@ -190,7 +200,7 @@ func (c *Config) writeInfluxLine(v interface{}, i int) {
 		return
 	}
 
-	if err := influx.Write(c.InfluxWriteURL, line); err != nil {
+	if err := influx.Write(line); err != nil {
 		logrus.Warnf("failed to influx  write line %v error %v", v, err)
 	}
 }

@@ -29,8 +29,8 @@ github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+Ce
 github.com/bingoohuang/funk v0.0.0-20200423042928-65e8bf43640b h1:P2BGFra+Xy6Wk69pay4Xvq7eEUTDJw6tt17p6sv7lXk=
 github.com/bingoohuang/funk v0.0.0-20200423042928-65e8bf43640b/go.mod h1:8S5BftvEy7DKhQLDAMSgcv9rinhi5f9GOMswagfZkfI=
 github.com/bingoohuang/gonet v0.0.0-20190716021716-fd516efe8b31/go.mod h1:lSe5gMXAiQESg/xTshM6sByKvDkMGdDffZSXt0d64JI=
-github.com/bingoohuang/gonet v0.0.0-20200415140402-62e0fdfd7528 h1:D8zpYT5QS8qdDPp4b36hVlArnZelzOJDqkbs5qatmmU=
-github.com/bingoohuang/gonet v0.0.0-20200415140402-62e0fdfd7528/go.mod h1:6rpAU/HWrk2XJFlVVfc+VrqExeGmuJ8X2AhYomb6n98=
+github.com/bingoohuang/gonet v0.0.0-20200423061630-aca76fe7a24a h1:1lKHccE7pOVGN8H/Rh82UdfKyG4+VR3kWtmMQB3EzeQ=
+github.com/bingoohuang/gonet v0.0.0-20200423061630-aca76fe7a24a/go.mod h1:6rpAU/HWrk2XJFlVVfc+VrqExeGmuJ8X2AhYomb6n98=
 github.com/bingoohuang/gor v0.0.0-20200321095356-94cf6290c6ea h1:DGdKt4f+BciAcqlJ7v7LHCTO3wXBqeItwaLXKea4GjI=
 github.com/bingoohuang/gor v0.0.0-20200321095356-94cf6290c6ea/go.mod h1:ahEOivpxL+rGjwq6hk2H8aQEMh/Uc6r1N3ohugldIww=
 github.com/bingoohuang/goreflect v0.0.0-20200220033105-a0faf449f649 h1:Y4Un87LBj9Aae4MlLTWH/aGzhrwgk4pYlMduw8gNmNw=
