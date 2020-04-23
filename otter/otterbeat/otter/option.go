@@ -33,8 +33,7 @@ type Config struct {
 	Interval time.Duration `pflag:"interval config before running(default 60s). shorthand=I"`
 }
 
-// SetUp sets the default value for config items.
-func (c *Config) SetUp() {
+func (c *Config) init() {
 	if c.PrintConfig {
 		fmt.Printf("Config%s\n", enc.JSONPretty(c))
 	}
@@ -59,6 +58,8 @@ func (c *Config) SetUp() {
 
 // Run runs  the otter beat by the config.
 func (c *Config) Run() {
+	c.init()
+
 	ticker := time.NewTicker(c.Interval)
 	defer ticker.Stop()
 
@@ -191,9 +192,9 @@ func (c *Config) writeInfluxLine(v interface{}, i int) {
 
 	// nolint gomnd
 	if i < 3 {
-		logrus.Infof("[InfluxDB Line] %s", line)
+		logrus.Infof("influx %s", line)
 	} else if i == 4 {
-		logrus.Infof("[InfluxDB Line] ...")
+		logrus.Infof("influx ...")
 	}
 
 	if c.InfluxWriteURL == "" {
