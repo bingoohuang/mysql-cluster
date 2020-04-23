@@ -23,7 +23,7 @@ type LogRecord struct {
 	_ influx.T `measurement:"otter_log_record"`
 
 	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
-	PipelineID   uint64    `influx:"tag"` // 流水线ID
+	PipelineID   string    `influx:"tag"` // 流水线ID
 	InsertCount  uint64    `influx:"field"`
 	UpdateCount  uint64    `influx:"field"`
 	DeleteCount  uint64    `influx:"field"`
@@ -37,7 +37,7 @@ type TableHistoryStat struct {
 	_ influx.T `measurement:"otter_history_stat"`
 
 	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
-	PipelineID   uint64    `influx:"tag"` // 流水线ID
+	PipelineID   string    `influx:"tag"` // 流水线ID
 	InsertCount  uint64    `influx:"field"`
 	UpdateCount  uint64    `influx:"field"`
 	DeleteCount  uint64    `influx:"field"`
@@ -51,7 +51,7 @@ type TableStat struct {
 	_ influx.T `measurement:"otter_table_stat"`
 
 	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
-	PipelineID   uint64    `influx:"tag"` // 流水线ID
+	PipelineID   string    `influx:"tag"` // 流水线ID
 	InsertCount  uint64    `influx:"field"`
 	UpdateCount  uint64    `influx:"field"`
 	DeleteCount  uint64    `influx:"field"`
@@ -63,7 +63,7 @@ type ThroughputStat struct {
 	_ influx.T `measurement:"otter_throughput_stat"`
 
 	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
-	PipelineID   uint64    `influx:"tag"` // 流水线ID
+	PipelineID   string    `influx:"tag"` // 流水线ID
 	TYPE         string    `influx:"field"`
 	Number       uint64    `influx:"field"`
 	Size         uint64    `influx:"field"`

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bingoohuang/gou/str"
+
 	"github.com/bingoohuang/gonet"
 	"github.com/bingoohuang/strcase"
 	"github.com/pkg/errors"
@@ -84,15 +86,13 @@ func (su *Line) buildSu(rtf reflect.StructField, rv reflect.Value) {
 
 	if influxTag == "tag" {
 		su.Tags = append(su.Tags, Tag{K: name,
-			V: fmt.Sprintf("%v", rv.FieldByIndex(rtf.Index).Interface()),
-		})
+			V: fmt.Sprintf("%v", rv.FieldByIndex(rtf.Index).Interface())})
 
 		return
 	}
 
 	su.Fields = append(su.Fields, Field{K: name,
-		V: rv.FieldByIndex(rtf.Index).Interface(),
-	})
+		V: rv.FieldByIndex(rtf.Index).Interface()})
 }
 
 // LineProtocol format inputs to line protocol
@@ -101,27 +101,20 @@ func (su *Line) ToLine() (string, error) {
 	tagExpr := ""
 
 	for i, v := range su.Tags {
-		if i > 0 {
-			tagExpr += ","
-		}
-
-		tagExpr += fmt.Sprintf("%s=%s",
+		tagExpr += str.If(i > 0, ",", "") + fmt.Sprintf("%s=%s",
 			escapeSpecialChars(v.K), escapeSpecialChars(v.V))
 	}
 
 	fieldsExpr := ""
 
 	for i, v := range su.Fields {
-		if i > 0 {
-			fieldsExpr += ","
-		}
-
 		r, err := toInfluxRepresentation(v.V)
 		if err != nil {
 			return "", errors.Wrapf(err, "toInfluxRepresentation %+v", v.V)
 		}
 
-		fieldsExpr += fmt.Sprintf("%s=%s", escapeSpecialChars(v.K), r)
+		fieldsExpr += str.If(i > 0, ",", "") +
+			fmt.Sprintf("%s=%s", escapeSpecialChars(v.K), r)
 	}
 
 	if su.Time.IsZero() {
@@ -157,11 +150,11 @@ type Field struct {
 type T struct{}
 
 func escapeSpecialChars(in string) string {
-	str := strings.Replace(in, ",", `\,`, -1)
-	str = strings.Replace(str, "=", `\=`, -1)
-	str = strings.Replace(str, " ", `\ `, -1)
+	s := strings.Replace(in, ",", `\,`, -1)
+	s = strings.Replace(s, "=", `\=`, -1)
+	s = strings.Replace(s, " ", `\ `, -1)
 
-	return str
+	return s
 }
 
 // toInfluxRepresentation 将val转换为Influx表示形式
