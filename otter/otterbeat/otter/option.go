@@ -72,9 +72,11 @@ func (c *Config) Run() {
 		sqlx.DB = db
 	}
 
-	for range ticker.C {
+	for {
 		c.collectDB()
 		c.collectPipelineListPage()
+
+		<-ticker.C
 	}
 }
 
