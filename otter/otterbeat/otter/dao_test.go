@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bingoohuang/gou/file"
+
 	"github.com/bingoohuang/otterbeat/influx"
 
 	"github.com/bingoohuang/gou/lang"
@@ -27,21 +29,21 @@ func TestPipelineDelayDao(t *testing.T) {
 	db, _ := sql.Open("sqlite3", "testdata/otter.db")
 	sqlx.DB = db
 
-	lastTime := lang.ParseTime("2006-01-02 15:04:05", "2006-01-02 15:04:05")
-	delayStats := Dao.DelayStats(lastTime)
+	lastTime := lang.ParseTime(file.TimeFormat, StartTime)
+	delayStats := Dao.DelayStat(lastTime)
 	//assert.Equal(t, []PipelineDelayRecord{}, delayStats)
 	assert.True(t, len(delayStats) > 0)
 
-	logRecords := Dao.LogRecords(0)
+	logRecords := Dao.LogRecord(0)
 	assert.True(t, len(logRecords) > 0)
 
-	historyStats := Dao.HistoryStats(lastTime)
+	historyStats := Dao.TableHistoryStat(lastTime)
 	assert.True(t, len(historyStats) > 0)
 
-	tableStats := Dao.TableStats(lastTime)
+	tableStats := Dao.TableStat(lastTime)
 	assert.True(t, len(tableStats) > 0)
 
-	throughputStats := Dao.ThroughputStats(lastTime)
+	throughputStats := Dao.ThroughputStat(lastTime)
 	assert.True(t, len(throughputStats) > 0)
 
 	//const influxDBAddr = `http://beta.isignet.cn:10014/write?db=metrics`
