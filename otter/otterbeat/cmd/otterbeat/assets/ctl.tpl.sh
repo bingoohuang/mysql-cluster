@@ -83,8 +83,7 @@ function status() {
 
 function tailLog() {
   local ba=$(basename ${app})
-  local logfile="var/logs/${ba}.log"
-  tail -f "$logfile"
+  tail -f ~/logs/${ba}/${ba}.log
 }
 
 if [[ "$1" == "stop" ]]; then
