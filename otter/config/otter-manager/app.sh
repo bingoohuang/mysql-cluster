@@ -21,7 +21,7 @@ waitterm() {
 
 rm -fr /app/bin/*.pid
 
-sh /app/bin/startup.sh /otter/otter.properties
+sh /app/bin/startup.sh
 
 tail -f /dev/null &
 # wait TERM signal

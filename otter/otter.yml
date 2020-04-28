@@ -84,9 +84,14 @@ services:
           - 2901:2901
         volumes:
             - ./config/otter-manager:/otter
-        command: sh /otter/app.sh
+        command: bash -c "cp /otter/otter.properties /app/conf/otter.properties; bash /otter/app.sh"
         depends_on:
             - ma
+            - zk1
+            - zk2
+            - zk3
+            - zk4
+            - zk5
         healthcheck:
             test: ["CMD", "curl", "-f", "http://mr:2901" ]
             interval: 10s
