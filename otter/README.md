@@ -31,3 +31,12 @@ Servers listen on three ports:
 1. `2181` for client connections;
 2. `2888` for follower connections, if they are the leader;
 3. `3888` for other server connections during the leader election phase.
+
+otter Dockerfile:
+
+move dockerfile to the target dir of the otter 
+move otter-node/aria2c to the target 
+```
+ docker build -t footstone-otter-manager:v0.0.1 -f ManagerDockerfile .
+ docker build -t footstone-otter-node:v0.0.1 -f NodeDockerfile .
+```
