@@ -1,0 +1,15 @@
+FROM openjdk:8u242
+MAINTAINER liujinliang 
+
+ENV srcFile=node.deployer-4.2.19-SNAPSHOT.tar.gz \
+    nid=1
+
+COPY ${srcFile} /app/
+COPY aria2c /usr/local/bin/aria2c
+
+RUN tar -xzvf /app/${srcFile}   -C /app/ && rm /app/${srcFile}  && echo $nid > /app/conf/nid \
+    && chmod +x /usr/local/bin/aria2c
+
+WORKDIR /app/
+
+

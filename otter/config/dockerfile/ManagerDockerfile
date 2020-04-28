@@ -1,0 +1,12 @@
+FROM openjdk:8u242
+MAINTAINER liujinliang 
+
+ENV srcFile=manager.deployer-4.2.19-SNAPSHOT.tar.gz 
+
+COPy ${srcFile} /app/
+
+RUN tar -xzvf /app/${srcFile}   -C /app/ && rm /app/${srcFile}
+
+WORKDIR /app/
+
+
