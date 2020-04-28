@@ -24,7 +24,9 @@ cp /otter/aria2c /bin/
 rm -fr /app/bin/*.pid
 rm -fr /app/log/*
 bash /app/bin/startup.sh
-
+echo $NID > /app/conf/nid;
+cp /otter/otter.properties /app/conf/otter.properties
+/otter/wait-for mr:2901 -- echo OK;
 tail -f /dev/null &
 # wait TERM signal
 waitterm

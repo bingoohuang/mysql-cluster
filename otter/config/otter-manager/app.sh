@@ -20,7 +20,7 @@ waitterm() {
 }
 
 rm -fr /app/bin/*.pid
-
+cp /otter/otter.properties /app/conf/otter.properties;
 sh /app/bin/startup.sh
 
 tail -f /dev/null &

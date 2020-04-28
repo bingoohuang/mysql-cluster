@@ -84,14 +84,10 @@ services:
           - 2901:2901
         volumes:
             - ./config/otter-manager:/otter
-        command: bash -c "cp /otter/otter.properties /app/conf/otter.properties; bash /otter/app.sh"
+        command: sh /otter/app.sh
         depends_on:
             - ma
             - zk1
-            - zk2
-            - zk3
-            - zk4
-            - zk5
         healthcheck:
             test: ["CMD", "curl", "-f", "http://mr:2901" ]
             interval: 10s
@@ -102,7 +98,9 @@ services:
         container_name: nd1
         volumes:
             - ./config/otter-node:/otter
-        command: bash -c "/otter/wait-for mr:2901 -- ls;echo 1 > /app/conf/nid; cp /otter/otter.properties /app/conf/otter.properties;sh /otter/app.sh;"
+        environment:
+            NID: 1
+        command: sh /otter/app.sh
         depends_on:
             - mr
     nd2:
@@ -110,6 +108,8 @@ services:
         container_name: nd2
         volumes:
             - ./config/otter-node:/otter
-        command: bash -c "/otter/wait-for mr:2901 -- ls;echo 3 > /app/conf/nid;cp /otter/otter.properties /app/conf/otter.properties;sh /otter/app.sh;"
+        environment:
+            NID: 3
+        command: sh /otter/app.sh
         depends_on:
             - mr
