@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bingoohuang/gonet/man"
+
 	"github.com/bingoohuang/gou/enc"
 
 	"github.com/bingoohuang/gou/str"
@@ -31,8 +33,7 @@ type Config struct {
 	Interval time.Duration `pflag:"interval config before running(default 60s). shorthand=I"`
 }
 
-// SetUp sets the default value for config items.
-func (c *Config) SetUp() {
+func (c *Config) init() {
 	if c.PrintConfig {
 		fmt.Printf("Config%s\n", enc.JSONPretty(c))
 	}
@@ -45,10 +46,20 @@ func (c *Config) SetUp() {
 	if c.Interval == 0 {
 		c.Interval = time.Minute
 	}
+
+	if c.InfluxWriteURL != "" {
+		influx.PostMan.URL = man.URL(c.InfluxWriteURL)
+	}
+
+	if c.PipelineListURL != "" {
+		PostMan.URL = man.URL(c.PipelineListURL)
+	}
 }
 
 // Run runs  the otter beat by the config.
 func (c *Config) Run() {
+	c.init()
+
 	ticker := time.NewTicker(c.Interval)
 	defer ticker.Stop()
 
@@ -61,9 +72,11 @@ func (c *Config) Run() {
 		sqlx.DB = db
 	}
 
-	for range ticker.C {
+	for {
 		c.collectDB()
 		c.collectPipelineListPage()
+
+		<-ticker.C
 	}
 }
 
@@ -78,7 +91,7 @@ func (c *Config) collectPipelineListPage() {
 		return
 	}
 
-	list, err := GraspPipeLineList(c.PipelineListURL)
+	list, err := GraspPipeLineList()
 	if err != nil {
 		logrus.Errorf("failed to GraspPipeLineList %s error %v", c.PipelineListURL, err)
 		return
@@ -93,17 +106,13 @@ const (
 	otterbeatDir = "~/.otterbeat/"
 )
 
+// nolint lll
 func (c *Config) collectTables() {
-	c.timeRead(otterbeatDir+"DelayStats.lastTime", Dao.DelayStats,
-		func(v interface{}) time.Time { return v.(PipelineDelay).ModifiedTime })
-	c.timeRead(otterbeatDir+"HistoryStats.lastTime", Dao.HistoryStats,
-		func(v interface{}) time.Time { return v.(TableHistoryStat).ModifiedTime })
-	c.timeRead(otterbeatDir+"TableStats.lastTime", Dao.TableStats,
-		func(v interface{}) time.Time { return v.(TableStat).ModifiedTime })
-	c.timeRead(otterbeatDir+"TableStats.lastTime", Dao.ThroughputStats,
-		func(v interface{}) time.Time { return v.(ThroughputStat).ModifiedTime })
-	c.intRead(otterbeatDir+"LogRecords.lastID", Dao.LogRecords,
-		func(v interface{}) uint64 { return v.(LogRecord).ID })
+	c.timeRead(otterbeatDir+"DelayStat.lastTime", Dao.DelayStat, func(v interface{}) time.Time { return v.(DelayStat).ModifiedTime })
+	c.timeRead(otterbeatDir+"TableHistoryStat.lastTime", Dao.TableHistoryStat, func(v interface{}) time.Time { return v.(TableHistoryStat).ModifiedTime })
+	c.timeRead(otterbeatDir+"TableStat.lastTime", Dao.TableStat, func(v interface{}) time.Time { return v.(TableStat).ModifiedTime })
+	c.timeRead(otterbeatDir+"ThroughputStat.lastTime", Dao.ThroughputStat, func(v interface{}) time.Time { return v.(ThroughputStat).ModifiedTime })
+	c.intRead(otterbeatDir+"LogRecord.lastID", Dao.LogRecord, func(v interface{}) uint64 { return v.(LogRecord).ID })
 }
 
 func (c *Config) intRead(filename string, dao interface{}, f func(interface{}) uint64) {
@@ -118,7 +127,12 @@ func (c *Config) intRead(filename string, dao interface{}, f func(interface{}) u
 	last := str.ParseUint64(lastID)
 	items := reflect.ValueOf(dao).Call([]reflect.Value{reflect.ValueOf(last)})[0].Interface()
 
-	logrus.Infof("read %s got %d items %v", filename, funk.Len(items), funk.Left(items, 3))
+	if funk.Len(items) == 0 {
+		logrus.Infof("read %s got no new items", filename)
+		return
+	}
+
+	logrus.Infof("read %s got new items %d: %v", filename, funk.Len(items), funk.Left(items, 3))
 
 	funk.ForEach(items, func(i int, v interface{}) {
 		if x := f(v); x > last {
@@ -148,7 +162,12 @@ func (c *Config) timeRead(filename string, dao interface{}, f func(interface{}) 
 
 	items := reflect.ValueOf(dao).Call([]reflect.Value{reflect.ValueOf(lastTime)})[0].Interface()
 
-	logrus.Infof("read %s got %d items %v", filename, funk.Len(items), funk.Left(items, 3))
+	if funk.Len(items) == 0 {
+		logrus.Infof("read %s got no new items", filename)
+		return
+	}
+
+	logrus.Infof("read %s got new items %d: %v", filename, funk.Len(items), funk.Left(items, 3))
 
 	changed := false
 
@@ -181,21 +200,21 @@ func (c *Config) writeInfluxLine(v interface{}, i int) {
 
 	// nolint gomnd
 	if i < 3 {
-		logrus.Infof("[InfluxDB Line] %s", line)
+		logrus.Infof("influx %s", line)
 	} else if i == 4 {
-		logrus.Infof("[InfluxDB Line] ...")
+		logrus.Infof("influx ...")
 	}
 
 	if c.InfluxWriteURL == "" {
 		return
 	}
 
-	if err := influx.Write(c.InfluxWriteURL, line); err != nil {
+	if err := influx.Write(line); err != nil {
 		logrus.Warnf("failed to influx  write line %v error %v", v, err)
 	}
 }
 
 const (
 	// StartTime defines the start time of the system.
-	StartTime = "2006-01-02 15:04:05"
+	StartTime = "2006-01-02 15:04:05.000"
 )

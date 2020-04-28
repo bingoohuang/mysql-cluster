@@ -84,7 +84,7 @@ services:
           - 2901:2901
         volumes:
             - ./config/otter-manager:/otter
-        command: bash -c "cp /otter/otter.properties /app/conf/otter.properties;sh /otter/app.sh"
+        command: sh /otter/app.sh
         depends_on:
             - ma
         healthcheck:

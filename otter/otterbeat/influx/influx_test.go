@@ -20,7 +20,7 @@ type delay struct {
 
 func TestCreateLine(t *testing.T) {
 	assert.Equal(t, lang.M2(
-		`pipeline_delay,delay_id=1 delay=123456,incr_id=100,my_note="测试" 1587400216000000000`, nil),
+		`pipeline_delay,delay_id=1 delay=123456,incr_id=100,my_note="测试" 1587371416000000000`, nil),
 		lang.M2(ToLine(
 			delay{
 				ModifiedTime: lang.ParseTime("2006-01-02 15:04:05", "2020-04-20 16:30:16"),

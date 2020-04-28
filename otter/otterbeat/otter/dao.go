@@ -8,8 +8,8 @@ import (
 	"github.com/bingoohuang/otterbeat/influx"
 )
 
-// PipelineDelay maps to table DELAY_STAT record.
-type PipelineDelay struct {
+// DelayStat maps to table DELAY_STAT record.
+type DelayStat struct {
 	_ influx.T `measurement:"otter_delay_stat"`
 
 	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
@@ -75,11 +75,11 @@ type ThroughputStat struct {
 // DaoFn defines the dao functions to operate on table DELAY_STAT.
 // nolint lll
 type DaoFn struct {
-	DelayStats      func(lastTime time.Time) []PipelineDelay    `sql:"select ID, DELAY_TIME, PIPELINE_ID, GMT_CREATE, GMT_MODIFIED from DELAY_STAT where GMT_MODIFIED > :1"`
-	LogRecords      func(lastID uint64) []LogRecord             `sql:"select ID, NID, CHANNEL_ID, PIPELINE_ID, TITLE, MESSAGE, GMT_MODIFIED from LOG_RECORD where ID > :1"`
-	HistoryStats    func(lastTime time.Time) []TableHistoryStat `sql:"select ID, INSERT_COUNT, UPDATE_COUNT, DELETE_COUNT, PIPELINE_ID, START_TIME, END_TIME, GMT_CREATE, GMT_MODIFIED from TABLE_HISTORY_STAT where GMT_MODIFIED > :1"`
-	TableStats      func(lastTime time.Time) []TableStat        `sql:"select ID, INSERT_COUNT, UPDATE_COUNT, DELETE_COUNT, PIPELINE_ID, GMT_CREATE, GMT_MODIFIED from TABLE_STAT where GMT_MODIFIED > :1"`
-	ThroughputStats func(lastTime time.Time) []ThroughputStat   `sql:"select ID, TYPE, NUMBER, SIZE, PIPELINE_ID, START_TIME, END_TIME, GMT_CREATE, GMT_MODIFIED from THROUGHPUT_STAT where GMT_MODIFIED > :1"`
+	DelayStat        func(lastTime time.Time) []DelayStat        `sql:"select ID, DELAY_TIME, PIPELINE_ID, GMT_CREATE, GMT_MODIFIED from DELAY_STAT where GMT_MODIFIED > :1"`
+	LogRecord        func(lastID uint64) []LogRecord             `sql:"select ID, NID, CHANNEL_ID, PIPELINE_ID, TITLE, MESSAGE, GMT_MODIFIED from LOG_RECORD where ID > :1"`
+	TableHistoryStat func(lastTime time.Time) []TableHistoryStat `sql:"select ID, INSERT_COUNT, UPDATE_COUNT, DELETE_COUNT, PIPELINE_ID, START_TIME, END_TIME, GMT_CREATE, GMT_MODIFIED from TABLE_HISTORY_STAT where GMT_MODIFIED > :1"`
+	TableStat        func(lastTime time.Time) []TableStat        `sql:"select ID, INSERT_COUNT, UPDATE_COUNT, DELETE_COUNT, PIPELINE_ID, GMT_CREATE, GMT_MODIFIED from TABLE_STAT where GMT_MODIFIED > :1"`
+	ThroughputStat   func(lastTime time.Time) []ThroughputStat   `sql:"select ID, TYPE, NUMBER, SIZE, PIPELINE_ID, START_TIME, END_TIME, GMT_CREATE, GMT_MODIFIED from THROUGHPUT_STAT where GMT_MODIFIED > :1"`
 }
 
 // nolint

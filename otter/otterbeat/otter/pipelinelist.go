@@ -1,10 +1,10 @@
 package otter
 
 import (
-	"fmt"
-	"net/http"
 	"strings"
 	"time"
+
+	"github.com/bingoohuang/gonet/man"
 
 	"github.com/bingoohuang/gou/lang"
 
@@ -59,21 +59,25 @@ func (p PipeLine) ToPipeLineInflux() PipeLineInflux {
 	}
 }
 
+type poster struct {
+	man.URL
+
+	PipeLineList func() (string, error)
+}
+
+// PostMan processes http requests.
+// nolint gochecknoglobals
+var PostMan = func() *poster { p := new(poster); man.New(p); return p }()
+
 // GraspPipeLineList 从PipeLine管理列表页面抓获数据
-func GraspPipeLineList(pipelineListURL string) ([]PipeLine, error) {
-	res, err := http.Get(pipelineListURL) // nolint gosec
+func GraspPipeLineList() ([]PipeLine, error) {
+	res, err := PostMan.PipeLineList() // nolint gosec
 	if err != nil {
 		return nil, err
 	}
 
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("read pipeline list %s returned non-200 %d", pipelineListURL, res.StatusCode)
-	}
-
 	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(res))
 	if err != nil {
 		return nil, errors.Wrapf(err, "NewDocumentFromReader")
 	}

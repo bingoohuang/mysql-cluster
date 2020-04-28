@@ -1,2 +1,5 @@
 .otter.*
 .idea
+/var
+/ctl
+/cnf.toml

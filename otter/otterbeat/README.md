@@ -1,3 +1,12 @@
+# otterbeat
+
+## Build
+
+1. `make install` and the executable is installed in `$GOPATH/bin`.
+1. `otterbeat --init` to generate the demo cnf.toml and ctl files at the current directory.
+1. edit the cnf.toml file.
+1. `./ctl start` to startup the otterbeat.
+1. `./ctl tail` to trace the log of `~/logs/otterbeat/otterbeat.log`.
 
 ## 从页面采集指标
 

@@ -1,27 +1,25 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
-
-	"github.com/bingoohuang/gou/cnf"
+	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/gou/sy"
 	"github.com/bingoohuang/otterbeat/otter"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gobuffalo/packr/v2"
 )
 
 func main() {
-	logrus.SetLevel(logrus.DebugLevel)
+	config := otter.Config{}
 
-	cnf.DeclarePflags()
-	cnf.DeclarePflagsByStruct(otter.Config{})
+	box := packr.New("myBox", "assets")
 
-	if err := cnf.ParsePflags("OTTERBEAT"); err != nil {
-		panic(err)
-	}
+	sy.SetupApp(&sy.AppOption{
+		EnvPrefix:   "OTTERBEAT",
+		LogLevel:    "debug",
+		ConfigBeans: []interface{}{&config},
+		CnfTpl:      str.PickFirst(box.FindString("cnf.tpl.toml")),
+		CtlTpl:      str.PickFirst(box.FindString("ctl.tpl.sh")),
+	})
 
-	var config otter.Config
-
-	cnf.LoadByPflag(&config)
-
-	config.SetUp()
 	config.Run()
 }
