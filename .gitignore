@@ -9,7 +9,6 @@
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
-*.out
 .idea
 centos7/mysqlclusterinit/mysql
 centos7/haproxy-1.8.21/haproxy
