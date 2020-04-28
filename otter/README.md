@@ -34,9 +34,10 @@ Servers listen on three ports:
 
 otter Dockerfile:
 
-move dockerfile to the target dir of the otter 
-move otter-node/aria2c to the target 
-```
- docker build -t footstone-otter-manager:v0.0.1 -f ManagerDockerfile .
- docker build -t footstone-otter-node:v0.0.1 -f NodeDockerfile .
+1. move dockerfiles to the target dir of the otter
+1. move otter-node/aria2c to the target
+
+```bash
+docker build -t footstone-otter-manager:v0.0.1 -f ManagerDockerfile .
+docker build -t footstone-otter-node:v0.0.1 -f NodeDockerfile .
 ```
