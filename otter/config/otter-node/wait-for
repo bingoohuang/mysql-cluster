@@ -22,7 +22,8 @@ USAGE
 wait_for() {
   for i in `seq $TIMEOUT` ; do
    # nc -z "$HOST" "$PORT" > /dev/null 2>&1
-    result=`curl -I "http://localhost:2901"  2>/dev/null|grep OK|wc -l`   
+    result=`curl -I "http://$HOST:$PORT"  2>/dev/null|grep OK|wc -l`   
+    echo $result
     if [ $result -eq 1 ] ; then
       if [ $# -gt 0 ] ; then
         exec "$@"
