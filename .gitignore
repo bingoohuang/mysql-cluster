@@ -21,3 +21,4 @@ centos7/mysql-community-server-5.7/mysql-community-libs-5.7.28-1.el7.x86_64.rpm
 centos7/mysql-community-server-5.7/mysql-community-libs-compat-5.7.28-1.el7.x86_64.rpm
 centos7/mysql-community-server-5.7/mysql-community-server-5.7.28-1.el7.x86_64.rpm
 .DS_Store
+otter/otterbeat/testdata/godo.out
