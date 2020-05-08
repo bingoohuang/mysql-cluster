@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bingoohuang/ip"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,14 +42,15 @@ listen mysql-ro
 	}
 
 	bindingRw := `bind 127.0.0.1:13306`
+	p6s, _ := ip.ListAllIPv6()
 
-	if s.IPv6Enabled {
+	if s.IPv6Enabled && len(p6s) > 0 {
 		bindingRw += "\n  bind ::1:13306"
 	}
 
 	bindingRo := `bind 127.0.0.1:23306`
 
-	if s.IPv6Enabled {
+	if s.IPv6Enabled && len(p6s) > 0 {
 		bindingRo += "\n  bind ::1:23306"
 	}
 
