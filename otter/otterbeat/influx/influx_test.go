@@ -9,8 +9,7 @@ import (
 )
 
 type delay struct {
-	_            T         `measurement:"pipeline_delay"`
-	ModifiedTime time.Time `influx:"time"`
+	ModifiedTime time.Time `influx:"time" measurement:"pipeline_delay"`
 	ID           uint64    `influx:"tag" name:"delay_id"`
 	Delay        float64   `influx:"field"`
 	Something    uint64    `influx:"-"`

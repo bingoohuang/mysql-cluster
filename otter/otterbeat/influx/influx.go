@@ -26,7 +26,6 @@ func ToLine(v interface{}) (string, error) {
 
 // nolint
 var (
-	tType    = reflect.TypeOf((*T)(nil)).Elem()
 	timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 )
 
@@ -58,13 +57,12 @@ func ParseLine(v interface{}) (*Line, error) {
 }
 
 func (su *Line) buildSu(rtf reflect.StructField, rv reflect.Value) {
-	if rtf.Type == tType {
-		su.Measurement = rtf.Tag.Get("measurement")
+	if rtf.PkgPath != "" {
 		return
 	}
 
-	if rtf.PkgPath != "" {
-		return
+	if tag := rtf.Tag.Get("measurement"); tag != "" {
+		su.Measurement = tag
 	}
 
 	influxTag := rtf.Tag.Get("influx")
@@ -145,9 +143,6 @@ type Field struct {
 	K string
 	V interface{}
 }
-
-// T is a helper empty struct to declare influx measurement name.
-type T struct{}
 
 func escapeSpecialChars(in string) string {
 	s := strings.Replace(in, ",", `\,`, -1)

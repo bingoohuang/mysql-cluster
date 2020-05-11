@@ -4,15 +4,11 @@ import (
 	"time"
 
 	"github.com/bingoohuang/sqlx"
-
-	"github.com/bingoohuang/otterbeat/influx"
 )
 
 // DelayStat maps to table DELAY_STAT record.
 type DelayStat struct {
-	_ influx.T `measurement:"otter_delay_stat"`
-
-	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
+	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED" measurement:"otter_delay_stat"`
 	PipelineID   string    `influx:"tag"`   // 流水线ID
 	DelayTime    float64   `influx:"field"` // 单位ms
 	ID           uint64    `influx:"field"` // 对应的数据库表自增ID
@@ -20,9 +16,7 @@ type DelayStat struct {
 
 // LogRecord maps to table LOG_RECORD record.
 type LogRecord struct {
-	_ influx.T `measurement:"otter_log_record"`
-
-	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
+	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED" measurement:"otter_log_record"`
 	PipelineID   string    `influx:"tag"` // 流水线ID
 	InsertCount  uint64    `influx:"field"`
 	UpdateCount  uint64    `influx:"field"`
@@ -34,9 +28,7 @@ type LogRecord struct {
 
 // TableHistoryStat maps to table TABLE_HISTORY_STAT record.
 type TableHistoryStat struct {
-	_ influx.T `measurement:"otter_history_stat"`
-
-	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
+	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED" measurement:"otter_history_stat"`
 	PipelineID   string    `influx:"tag"` // 流水线ID
 	InsertCount  uint64    `influx:"field"`
 	UpdateCount  uint64    `influx:"field"`
@@ -48,9 +40,7 @@ type TableHistoryStat struct {
 
 // TableStat maps to table TABLE_STAT record.
 type TableStat struct {
-	_ influx.T `measurement:"otter_table_stat"`
-
-	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
+	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED" measurement:"otter_table_stat"`
 	PipelineID   string    `influx:"tag"` // 流水线ID
 	InsertCount  uint64    `influx:"field"`
 	UpdateCount  uint64    `influx:"field"`
@@ -60,9 +50,7 @@ type TableStat struct {
 
 // ThroughputStat maps to table THROUGHPUT_STAT record.
 type ThroughputStat struct {
-	_ influx.T `measurement:"otter_throughput_stat"`
-
-	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED"`
+	ModifiedTime time.Time `influx:"time" name:"GMT_MODIFIED" measurement:"otter_throughput_stat"`
 	PipelineID   string    `influx:"tag"` // 流水线ID
 	TYPE         string    `influx:"field"`
 	Number       uint64    `influx:"field"`

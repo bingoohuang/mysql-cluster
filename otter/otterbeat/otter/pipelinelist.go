@@ -9,8 +9,6 @@ import (
 	"github.com/bingoohuang/gou/lang"
 
 	"github.com/bingoohuang/gou/str"
-	"github.com/bingoohuang/otterbeat/influx"
-
 	"github.com/bingoohuang/otterbeat/structs"
 
 	"github.com/PuerkitoBio/goquery"
@@ -37,9 +35,7 @@ type PipeLine struct {
 
 // PipeLineInflux defines the structure to write to influx DB.
 type PipeLineInflux struct {
-	_ influx.T `measurement:"otter_pipeline"`
-
-	Time             time.Time `influx:"time"`
+	Time             time.Time `influx:"time" measurement:"otter_pipeline"`
 	PipelineID       string    `influx:"tag"`   // 流水线ID
 	State            string    `influx:"field"` // 流水线ID
 	DelayTime        float64   `influx:"field"` // 单位ms
