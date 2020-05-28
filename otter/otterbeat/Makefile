@@ -18,3 +18,7 @@ install: init
 
 test: init
 	go test ./...
+
+linux: init
+	GOOS=linux GOARCH=amd64 go install -ldflags="-s -w" ./...
+	upx ~/go/bin/linux_amd64/otterbeat
