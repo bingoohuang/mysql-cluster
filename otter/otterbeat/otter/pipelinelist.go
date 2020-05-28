@@ -55,19 +55,23 @@ func (p PipeLine) ToPipeLineInflux() PipeLineInflux {
 	}
 }
 
-type poster struct {
+// PipeLinePoster is a HTTP poster for pipeline list.
+type PipeLinePoster struct {
 	man.URL
 
 	PipeLineList func() (string, error)
 }
 
-// PostMan processes http requests.
-// nolint gochecknoglobals
-var PostMan = func() *poster { p := new(poster); man.New(p); return p }()
+// NewPipeLinePoster creates a new PipeLinePoster
+func NewPipeLinePoster() *PipeLinePoster { p := new(PipeLinePoster); man.New(p); return p }
 
 // GraspPipeLineList 从PipeLine管理列表页面抓获数据
-func GraspPipeLineList() ([]PipeLine, error) {
-	res, err := PostMan.PipeLineList() // nolint gosec
+func (p *PipeLinePoster) GraspPipeLineList() ([]PipeLine, error) {
+	if p.URL == "" {
+		return nil, nil
+	}
+
+	res, err := p.PipeLineList() // nolint gosec
 	if err != nil {
 		return nil, err
 	}

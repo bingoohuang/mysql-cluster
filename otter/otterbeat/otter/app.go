@@ -33,6 +33,9 @@ type Config struct {
 	Interval time.Duration `pflag:"interval config before running(default 60s). shorthand=I"`
 }
 
+// nolint
+var pipeLinePoster = NewPipeLinePoster()
+
 func (c *Config) init() {
 	if c.PrintConfig {
 		fmt.Printf("Config%s\n", enc.JSONPretty(c))
@@ -52,7 +55,7 @@ func (c *Config) init() {
 	}
 
 	if c.PipelineListURL != "" {
-		PostMan.URL = man.URL(c.PipelineListURL)
+		pipeLinePoster.URL = man.URL(c.PipelineListURL)
 	}
 }
 
@@ -87,11 +90,7 @@ func (c *Config) collectDB() {
 }
 
 func (c *Config) collectPipelineListPage() {
-	if c.PipelineListURL == "" {
-		return
-	}
-
-	list, err := GraspPipeLineList()
+	list, err := pipeLinePoster.GraspPipeLineList()
 	if err != nil {
 		logrus.Errorf("failed to GraspPipeLineList %s error %v", c.PipelineListURL, err)
 		return
