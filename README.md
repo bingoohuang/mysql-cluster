@@ -81,7 +81,8 @@ GRANT ALL PRIVILEGES ON *.* TO 'root'@'mysqlmaster1' WITH GRANT OPTION;
 DROP USER IF EXISTS 'repl'@'%';
 CREATE USER 'repl'@'%' IDENTIFIED BY 'repl';
 GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl';
-CHANGE MASTER TO master_host='mysqlmaster1', master_port=3306, master_user='repl', master_password='repl', master_auto_position = 1;
+CHANGE MASTER TO master_host='mysqlb', master_port=3306, master_user='repl', master_password='repl', master_auto_position = 1;
+CHANGE MASTER TO master_host='mysqla', master_port=3306, master_user='repl', master_password='repl', master_auto_position = 1;
 START SLAVE;
 
 
@@ -98,7 +99,6 @@ GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl';
 CHANGE MASTER TO master_host='mysqlmaster2', master_port=3306, master_user='repl', master_password='repl', master_auto_position = 1;
 
 
-
 SHOW MASTER STATUS;
 RESET MASTER;
 FLUSH TABLES WITH READ LOCK;
@@ -108,17 +108,16 @@ START SLAVE;
 
 
 /* 主1上 */ create database bjca;
-/* 主1上 */ create table t_m1(name varchar(100);
-/* 主2上 */ insert into t_m1 values('written from master2');
-/* 主1从 */ select * from t_m1;
+/* 主1上 */ create table bjca.t_m1(name varchar(100));
+/* 主2上 */ insert into bjca.t_m1 values('written from master2');
+/* 主1从 */ select * from bjca.t_m1;
 
-/* 主2上 */ create table t_m2(name varchar(100);
-/* 主1上 */ insert into t_m2 values('written from master1');
-/* 主2从 */ select * from t_m2;
+/* 主2上 */ create table bjca.t_m2(name varchar(100));
+/* 主1上 */ insert into bjca.t_m2 values('written from master1');
+/* 主2从 */ select * from bjca.t_m2;
 
 /* 所有上 */ SHOW SLAVE STATUS\G
 ```
-
 
 ```bash
 root@c31810844c58:/# MYSQL_PWD=root mysql -u root
