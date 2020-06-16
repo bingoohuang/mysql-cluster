@@ -9,7 +9,7 @@ import (
 	"gopkg.in/dealancer/validate.v2"
 )
 
-// Settings 表示初始化化MySQL集群所需要的参数结构
+// Settings 表示初始化化MySQL集群所需要的参数结构.
 type Settings struct {
 	Master1Addr  string   `validate:"empty=false"` // Master1的地址(IP，域名)
 	Master2Addr  string   `validate:"empty=false"` // Master2的地址(IP，域名)
@@ -90,7 +90,7 @@ func (s *Settings) ValidateAndSetDefault(options ...SettingsOption) error {
 // Setup setups settings.
 func (s *Settings) Setup() {
 	if s.ReplPassword == "" {
-		s.ReplPassword = GeneratePasswordBySet(16, UpperLetters, DigitsLetters, LowerLetters, "-#") // nolint gomnd
+		s.ReplPassword = GeneratePasswordBySet(16, UpperLetters, DigitsLetters, LowerLetters, "-#") // nolint:gomnd
 	}
 
 	if s.ShellTimeout != "" {
@@ -103,7 +103,7 @@ func (s *Settings) Setup() {
 	}
 }
 
-// Result 表示初始化结果
+// Result 表示初始化结果.
 type Result struct {
 	Nodes   []MySQLNode
 	HAProxy string

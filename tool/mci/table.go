@@ -10,12 +10,12 @@ import (
 	"github.com/jedib0t/go-pretty/table"
 )
 
-// TablePrinter print table
+// TablePrinter print table.
 type TablePrinter struct {
 	dittoMark string
 }
 
-// Print prints the table
+// Print prints the table.
 func (p TablePrinter) Print(value interface{}) {
 	header := make(table.Row, 0)
 	rows := make([]table.Row, 0)
@@ -56,7 +56,7 @@ func (p TablePrinter) Print(value interface{}) {
 
 func createRow(fields []reflec.StructField, rowIndex int, v reflect.Value, rows *[]table.Row) {
 	row := make(table.Row, 0)
-	row = append(row, rowIndex+1) // nolint gomnd
+	row = append(row, rowIndex+1)
 
 	for _, f := range fields {
 		row = append(row, v.Field(f.Index).Interface())
@@ -102,7 +102,7 @@ func (p TablePrinter) dittoMarkRows(rows []table.Row) []table.Row {
 	return rows
 }
 
-// BlankCamel make a camel string to blanks
+// BlankCamel make a camel string to blanks.
 func BlankCamel(str string) string {
 	blank := regexp.MustCompile("(.)([A-Z][a-z]+)").ReplaceAllString(str, "${1} ${2}")
 	return regexp.MustCompile("([a-z0-9])([A-Z])").ReplaceAllString(blank, "${1} ${2}")

@@ -16,7 +16,7 @@ func TestReplaceFileContent(t *testing.T) {
 
 	fmt.Println("tmp file created ", file.Name())
 	assert.Nil(t, ioutil.WriteFile(file.Name(), []byte(
-		"a=b\nserver_id=0\nc=d\nserver_id=3"), 0644))
+		"a=b\nserver_id=0\nc=d\nserver_id=3"), 0600))
 	assert.Nil(t, mci.ReplaceFileContent(file.Name(),
 		`(?i)server[-_]id\s*=\s*(\d+)`, "123456"))
 

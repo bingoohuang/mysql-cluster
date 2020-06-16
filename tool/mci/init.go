@@ -13,10 +13,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// CreateMySQLCluster 初始化MySQL Master-Master集群
+// CreateMySQLCluster 初始化MySQL Master-Master集群.
 func (s Settings) CreateMySQLCluster() (r Result, err error) {
 	if s.ValidateAndSetDefault(Validate, SetDefault) != nil {
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 
 	if r.Nodes, err = s.createMySQCluster(); err != nil {
@@ -41,10 +41,10 @@ func (s Settings) CreateMySQLCluster() (r Result, err error) {
 	return r, err
 }
 
-// ResetLocalMySQLClusterNode 重置MySQL集群
+// ResetLocalMySQLClusterNode 重置MySQL集群.
 func (s Settings) ResetLocalMySQLClusterNode() error {
 	if s.ValidateAndSetDefault(Validate, SetDefault) != nil {
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 
 	if err := s.resetMySQCluster(); err != nil {
@@ -61,6 +61,7 @@ func (s Settings) ResetLocalMySQLClusterNode() error {
 const reMySQLClusterConfig = `(?is)#\s*MySQLClusterConfigStart(.+)#\s*MySQLClusterConfigEnd`
 
 // RemoveSlavesFromCluster 从集群中，删除从节点
+// nolint:goerr113
 func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 	slavesToRemove := str.SplitTrim(removeSlaves, ",")
 	if len(slavesToRemove) == 0 {
@@ -68,7 +69,7 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 	}
 
 	if s.ValidateAndSetDefault(SetDefault) != nil {
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 
 	mySQLClusterConfig, err := SearchFileContent(s.HAProxyCfg, reMySQLClusterConfig)
@@ -81,7 +82,7 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 		return fmt.Errorf("RemoveSlavesFromCluster error : no MySQLClusterConfig found in %s", s.HAProxyCfg)
 	}
 
-	if len(mySQLClusterConfig) > 1 { // nolint gomnd
+	if len(mySQLClusterConfig) > 1 {
 		return fmt.Errorf("RemoveSlavesFromCluster error : more than one MySQLClusterConfig found in %s", s.HAProxyCfg)
 	}
 

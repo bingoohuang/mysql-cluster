@@ -22,7 +22,7 @@ import (
 	"github.com/tkrajina/go-reflector/reflector"
 )
 
-// ReplaceFileContent 使用正则表达式查找模式，并且替换正则1号捕获分组为指定的内容
+// ReplaceFileContent 使用正则表达式查找模式，并且替换正则1号捕获分组为指定的内容.
 func ReplaceFileContent(filename, regexStr, repl string) error {
 	conf, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -39,7 +39,7 @@ func ReplaceFileContent(filename, regexStr, repl string) error {
 	return ioutil.WriteFile(filename, []byte(fixed), stat.Mode())
 }
 
-// SearchFileContent 使用正则表达式查找模式正则1号捕获分组
+// SearchFileContent 使用正则表达式查找模式正则1号捕获分组.
 func SearchFileContent(filename, regexStr string) ([]string, error) {
 	conf, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -49,19 +49,20 @@ func SearchFileContent(filename, regexStr string) ([]string, error) {
 	return FindRegexGroup1(string(conf), regexStr)
 }
 
-// FileExists 检查文件是否存在，并且不是目录
+// FileExists 检查文件是否存在，并且不是目录.
 func FileExists(filename string) error {
 	if fi, err := os.Stat(filename); err != nil {
 		return err
 	} else if fi.IsDir() {
+		// nolint:goerr113
 		return fmt.Errorf("file %s is a directory", filename)
 	}
 
 	return nil
 }
 
-// SearchPatternLinesInFile 使用正则表达式boundaryRegexStr在文件filename中查找大块，
-// 然后在大块中用captureGroup1Regex中的每行寻找匹配
+// SearchPatternLinesInFile 使用正则表达式boundaryRegexStr在文件filename中查找大块.
+// 然后在大块中用captureGroup1Regex中的每行寻找匹配.
 func SearchPatternLinesInFile(filename, boundaryRegexStr, captureGroup1Regex string) ([]string, error) {
 	str, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -71,7 +72,7 @@ func SearchPatternLinesInFile(filename, boundaryRegexStr, captureGroup1Regex str
 	return SearchPatternLines(string(str), boundaryRegexStr, captureGroup1Regex)
 }
 
-// SearchPatternLines 使用正则表达式boundaryRegexStr在str中查找大块，然后在大块中用captureGroup1Regex中的每行寻找匹配
+// SearchPatternLines 使用正则表达式boundaryRegexStr在str中查找大块，然后在大块中用captureGroup1Regex中的每行寻找匹配.
 func SearchPatternLines(str, boundaryRegexStr, captureGroup1Regex string) ([]string, error) {
 	founds, err := FindRegexGroup1(str, boundaryRegexStr)
 	if err != nil {
@@ -92,7 +93,7 @@ func SearchPatternLines(str, boundaryRegexStr, captureGroup1Regex string) ([]str
 	return lines, nil
 }
 
-// FindRegexGroup1 使用正则表达式regexStr在str中查找内容
+// FindRegexGroup1 使用正则表达式regexStr在str中查找内容.
 func FindRegexGroup1(str, regexStr string) ([]string, error) {
 	re, err := regexp.Compile(regexStr)
 	if err != nil {
@@ -102,7 +103,8 @@ func FindRegexGroup1(str, regexStr string) ([]string, error) {
 	group1s := make([]string, 0)
 
 	for _, v := range re.FindAllStringSubmatch(str, -1) {
-		if len(v) < 2 { // nolint gomnd
+		if len(v) < 2 { // nolint:gomnd
+			// nolint:goerr113
 			return nil, fmt.Errorf("regexp %s should have at least one capturing group", regexStr)
 		}
 
@@ -112,7 +114,8 @@ func FindRegexGroup1(str, regexStr string) ([]string, error) {
 	return group1s, nil
 }
 
-// ReplaceRegexGroup1 使用正则表达式regexStr在str中查找内容，并且替换正则1号捕获分组为指定的内容
+// ReplaceRegexGroup1 使用正则表达式regexStr在str中查找内容，并且替换正则1号捕获分组为指定的内容.
+// nolint:goerr113
 func ReplaceRegexGroup1(str, regexStr, repl string) (string, error) {
 	re, err := regexp.Compile(regexStr)
 	if err != nil {
@@ -123,7 +126,8 @@ func ReplaceRegexGroup1(str, regexStr, repl string) (string, error) {
 	lastIndex := 0
 
 	for _, v := range re.FindAllStringSubmatchIndex(str, -1) {
-		if len(v) < 4 { // nolint gomnd
+		if len(v) < 4 { // nolint:gomnd
+			// nolint:goerr113
 			return "", fmt.Errorf("regexp %s should have at least one capturing group", regexStr)
 		}
 
@@ -138,13 +142,13 @@ func ReplaceRegexGroup1(str, regexStr, repl string) (string, error) {
 	return fixed + str[lastIndex:], nil
 }
 
-// JSONPretty prettify the JSON encoding of data silently
+// JSONPretty prettify the JSON encoding of data silently.
 func JSONPretty(data interface{}) string {
 	p, _ := JSONPrettyE(data)
 	return p
 }
 
-// JSONPrettyE prettify the JSON encoding of data
+// JSONPrettyE prettify the JSON encoding of data.
 func JSONPrettyE(data interface{}) (string, error) {
 	buffer := new(bytes.Buffer)
 	encoder := json.NewEncoder(buffer)
@@ -158,7 +162,7 @@ func JSONPrettyE(data interface{}) (string, error) {
 	return buffer.String(), nil
 }
 
-// DeclarePflagsByStruct declares flags from struct fields'name and type
+// DeclarePflagsByStruct declares flags from struct fields'name and type.
 func DeclarePflagsByStruct(structVar interface{}) {
 	for _, f := range reflector.New(structVar).Fields() {
 		if !f.IsExported() {
@@ -178,7 +182,7 @@ func DeclarePflagsByStruct(structVar interface{}) {
 	}
 }
 
-// ViperToStruct read viper value to struct
+// ViperToStruct read viper value to struct.
 func ViperToStruct(structVar interface{}) {
 	for _, f := range reflector.New(structVar).Fields() {
 		if !f.IsExported() {
@@ -225,15 +229,17 @@ func ViperToStruct(structVar interface{}) {
 }
 
 // NetstatListen exec netstat to find pid and cmdName for specified listenPort
+// nolint:goerr113
 func NetstatListen(listenPort int) (pid int, cmdName string, err error) {
 	shell := fmt.Sprintf(`netstat -tunlp | grep ":%d"`, listenPort)
-	_, status := cmd.Bash(shell, cmd.Timeout(1*time.Second)) // nolint gomnd
+	_, status := cmd.Bash(shell, cmd.Timeout(1*time.Second))
 
 	if status.Error != nil {
 		return 0, "", fmt.Errorf("exec %s error %w", shell, status.Error)
 	}
 
 	if len(status.Stdout) == 0 {
+		// nolint:goerr113
 		return 0, "", fmt.Errorf("netstat  %s result empty", shell)
 	}
 
@@ -244,14 +250,14 @@ func NetstatListen(listenPort int) (pid int, cmdName string, err error) {
 	logrus.Infof("netstat result: %s", stdout)
 
 	subs := re.FindAllStringSubmatch(stdout, -1)
-	if len(subs) != 1 { // nolint gomnd
+	if len(subs) != 1 {
 		return 0, "", fmt.Errorf("netstat  %s result more than one result %s", shell, stdout)
 	}
 
 	return str.ParseInt(subs[0][1]), subs[0][2], nil
 }
 
-// Ps get the result of ps in pattern with invert match
+// Ps get the result of ps in pattern with invert match.
 func Ps(patterns, invertMatches []string, shellTimeout time.Duration) ([]string, error) {
 	shell := `ps -ef`
 
@@ -292,7 +298,7 @@ func PurifyString(s string) string {
 	}, s)
 }
 
-// Left get the max n letters from s
+// Left get the max n letters from s.
 func Left(s string, n int) string {
 	if len(s) <= n {
 		return s

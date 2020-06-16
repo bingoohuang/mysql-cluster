@@ -33,7 +33,7 @@ const (
 	Symbols
 )
 
-// GeneratePasswordBySet generates a password with length n by types
+// GeneratePasswordBySet generates a password with length n by types.
 func GeneratePasswordBySet(n int, sets ...string) string {
 	p, err := GeneratePasswordBySetE(n, sets...)
 	if err != nil {
@@ -43,7 +43,7 @@ func GeneratePasswordBySet(n int, sets ...string) string {
 	return p
 }
 
-// GeneratePasswordBySetE generates a password with length n by types by specified sets
+// GeneratePasswordBySetE generates a password with length n by types by specified sets.
 func GeneratePasswordBySetE(n int, sets ...string) (string, error) {
 	s := ""
 
@@ -79,7 +79,7 @@ func GeneratePasswordBySetE(n int, sets ...string) (string, error) {
 	return s, nil
 }
 
-// GeneratePassword generates a password with length n by types
+// GeneratePassword generates a password with length n by types.
 func GeneratePassword(n int, types ...PasswordType) string {
 	p, err := GeneratePasswordE(n, types...)
 	if err != nil {
@@ -89,7 +89,7 @@ func GeneratePassword(n int, types ...PasswordType) string {
 	return p
 }
 
-// GeneratePasswordE generates a password with length n by types
+// GeneratePasswordE generates a password with length n by types.
 func GeneratePasswordE(n int, types ...PasswordType) (string, error) {
 	sets := make([]string, len(types))
 	for i, t := range types {

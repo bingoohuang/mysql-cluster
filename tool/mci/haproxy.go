@@ -37,7 +37,7 @@ listen mysql-ro
 		if slaveIP != "" {
 			replaceIP, originalIP := ReplaceAddr2Local(slaveIP)
 			rConfig += fmt.Sprintf("  server mysql-%d %s:%d check inter 1s # %s:%d\n",
-				seq+3, replaceIP, s.Port, originalIP, s.Port) // nolint gomnd
+				seq+3, replaceIP, s.Port, originalIP, s.Port) // nolint:gomnd
 		}
 	}
 
@@ -58,6 +58,7 @@ listen mysql-ro
 		strings.Replace(rConfig, `#binding#`, bindingRo, 1)
 }
 
+// nolint:goerr113
 func (s Settings) overwriteHAProxyCnf(r *Result) error {
 	if s.HAProxyCfg == "" {
 		return errors.New("HAProxyCfg required")

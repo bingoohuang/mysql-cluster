@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// nolint:goerr113
 func (s *Settings) copyMaster1Data(slaveServers []string) error {
 	dumpTime := now.MakeNow().Format("yyyyMMddHHmmss")
 	env := cmd.Env(`MYSQL_PWD=` + s.Password)
@@ -21,6 +22,7 @@ func (s *Settings) copyMaster1Data(slaveServers []string) error {
 	}
 
 	if status.Exit != 0 {
+		// nolint:goerr113
 		return fmt.Errorf("exec %s fail exiting code %d, stdout:%s, stderr:%s",
 			dumpCmd, status.Exit, status.Stdout, status.Stderr)
 	}

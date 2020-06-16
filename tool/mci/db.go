@@ -8,7 +8,7 @@ import (
 	"github.com/jedib0t/go-pretty/table"
 )
 
-// PrintSQLResult prints the result r of sqlStr execution
+// PrintSQLResult prints the result r of sqlStr execution.
 func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResult) error {
 	if r.Error != nil {
 		fmt.Fprintf(stderr, "error %v\n", r.Error)
@@ -22,7 +22,7 @@ func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResul
 		return nil
 	}
 
-	cols := len(r.Headers) + 1 // nolint gomnd
+	cols := len(r.Headers) + 1
 	header := make(table.Row, cols)
 	header[0] = "#"
 
@@ -36,7 +36,7 @@ func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResul
 
 	for i, r := range r.Rows {
 		row := make(table.Row, cols)
-		row[0] = i + 1 // nolint gomnd
+		row[0] = i + 1
 
 		for j, c := range r {
 			row[j+1] = c

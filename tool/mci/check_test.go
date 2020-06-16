@@ -1,10 +1,12 @@
-package mci
+package mci_test
 
 import (
 	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/bingoohuang/tool/mci"
 
 	"github.com/elliotchance/testify-stats/assert"
 )
@@ -38,7 +40,7 @@ listen mysql-ro
 	err = tmpFile.Close()
 	assert.Nil(t, err)
 
-	s := Settings{HAProxyCfg: tmpFile.Name()}
+	s := mci.Settings{HAProxyCfg: tmpFile.Name()}
 	cfg, err := s.ReadMySQLServersFromHAProxyCfg()
 	assert.Nil(t, err)
 

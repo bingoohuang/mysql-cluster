@@ -1,22 +1,24 @@
-package mci
+package mci_test
 
 import (
 	"testing"
+
+	"github.com/bingoohuang/tool/mci"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGeneratePassword(t *testing.T) {
 	const l = 16
-	s := GeneratePassword(l)
+	s := mci.GeneratePassword(l)
 	assert.Len(t, s, l)
 
-	s = GeneratePassword(l, Upper, Lower, Digits)
+	s = mci.GeneratePassword(l, mci.Upper, mci.Lower, mci.Digits)
 	assert.Len(t, s, l)
 
-	s = GeneratePassword(l, Upper, Lower, Digits)
+	s = mci.GeneratePassword(l, mci.Upper, mci.Lower, mci.Digits)
 	assert.Len(t, s, l)
 
-	s = GeneratePasswordBySet(l, UpperLetters, DigitsLetters, LowerLetters, "-#")
+	s = mci.GeneratePasswordBySet(l, mci.UpperLetters, mci.DigitsLetters, mci.LowerLetters, "-#")
 	assert.Len(t, s, l)
 }

@@ -22,6 +22,7 @@ func FlattenBeans(beans interface{}, flatBean interface{}, tag string) error {
 	}
 
 	if reflect.TypeOf(flatBean).Kind() != reflect.Ptr {
+		// nolint:goerr113
 		return fmt.Errorf("pointer type required for flatBean")
 	}
 
@@ -54,6 +55,7 @@ func CheckSlice(v reflect.Value) error {
 	case reflect.Slice, reflect.Array:
 		return nil
 	default:
+		// nolint:goerr113
 		return errors.New("first argument should be slice or array")
 	}
 }
@@ -74,6 +76,7 @@ func parseFieldValueIndex(arrValue reflect.Value, tag string) (beanKey, beanValu
 	}
 
 	if beanKey < 0 || beanValue < 0 {
+		// nolint:goerr113
 		err = fmt.Errorf("field or value tag required")
 	}
 

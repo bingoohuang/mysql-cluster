@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ExecuteBash executes bash
+// ExecuteBash executes bash.
 func ExecuteBash(name string, bash string, shellTimeout time.Duration) error {
 	if bash == "" {
 		logrus.Warnf("%s is empty", name)
@@ -29,6 +29,7 @@ func ExecuteBash(name string, bash string, shellTimeout time.Duration) error {
 		logrus.Infof("start execute %s %s exiting code %d, stdout:%s, stderr:%s",
 			name, bash, status.Exit, status.Stdout, status.Stderr)
 
+		// nolint:goerr113
 		return fmt.Errorf("execute %s %s exiting code %d, stdout:%s, stderr:%s",
 			name, bash, status.Exit, status.Stdout, status.Stderr)
 	}

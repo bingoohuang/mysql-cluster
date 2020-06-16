@@ -41,7 +41,7 @@ func TestMaster1(t *testing.T) {
 		"FLUSH PRIVILEGES",
 		"CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 		"GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
-		// nolint lll
+		// nolint:lll
 		"CHANGE MASTER TO master_host='10.0.0.2',master_port=3306,master_user='repl',master_password='repl_pwd',master_auto_position=1"},
 		result.Nodes[0].Sqls)
 	assert.Equal(t, ha, result.HAProxy)
@@ -65,7 +65,7 @@ func TestMaster2(t *testing.T) {
 			"FLUSH PRIVILEGES",
 			"CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
 			"GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'",
-			// nolint lll
+			// nolint:lll
 			"CHANGE MASTER TO master_host='10.0.0.1',master_port=3306,master_user='repl',master_password='repl_pwd',master_auto_position=1"}, result.Nodes[1].Sqls)
 	assert.Equal(t, ha, result.HAProxy)
 }
@@ -84,7 +84,7 @@ func TestSlave(t *testing.T) {
 	result, err := settings.CreateMySQLCluster()
 	assert.Nil(t, err)
 	assert.Equal(t,
-		// nolint lll
+		// nolint:lll
 		[]string{"DELETE FROM mysql.user WHERE user='repl'", "FLUSH PRIVILEGES", "CREATE USER 'repl'@'%' IDENTIFIED BY 'repl_pwd'", "GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'repl_pwd'", "CHANGE MASTER TO master_host='10.0.0.2',master_port=3306,master_user='repl',master_password='repl_pwd',master_auto_position=1"}, result.Nodes[2].Sqls)
 }
 

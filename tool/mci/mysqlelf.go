@@ -19,7 +19,7 @@ type TableBean struct {
 	TableComment string `gorm:"column:TABLE_COMMENT"`
 }
 
-// ShowTables show all tables
+// ShowTables show all tables.
 func ShowTables(db *gorm.DB, excludedDbs ...string) (beans []TableBean, err error) {
 	sql := `select * from information_schema.tables
 		where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys'`
@@ -102,7 +102,7 @@ func createRenameSQL(tables []TableBean) string {
 	return "rename table " + strings.Join(parts, ", ")
 }
 
-// ShowSlaveStatusBean 表示MySQL Slave Status
+// ShowSlaveStatusBean 表示MySQL Slave Status.
 type ShowSlaveStatusBean struct {
 	SlaveIOState         string `gorm:"column:Slave_IO_State"`
 	MasterHost           string `gorm:"column:Master_Host"`
@@ -117,7 +117,7 @@ type ShowSlaveStatusBean struct {
 	LastIOError          string `gorm:"column:Last_IO_Error"`
 }
 
-// ShowSlaveStatus show slave status to bean
+// ShowSlaveStatus show slave status to bean.
 func ShowSlaveStatus(db *gorm.DB) (bean ShowSlaveStatusBean, err error) {
 	if s := db.Raw("show slave status").Scan(&bean); s.Error != nil {
 		logrus.Warnf("show slave status error: %v", s.Error)
@@ -127,13 +127,13 @@ func ShowSlaveStatus(db *gorm.DB) (bean ShowSlaveStatusBean, err error) {
 	return bean, nil
 }
 
-// ShowVariablesBean 表示MySQL 服务器参数结果行
+// ShowVariablesBean 表示MySQL 服务器参数结果行.
 type ShowVariablesBean struct {
 	VariableName string `gorm:"column:Variable_name" var:"field"`
 	Value        string `gorm:"column:Value" var:"value"`
 }
 
-// Variables 表示MySQL 服务器参数
+// Variables 表示MySQL 服务器参数.
 type Variables struct {
 	ServerID               string `var:"server_id"`
 	LogBin                 string `var:"log_bin"`
@@ -148,7 +148,7 @@ type Variables struct {
 	ServerUUID             string `var:"server_uuid"`
 }
 
-// ShowVariables shows variables to variables bean
+// ShowVariables shows variables to variables bean.
 func ShowVariables(db *gorm.DB) (variables Variables, err error) {
 	var beans []ShowVariablesBean
 

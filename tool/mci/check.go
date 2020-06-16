@@ -25,7 +25,7 @@ type SlaveStatus struct {
 	LastIOError          string
 }
 
-// CheckMySQLCluster 检查MySQL集群配置
+// CheckMySQLCluster 检查MySQL集群配置.
 func (s Settings) CheckMySQLCluster(outputFmt string) {
 	if err := s.ValidateAndSetDefault(SetDefault); err != nil {
 		logrus.Fatal(err)
@@ -97,7 +97,7 @@ func (s Settings) checkMySQLClusterStatus(results []SlaveStatus) {
 	fmt.Print(checkResult)
 }
 
-// ReadMySQLServersFromHAProxyCfg 检查HAProxy中的MySQL集群配置
+// ReadMySQLServersFromHAProxyCfg 检查HAProxy中的MySQL集群配置.
 func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
 	roConfig, err := SearchFileContent(s.HAProxyCfg, `(?is)mysql-ro(.+)MySQLClusterConfigEnd`)
 	if err != nil {
@@ -105,6 +105,7 @@ func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
 	}
 
 	if len(roConfig) == 0 {
+		// nolint:goerr113
 		return nil, fmt.Errorf("no config found in %s", s.HAProxyCfg)
 	}
 
@@ -133,7 +134,7 @@ func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
 		commentPart := strings.TrimSpace(line[crossIndex+1:])
 		vv, _ = FindRegexGroup1(commentPart, `([\w.:]+:\d+)`)
 
-		if len(vv) >= 1 { // nolint gomnd
+		if len(vv) >= 1 {
 			addresses = append(addresses, vv[0])
 		}
 	}
@@ -145,18 +146,18 @@ func (s Settings) ReadMySQLServersFromHAProxyCfg() ([]string, error) {
 // refer https://github.com/zhishutech/mysqlha-keepalived-3node/blob/master/keepalived/checkMySQL.py
 func (s Settings) CheckMySQL() {
 	if s.ValidateAndSetDefault(SetDefault) != nil {
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 
 	psLines, err := Ps([]string{"mysqld"}, []string{"mysqld_safe"}, s.shellTimeoutDuration)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Ps error %v\n", err)
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 
 	if len(psLines) == 0 {
 		fmt.Fprintf(os.Stderr, "Ps result is empty\n")
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 
 	fmt.Println(strings.Join(psLines, "\n"))
@@ -164,14 +165,14 @@ func (s Settings) CheckMySQL() {
 	pid, cmdName, err := NetstatListen(s.Port)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "NetstatListen error %v\n", err)
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 
 	fmt.Printf("netstat found cmd %s with pid %d\n", cmdName, pid)
 
 	if !strings.HasPrefix(cmdName, "mysqld") {
 		fmt.Printf("cmd %s is not msyqld\n", cmdName)
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 
 	db := s.MustOpenDB()
@@ -180,6 +181,6 @@ func (s Settings) CheckMySQL() {
 	result := sqlmore.ExecSQL(db, s.CheckSQL, 100, "NULL")
 	if err := PrintSQLResult(os.Stdout, os.Stderr, s.CheckSQL, result); err != nil {
 		fmt.Printf("PrintSQLResult error %v\n", err)
-		os.Exit(1) // nolint gomnd
+		os.Exit(1)
 	}
 }

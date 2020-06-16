@@ -171,7 +171,7 @@ func (s Settings) findLocalServerID(nodes []MySQLNode) int {
 }
 
 // MustOpenDB must open the db.
-// nolint gomnd
+// nolint:gomnd
 func (s Settings) MustOpenDB() *sql.DB {
 	pwd, err := pbe.Ebp(s.Password)
 	if err != nil {
@@ -250,18 +250,18 @@ func (s Settings) createInitSqls() []MySQLNode {
 		panic(err)
 	}
 
-	m := make([]MySQLNode, 2+len(s.SlaveAddrs)) // nolint gomnd
+	m := make([]MySQLNode, 2+len(s.SlaveAddrs)) // nolint:gomnd
 
 	const offset = 10000 // 0-4294967295, https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
 
-	m[0] = MySQLNode{Addr: s.Master1Addr, AutoIncrementOffset: 1, ServerID: offset + 1, // nolint gomnd
+	m[0] = MySQLNode{Addr: s.Master1Addr, AutoIncrementOffset: 1, ServerID: offset + 1,
 		Sqls: s.initSlaveSqls(s.Master2Addr, replPwd)}
 
-	m[1] = MySQLNode{Addr: s.Master2Addr, AutoIncrementOffset: 2, ServerID: offset + 2, // nolint gomnd
+	m[1] = MySQLNode{Addr: s.Master2Addr, AutoIncrementOffset: 2, ServerID: offset + 2, // nolint:gomnd
 		Sqls: s.initSlaveSqls(s.Master1Addr, replPwd)}
 
 	for seq, slaveAddr := range s.SlaveAddrs {
-		m[2+seq] = MySQLNode{Addr: slaveAddr, AutoIncrementOffset: seq + 3, ServerID: offset + seq + 3, // nolint gomnd
+		m[2+seq] = MySQLNode{Addr: slaveAddr, AutoIncrementOffset: seq + 3, ServerID: offset + seq + 3, // nolint:gomnd
 			Sqls: s.initSlaveSqls(s.Master2Addr, replPwd)}
 	}
 
@@ -327,6 +327,7 @@ func (s *Settings) fixServerUUID() error {
 		return os.Remove(autoCnf)
 	}
 
+	// nolint:goerr113
 	return fmt.Errorf("unable to find datadir in %s", s.MySQLCnf)
 }
 
@@ -344,7 +345,7 @@ func (s Settings) fixMySQLConfServerID(serverID int) error {
 	return nil
 }
 
-// fixAutoIncrementOffset fix auto_increment_offset
+// fixAutoIncrementOffset fix auto_increment_offset.
 func (s Settings) fixAutoIncrementOffset(offset int) error {
 	if s.Debug {
 		fmt.Println("fix increment-offset =", offset)
