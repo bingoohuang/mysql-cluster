@@ -169,15 +169,26 @@ func DeclarePflagsByStruct(structVar interface{}) {
 			continue
 		}
 
+		fname := f.Name()
+		usage := fname
+
+		if v, _ := f.Tag("pflag"); v != "" {
+			fname = v
+		}
+
+		if v, _ := f.Tag("usage"); v != "" {
+			usage = v
+		}
+
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			pflag.StringP(f.Name(), "", "", f.Name())
+			pflag.StringP(fname, "", "", usage)
 		case string:
-			pflag.StringP(f.Name(), "", "", f.Name())
+			pflag.StringP(fname, "", "", usage)
 		case int:
-			pflag.IntP(f.Name(), "", 0, f.Name())
+			pflag.IntP(fname, "", 0, usage)
 		case bool:
-			pflag.BoolP(f.Name(), "", false, f.Name())
+			pflag.BoolP(fname, "", false, usage)
 		}
 	}
 }

@@ -8,10 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bingoohuang/sqlx"
+	"github.com/spf13/viper"
+
 	"github.com/bingoohuang/gossh/pbe"
 
 	"github.com/bingoohuang/gonet"
-	"github.com/bingoohuang/sqlmore"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -188,13 +190,17 @@ func (s Settings) MustOpenDB() *sql.DB {
 
 	ds += `?` + s.MySQLDSNParams
 
-	sqlMore := sqlmore.NewSQLMore("mysql", ds)
-
-	if !s.NoLog {
-		logrus.Debugf("DSN: %s", sqlMore.EnhancedDbURI)
+	if IsLocalAddr(s.Master1Addr) {
+		viper.Set("bindAddress", s.Master1Addr)
 	}
 
-	db := sqlMore.MustOpen()
+	sqlMore := sqlx.NewSQLMore("mysql", ds)
+
+	if !s.NoLog {
+		logrus.Debugf("DSN: %s", sqlMore.EnhancedURI)
+	}
+
+	db := sqlMore.Open()
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 	db.SetConnMaxLifetime(60 * time.Second)
@@ -225,7 +231,7 @@ func (s Settings) execSqls(sqls []string) error {
 	defer db.Close()
 
 	for _, sqlStr := range sqls {
-		r := sqlmore.ExecSQL(db, sqlStr, 0, "")
+		r := sqlx.ExecSQL(db, sqlStr, 0, "")
 		if r.Error != nil {
 			return fmt.Errorf("exec sql %s error %w", sqlStr, r.Error)
 		}

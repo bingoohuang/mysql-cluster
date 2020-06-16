@@ -10,7 +10,7 @@ import (
 
 	"github.com/bingoohuang/gou/str"
 
-	"github.com/bingoohuang/sqlmore"
+	"github.com/bingoohuang/sqlx"
 )
 
 // SlaveStatus contains the slave status information for `show slave status\G`.
@@ -178,7 +178,7 @@ func (s Settings) CheckMySQL() {
 	db := s.MustOpenDB()
 	defer db.Close()
 
-	result := sqlmore.ExecSQL(db, s.CheckSQL, 100, "NULL")
+	result := sqlx.ExecSQL(db, s.CheckSQL, 100, "NULL")
 	if err := PrintSQLResult(os.Stdout, os.Stderr, s.CheckSQL, result); err != nil {
 		fmt.Printf("PrintSQLResult error %v\n", err)
 		os.Exit(1)

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/bingoohuang/sqlmore"
+	"github.com/bingoohuang/sqlx"
 	"github.com/jedib0t/go-pretty/table"
 )
 
 // PrintSQLResult prints the result r of sqlStr execution.
-func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlmore.ExecResult) error {
+func PrintSQLResult(stdout, stderr io.Writer, sqlStr string, r sqlx.ExecResult) error {
 	if r.Error != nil {
 		fmt.Fprintf(stderr, "error %v\n", r.Error)
 		return r.Error
