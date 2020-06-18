@@ -182,15 +182,25 @@ func (s Settings) MustOpenDB() *sql.DB {
 
 	ds := ""
 
-	if gonet.IsIPv6(s.Host) {
-		ds = fmt.Sprintf("%s:%s@tcp([%s]:%d)/", s.User, pwd, s.Host, s.Port)
+	host := s.Host
+	net := "tcp"
+
+	// 不是连接本机MySQL，设置net名称，指定IP出口
+	if IsLocalAddr(s.Master1Addr) && !IsLocalAddr(host) {
+		net = "master1"
+	}
+
+	if gonet.IsIPv6(host) {
+		ds = fmt.Sprintf("%s:%s@%s([%s]:%d)/", s.User, pwd, net, host, s.Port)
 	} else {
-		ds = fmt.Sprintf("%s:%s@tcp(%s:%d)/", s.User, pwd, s.Host, s.Port)
+		ds = fmt.Sprintf("%s:%s@%s(%s:%d)/", s.User, pwd, net, host, s.Port)
 	}
 
 	ds += `?` + s.MySQLDSNParams
 
+	// 只有主1连接其他MySQL时，才设置
 	if IsLocalAddr(s.Master1Addr) {
+		viper.Set("mysqlNet", "master1")
 		viper.Set("bindAddress", s.Master1Addr)
 	}
 
