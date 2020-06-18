@@ -10,7 +10,7 @@ require (
 	github.com/bingoohuang/gou v0.0.0-20200225004418-9b3655665c46
 	github.com/bingoohuang/ip v0.0.0-20200508105809-e844a3a260fd
 	github.com/bingoohuang/now v0.0.0-20190715150822-ba8e4a91e3d9
-	github.com/bingoohuang/sqlx v0.0.0-20200616112331-4e9b2be9cba7
+	github.com/bingoohuang/sqlx v0.0.0-20200618023418-40c9fd7325f4
 	github.com/creasty/defaults v1.3.0
 	github.com/elliotchance/pie v1.34.0
 	github.com/elliotchance/testify-stats v1.0.0
