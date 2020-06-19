@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const version = "Version: 1.11.0"
+const version = "Version: 1.11.3 2020-06-19 09:46:16"
 
 func main() {
 	removeSlaves := pflag.StringP("removeSlaves", "", "", "remove slave nodes from cluster, eg 192.168.1.1,192.168.1.2")

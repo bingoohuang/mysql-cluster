@@ -39,9 +39,20 @@ func (s Settings) CheckMySQLCluster(outputFmt string) {
 
 	results := make([]SlaveStatus, 0)
 
+	logrus.Infof("settings:%+v", s)
+	logrus.Infof("mysqlServerAddrs:%+v", mysqlServerAddrs)
+
+	// 检查MySQL集群配置时，使用HAProxy配置中的第一条IP
+	s.Master1Addr = ""
+
 	pie.Strings(mysqlServerAddrs).Each(func(address string) {
 		sepPos := strings.LastIndex(address, ":")
 		host, port := address[0:sepPos], address[sepPos+1:]
+
+		if s.Master1Addr == "" {
+			s.Master1Addr = host
+		}
+
 		s.Host, _ = ReplaceAddr2Local(host)
 		s.Port = str.ParseInt(port)
 

@@ -198,10 +198,13 @@ func (s Settings) MustOpenDB() *sql.DB {
 
 	ds += `?` + s.MySQLDSNParams
 
+	logrus.Infof("s.Master1Addr %s, host:%s, ds: %s", s.Master1Addr, ds, host)
+
 	// 只有主1连接其他MySQL时，才设置
 	if IsLocalAddr(s.Master1Addr) {
 		viper.Set("mysqlNet", "master1")
 		viper.Set("bindAddress", s.Master1Addr)
+		logrus.Infof("bindAddress %s", s.Master1Addr)
 	}
 
 	sqlMore := sqlx.NewSQLMore("mysql", ds)
