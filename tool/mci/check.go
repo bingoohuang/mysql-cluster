@@ -32,7 +32,6 @@ func (s Settings) CheckMySQLCluster(outputFmt string) {
 	}
 
 	mysqlServerAddrs, err := s.ReadMySQLServersFromHAProxyCfg()
-
 	if err != nil {
 		logrus.Fatal(err)
 	}

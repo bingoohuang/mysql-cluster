@@ -46,7 +46,7 @@ func RenameTables(db *gorm.DB) (int, error) {
 		return 0, err
 	}
 
-	renameSQL := createRenameSQL(tables)
+	renameSQL := CreateRenameSQL(tables)
 	if renameSQL == "" {
 		return 0, nil
 	}
@@ -60,16 +60,17 @@ func RenameTables(db *gorm.DB) (int, error) {
 	return len(tables), nil
 }
 
-func createRenameSQL(tables []TableBean) string {
+// CreateRenameSQL create renaming SQL for the tables.
+func CreateRenameSQL(tables []TableBean) string {
 	oldBackMap := map[string]bool{}
 	newBackMap := map[string]TableBean{}
 	reg := regexp.MustCompile(`.+_mci\d*`)
 
 	for _, t := range tables {
 		if reg.MatchString(t.Name) {
-			oldBackMap[t.Schema+"."+t.Name] = true
+			oldBackMap["`"+t.Schema+"`.`"+t.Name+"`"] = true
 		} else {
-			newBackMap[t.Schema+"."+t.Name] = t
+			newBackMap["`"+t.Schema+"`.`"+t.Name+"`"] = t
 		}
 	}
 
@@ -82,7 +83,7 @@ func createRenameSQL(tables []TableBean) string {
 
 	for k, t := range newBackMap {
 		for i := 1; i < 9999999; i++ {
-			k2 := fmt.Sprintf("%s.%s_mci%d", t.Schema, t.Name, i)
+			k2 := fmt.Sprintf("`%s`.`%s_mci%d`", t.Schema, t.Name, i)
 			if _, ok := oldBackMap[k2]; !ok {
 				needBackups[k2] = k
 				break

@@ -73,7 +73,6 @@ func (s Settings) RemoveSlavesFromCluster(removeSlaves string) error {
 	}
 
 	mySQLClusterConfig, err := SearchFileContent(s.HAProxyCfg, reMySQLClusterConfig)
-
 	if err != nil {
 		return fmt.Errorf("SearchFileContent error %w", err)
 	}

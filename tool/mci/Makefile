@@ -11,8 +11,18 @@ sec:
 proxy:
 	export GOPROXY=https://goproxy.cn
 
+lint:
+	gofumports -w .
+	gofumpt -w .
+	gofmt -s -w .
+	go mod tidy
+	go fmt ./...
+	revive .
+	goimports -w .
+	golangci-lint run --enable-all
+
 default: proxy
-	go fmt ./...&&revive .&&goimports -w .&&golangci-lint run --enable-all&&go install -ldflags="-s -w" ./...
+	go install -ldflags="-s -w" ./...
 
 install: proxy
 	go install -ldflags="-s -w" ./...
