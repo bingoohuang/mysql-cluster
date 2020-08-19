@@ -18,10 +18,10 @@ listen mysql-rw
   option tcpka
   server mysql-1 %s:%d check inter 1s
   server mysql-2 %s:%d check inter 1s backup
-`, TryReplaceAddr2Local(s.Master1Addr), s.Port, TryReplaceAddr2Local(s.Master2Addr), s.Port)
+`, s.Master1Addr, s.Port, s.Master2Addr, s.Port)
 
-	replaceIP1, originalIP1 := ReplaceAddr2Local(s.Master1Addr)
-	replaceIP2, originalIP2 := ReplaceAddr2Local(s.Master2Addr)
+	replaceIP1, originalIP1 := s.Master1Addr, s.Master1Addr
+	replaceIP2, originalIP2 := s.Master2Addr, s.Master2Addr
 
 	rConfig := fmt.Sprintf(
 		`
@@ -35,7 +35,7 @@ listen mysql-ro
 
 	for seq, slaveIP := range s.SlaveAddrs {
 		if slaveIP != "" {
-			replaceIP, originalIP := ReplaceAddr2Local(slaveIP)
+			replaceIP, originalIP := slaveIP, slaveIP
 			rConfig += fmt.Sprintf("  server mysql-%d %s:%d check inter 1s # %s:%d\n",
 				seq+3, replaceIP, s.Port, originalIP, s.Port) // nolint:gomnd
 		}

@@ -52,7 +52,7 @@ func (s Settings) CheckMySQLCluster(outputFmt string) {
 			s.Master1Addr = host
 		}
 
-		s.Host, _ = ReplaceAddr2Local(host)
+		s.Host = host
 		s.Port = str.ParseInt(port)
 
 		db := s.MustOpenGormDB()
