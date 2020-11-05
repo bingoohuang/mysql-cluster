@@ -11,7 +11,7 @@ import (
 	"github.com/bingoohuang/sqlx"
 	"github.com/spf13/viper"
 
-	"github.com/bingoohuang/gossh/pbe"
+	"github.com/bingoohuang/gou/pbe"
 
 	"github.com/bingoohuang/gonet"
 	"github.com/jinzhu/gorm"

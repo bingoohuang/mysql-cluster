@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bingoohuang/gossh/pbe"
+	"github.com/bingoohuang/gou/pbe"
 	"github.com/bingoohuang/tool/mci"
 	"github.com/elliotchance/pie/pie"
 	"github.com/mitchellh/go-homedir"
