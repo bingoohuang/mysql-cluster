@@ -5,12 +5,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bingoohuang/gou/str"
+	"github.com/bingoohuang/sqlx"
 	"github.com/elliotchance/pie/pie"
 	"github.com/sirupsen/logrus"
-
-	"github.com/bingoohuang/gou/str"
-
-	"github.com/bingoohuang/sqlx"
 )
 
 // SlaveStatus contains the slave status information for `show slave status\G`.
@@ -52,7 +50,7 @@ func (s Settings) CheckMySQLCluster(outputFmt string) {
 			s.Master1Addr = host
 		}
 
-		s.Host = host
+		s.currentHost = host
 		s.Port = str.ParseInt(port)
 
 		db := s.MustOpenGormDB()

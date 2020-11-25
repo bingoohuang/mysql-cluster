@@ -23,13 +23,13 @@ const (
 type PasswordType int
 
 const (
-	// Lower lower letters
+	// Lower lower letters.
 	Lower PasswordType = iota
-	// Upper upper letters
+	// Upper upper letters.
 	Upper
-	// Digits digits
+	// Digits digits.
 	Digits
-	// Symbols symbols
+	// Symbols symbols.
 	Symbols
 )
 

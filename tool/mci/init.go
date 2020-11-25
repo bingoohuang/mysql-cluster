@@ -7,10 +7,9 @@ import (
 
 	"github.com/bingoohuang/gou/str"
 
-	"github.com/sirupsen/logrus"
-
-	// support mysql
+	// support mysql.
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/sirupsen/logrus"
 )
 
 // CreateMySQLCluster 初始化MySQL Master-Master集群.

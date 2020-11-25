@@ -12,11 +12,9 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/gobars/cmd"
-
-	"github.com/sirupsen/logrus"
-
 	"github.com/bingoohuang/gou/str"
+	"github.com/gobars/cmd"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/tkrajina/go-reflector/reflector"
@@ -171,6 +169,7 @@ func DeclarePflagsByStruct(structVar interface{}) {
 
 		fname := f.Name()
 		usage := fname
+		defaultValue := ""
 
 		if v, _ := f.Tag("pflag"); v != "" {
 			fname = v
@@ -180,15 +179,24 @@ func DeclarePflagsByStruct(structVar interface{}) {
 			usage = v
 		}
 
+		if v, _ := f.Tag("default"); v != "" {
+			defaultValue = v
+		}
+
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			pflag.StringP(fname, "", "", usage)
+			pflag.StringP(fname, "", defaultValue, usage)
 		case string:
-			pflag.StringP(fname, "", "", usage)
+			pflag.StringP(fname, "", defaultValue, usage)
 		case int:
-			pflag.IntP(fname, "", 0, usage)
+			defaultInt := 0
+			if defaultValue != "" {
+				defaultInt, _ = strconv.Atoi(defaultValue)
+			}
+			pflag.IntP(fname, "", defaultInt, usage)
 		case bool:
-			pflag.BoolP(fname, "", false, usage)
+			defaultBool := defaultValue == "true"
+			pflag.BoolP(fname, "", defaultBool, usage)
 		}
 	}
 }

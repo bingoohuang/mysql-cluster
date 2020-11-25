@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/bingoohuang/tool/mci"
-
 	"github.com/elliotchance/testify-stats/assert"
 )
 

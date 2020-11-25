@@ -8,18 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bingoohuang/sqlx"
-	"github.com/spf13/viper"
-
-	"github.com/bingoohuang/gou/pbe"
-
 	"github.com/bingoohuang/gonet"
+	"github.com/bingoohuang/gou/pbe"
+	"github.com/bingoohuang/sqlx"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func (s Settings) resetMySQCluster() error {
-	s.Host = localhostIPv4
+	s.currentHost = localhostIPv4
 	resetSqls := s.resetSlaveSqls()
 
 	return s.execSqls(resetSqls)
@@ -106,7 +104,7 @@ func (s Settings) fixMySQLConf(nodes []MySQLNode) error {
 
 func (s Settings) createClusters(nodes []MySQLNode) error {
 	for _, node := range nodes {
-		s.Host = node.Addr
+		s.currentHost = node.Addr
 		if err := s.execSqls(node.Sqls); err != nil {
 			return err
 		}
@@ -117,7 +115,7 @@ func (s Settings) createClusters(nodes []MySQLNode) error {
 
 func (s Settings) startSlaves(nodes []MySQLNode) error {
 	for _, node := range nodes {
-		s.Host = node.Addr
+		s.currentHost = node.Addr
 		if err := s.execSqls([]string{"start slave"}); err != nil {
 			return err
 		}
@@ -128,7 +126,7 @@ func (s Settings) startSlaves(nodes []MySQLNode) error {
 
 func (s Settings) resetMaster(nodes []MySQLNode) error {
 	for _, node := range nodes {
-		s.Host = node.Addr
+		s.currentHost = node.Addr
 		if err := s.execSqls([]string{"reset master"}); err != nil {
 			return err
 		}
@@ -138,8 +136,12 @@ func (s Settings) resetMaster(nodes []MySQLNode) error {
 }
 
 func (s Settings) backupTables(servers []string) error {
+	if !s.Backup {
+		return nil
+	}
+
 	for _, server := range servers {
-		s.Host = server
+		s.currentHost = server
 		if _, err := s.renameTables(); err != nil {
 			return err
 		}
@@ -149,7 +151,7 @@ func (s Settings) backupTables(servers []string) error {
 }
 
 func (s Settings) prepareCluster(nodes []MySQLNode) error {
-	s.Host = localhostIPv4
+	s.currentHost = localhostIPv4
 
 	return s.execSqls([]string{
 		fmt.Sprintf("SET GLOBAL server_id=%d", s.findLocalServerID(nodes)),
@@ -182,7 +184,7 @@ func (s Settings) MustOpenDB() *sql.DB {
 
 	ds := ""
 
-	host := s.Host
+	host := s.currentHost
 	net := "tcp"
 
 	// 不是连接本机MySQL，设置net名称，指定IP出口

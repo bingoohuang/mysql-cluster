@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/bingoohuang/tool/mci"
-
 	"github.com/stretchr/testify/assert"
 )
 

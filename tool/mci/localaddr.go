@@ -4,9 +4,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bingoohuang/goreflect"
-
 	"github.com/bingoohuang/gonet"
+	"github.com/bingoohuang/goreflect"
 )
 
 var localAddrMap sync.Map // nolint

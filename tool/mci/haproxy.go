@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/bingoohuang/ip"
-
 	"github.com/sirupsen/logrus"
 )
 

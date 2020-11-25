@@ -11,23 +11,43 @@ a tool to setup MySQL cluster-cluster and haproxy config.
 ## Usage
 
 ```bash
-➜  mysqlclusterinit -h
-Usage of mysqlclusterinit:
+🕙[ 21:17:15 ] ❯ mci -h 
+Usage of mci:
+      --Backup                       Backup (default true)
+      --CheckSQL string              CheckSQL (default "select current_date()")
       --Debug                        Debug
-      --HAProxyCfg string            HAProxyCfg
-      --HAProxyRestartShell string   HAProxyRestartShell
-      --LocalAddr string             LocalAddr
+      --HAProxyCfg string            HAProxyCfg (default "/etc/haproxy.cfg")
+      --HAProxyRestartShell string   HAProxyRestartShell (default "systemctl restart haproxy")
+      --Host string                  Host (default "127.0.0.1")
+      --IPv6Enabled                  IPv6Enabled
+      --LogLevel string              LogLevel
       --Master1Addr string           Master1Addr
       --Master2Addr string           Master2Addr
-      --MySQLCnf string              MySQLCnf
-      --Port int                     Port
-      --ReplPassword string          ReplPassword
-      --ReplUsr string               ReplUsr
-      --User string                  User
+      --MySQLCmd string              MySQLCmd (default "mysql")
+      --MySQLCnf string              MySQLCnf (default "/etc/my.cnf")
+      --MySQLDSNParams string        MySQLDSNParams (default "timeout=120s&writeTimeout=120s&readTimeout=120s")
+      --MySQLDumpCmd string          MySQLDumpCmd (default "mysqldump")
+      --MySQLDumpOptions string      MySQLDumpOptions (default "--ignore-table=mysql.help_topic --ignore-table=mysql.help_keyword --ignore-table=mysql.help_relation --ignore-table=mysql.help_category")
+      --MySQLRestartShell string     MySQLRestartShell (default "systemctl restart mysqld")
+      --NoLog                        NoLog
       --Password string              Password
+      --Port int                     Port (default 3306)
+      --ReplPassword string          ReplPassword
+      --ReplUsr string               ReplUsr (default "repl")
+      --ShellTimeout string          ShellTimeout
       --SlaveAddrs string            SlaveAddrs
-  -m, --checkmysql                   check mysql
+      --User string                  User (default "root")
+      --checkmc string               check mysql cluster, format checkmc/json/table
+      --checkmysql                   check mysql connection
   -c, --config string                config file path (default "./config.toml")
+      --ebp strings                  PrintDecrypt by pbe, string or @file
+      --pbe strings                  PrintEncrypt by pbe, string or @file
+      --pbechg string                file to be change with another pbes
+      --pbepwd string                pbe password
+      --pbepwdnew string             new pbe pwd
+  -r, --readips                      read haproxy server ips
+      --removeSlaves string          remove slave nodes from cluster, eg 192.168.1.1,192.168.1.2
+      --reset                        reset MySQL cluster
   -v, --version                      show version
 pflag: help requested
 ```
