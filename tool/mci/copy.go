@@ -38,7 +38,7 @@ func (s Settings) copyMaster1Data(slaveServers []string) error {
 }
 
 func (s Settings) syncMaster1(env cmd.OptionFn) (string, error) {
-	if !s.Backup {
+	if s.NoBackup {
 		return "", nil
 	}
 

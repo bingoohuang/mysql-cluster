@@ -136,7 +136,7 @@ func (s Settings) resetMaster(nodes []MySQLNode) error {
 }
 
 func (s Settings) backupTables(servers []string) error {
-	if !s.Backup {
+	if s.NoBackup {
 		return nil
 	}
 

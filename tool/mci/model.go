@@ -23,7 +23,7 @@ type Settings struct {
 	Debug       bool `usage:"测试模式，只打印SQL和HAProxy配置, 不实际执行"`
 	NoLog       bool
 	IPv6Enabled bool `usage:"是否支持IPv6"`
-	Backup      bool `default:"true" usage:"是否在构建集群之前备份主2及从数据及同步主1数据"`
+	NoBackup    bool `usage:"是否在构建集群之前备份主2及从数据及同步主1数据"`
 
 	MySQLCnf   string `default:"/etc/my.cnf" usage:"MySQL 配置文件的地址， 例如：/etc/mysql/conf.d/my.cnf, /etc/my.cnf"`
 	HAProxyCfg string `default:"/etc/haproxy.cfg" usage:"HAProxy配置文件地址，例如：/etc/haproxy/haproxy.cfg, /etc/opt/rh/rh-haproxy18/haproxy/haproxy.cfg"`
