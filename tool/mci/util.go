@@ -169,7 +169,6 @@ func DeclarePflagsByStruct(structVar interface{}) {
 
 		fname := f.Name()
 		usage := fname
-		defaultValue := ""
 
 		if v, _ := f.Tag("pflag"); v != "" {
 			fname = v
@@ -179,24 +178,15 @@ func DeclarePflagsByStruct(structVar interface{}) {
 			usage = v
 		}
 
-		if v, _ := f.Tag("default"); v != "" {
-			defaultValue = v
-		}
-
 		switch t, _ := f.Get(); t.(type) {
 		case []string:
-			pflag.StringP(fname, "", defaultValue, usage)
+			pflag.StringP(fname, "", "", usage)
 		case string:
-			pflag.StringP(fname, "", defaultValue, usage)
+			pflag.StringP(fname, "", "", usage)
 		case int:
-			defaultInt := 0
-			if defaultValue != "" {
-				defaultInt, _ = strconv.Atoi(defaultValue)
-			}
-			pflag.IntP(fname, "", defaultInt, usage)
+			pflag.IntP(fname, "", 0, usage)
 		case bool:
-			defaultBool := defaultValue == "true"
-			pflag.BoolP(fname, "", defaultBool, usage)
+			pflag.BoolP(fname, "", false, usage)
 		}
 	}
 }
