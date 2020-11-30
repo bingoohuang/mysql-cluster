@@ -40,13 +40,13 @@ func ShowTables(db *gorm.DB, excludedDbs ...string) (beans []TableBean, err erro
 
 // RenameTables rename the non-system databases' table to another name.
 // Returns the number of table renamed.
-func RenameTables(db *gorm.DB) (int, error) {
+func RenameTables(db *gorm.DB, noBackup bool) (int, error) {
 	tables, err := ShowTables(db)
 	if err != nil {
 		return 0, err
 	}
 
-	renameSQL := CreateRenameSQL(tables)
+	renameSQL := CreateRenameSQL(tables, noBackup)
 	if renameSQL == "" {
 		return 0, nil
 	}
@@ -61,7 +61,16 @@ func RenameTables(db *gorm.DB) (int, error) {
 }
 
 // CreateRenameSQL create renaming SQL for the tables.
-func CreateRenameSQL(tables []TableBean) string {
+func CreateRenameSQL(tables []TableBean, noBackup bool) string {
+	if noBackup {
+		tablesList := ""
+		for _, t := range tables {
+			tablesList += " `" + t.Schema + "`.`" + t.Name + "`"
+		}
+
+		return "drop table if exists " + tablesList
+	}
+
 	oldBackMap := map[string]bool{}
 	newBackMap := map[string]TableBean{}
 	reg := regexp.MustCompile(`.+_mci\d*`)

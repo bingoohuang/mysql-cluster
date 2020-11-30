@@ -13,7 +13,7 @@ func TestRename(t *testing.T) {
 			Schema: "a-b",
 			Name:   "c-d",
 		},
-	})
+	}, false)
 
 	assert.Equal(t, "rename table `a-b`.`c-d` to `a-b`.`c-d_mci1`", renameSQL)
 }

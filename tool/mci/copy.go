@@ -38,10 +38,6 @@ func (s Settings) copyMaster1Data(slaveServers []string) error {
 }
 
 func (s Settings) syncMaster1(env cmd.OptionFn) (string, error) {
-	if s.NoBackup {
-		return "", nil
-	}
-
 	dumpTime := now.MakeNow().Format("yyyyMMddHHmmss")
 	dumpCmd := fmt.Sprintf(`%s -u root -P %d -h %s --all-databases --set-gtid-purged=OFF %s>%s_mm1.sql`,
 		s.MySQLDumpCmd, s.Port, s.Master1Addr, s.MySQLDumpOptions, dumpTime)

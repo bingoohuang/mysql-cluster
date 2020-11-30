@@ -136,13 +136,9 @@ func (s Settings) resetMaster(nodes []MySQLNode) error {
 }
 
 func (s Settings) backupTables(servers []string) error {
-	if s.NoBackup {
-		return nil
-	}
-
 	for _, server := range servers {
 		s.currentHost = server
-		if _, err := s.renameTables(); err != nil {
+		if _, err := s.renameTables(s.NoBackup); err != nil {
 			return err
 		}
 	}
@@ -229,11 +225,11 @@ func (s Settings) MustOpenGormDB() *gorm.DB {
 	return gdb
 }
 
-func (s Settings) renameTables() (int, error) {
+func (s Settings) renameTables(noBackup bool) (int, error) {
 	db := s.MustOpenGormDB()
 	defer db.Close()
 
-	return RenameTables(db)
+	return RenameTables(db, noBackup)
 }
 
 func (s Settings) execSqls(sqls []string) error {
