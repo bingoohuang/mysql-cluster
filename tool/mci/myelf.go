@@ -46,32 +46,36 @@ func RenameTables(db *gorm.DB, noBackup bool) (int, error) {
 		return 0, err
 	}
 
-	renameSQL := CreateRenameSQL(tables, noBackup)
-	if renameSQL == "" {
+	renameSQLs := CreateRenameSQLs(tables, noBackup)
+	if len(renameSQLs) == 0 {
 		return 0, nil
 	}
 
-	logrus.Infof("sql:%s", renameSQL)
+	logrus.Infof("sql:%s", strings.Join(renameSQLs, ";"))
 
-	if err := db.Exec(renameSQL).Error; err != nil {
-		return 0, err
+	for _, query := range renameSQLs {
+		if err := db.Exec(query).Error; err != nil {
+			return 0, err
+		}
 	}
 
 	return len(tables), nil
 }
 
 // CreateRenameSQL create renaming SQL for the tables.
-func CreateRenameSQL(tables []TableBean, noBackup bool) string {
+func CreateRenameSQLs(tables []TableBean, noBackup bool) []string {
 	if noBackup {
-		tablesList := ""
+		schemas := make(map[string]int)
 		for _, t := range tables {
-			if tablesList != "" {
-				tablesList += ", "
-			}
-			tablesList += "`" + t.Schema + "`.`" + t.Name + "`"
+			schemas[t.Schema] = 1
 		}
 
-		return "drop table if exists " + tablesList
+		sqls := make([]string, 0, len(schemas))
+		for schema := range schemas {
+			sqls = append(sqls, "drop database `"+schema+"`")
+		}
+
+		return sqls
 	}
 
 	oldBackMap := map[string]bool{}
@@ -88,7 +92,7 @@ func CreateRenameSQL(tables []TableBean, noBackup bool) string {
 
 	if len(newBackMap) == 0 {
 		logrus.Info("there is no tables to backup")
-		return ""
+		return nil
 	}
 
 	needBackups := make(map[string]string)
@@ -112,7 +116,7 @@ func CreateRenameSQL(tables []TableBean, noBackup bool) string {
 	// RENAME TABLE
 	//    tbl_name TO new_tbl_name
 	//    [, tbl_name2 TO new_tbl_name2] ...
-	return "rename table " + strings.Join(parts, ", ")
+	return []string{"rename table " + strings.Join(parts, ", ")}
 }
 
 // ShowSlaveStatusBean 表示MySQL Slave Status.
