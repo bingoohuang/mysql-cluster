@@ -12,3 +12,14 @@ func ContainsSub(s string, subs ...string) bool {
 
 	return false
 }
+
+// EqualsFold tests if s equals fold any of subs.
+func EqualsFold(s string, subs ...string) bool {
+	for _, sub := range subs {
+		if strings.EqualFold(s, sub) {
+			return true
+		}
+	}
+
+	return false
+}

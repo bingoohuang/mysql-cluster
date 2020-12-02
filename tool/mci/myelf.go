@@ -20,7 +20,7 @@ type TableBean struct {
 }
 
 // ShowTables show all tables.
-func ShowTables(db *gorm.DB, excludedDbs ...string) (beans []TableBean, err error) {
+func ShowTables(db *gorm.DB, excludedDbs ...string) (beans []TableBean, schemas []string, err error) {
 	sql := `select * from information_schema.tables
 		where TABLE_SCHEMA not in ('performance_schema', 'information_schema', 'mysql', 'sys'`
 
@@ -31,22 +31,40 @@ func ShowTables(db *gorm.DB, excludedDbs ...string) (beans []TableBean, err erro
 	sql += `)`
 
 	if s := db.Raw(sql).Scan(&beans); s.Error != nil {
-		logrus.Warnf("show slave status error: %v", s.Error)
-		return beans, s.Error
+		logrus.Warnf("select information_schema error: %v", s.Error)
+		return nil, nil, s.Error
 	}
 
-	return beans, nil
+	// TableBean means the table information in MySQL.
+	type DatabaseItem struct {
+		Database string `gorm:"column:Database"`
+	}
+
+	var originalSchemas []DatabaseItem
+	if s := db.Raw(`show databases`).Scan(&originalSchemas); s.Error != nil {
+		logrus.Warnf("show databases error: %v", s.Error)
+		return nil, nil, s.Error
+	}
+
+	schemas = make([]string, 0, len(originalSchemas))
+	for _, item := range originalSchemas {
+		if !EqualsFold(item.Database, "performance_schema", "information_schema", "mysql", "sys") {
+			schemas = append(schemas, item.Database)
+		}
+	}
+
+	return beans, schemas, nil
 }
 
 // RenameTables rename the non-system databases' table to another name.
 // Returns the number of table renamed.
 func RenameTables(db *gorm.DB, noBackup bool) (int, error) {
-	tables, err := ShowTables(db)
+	tables, schemas, err := ShowTables(db)
 	if err != nil {
 		return 0, err
 	}
 
-	renameSQLs := CreateRenameSQLs(tables, noBackup)
+	renameSQLs := CreateRenameSQLs(tables, schemas, noBackup)
 	if len(renameSQLs) == 0 {
 		return 0, nil
 	}
@@ -63,17 +81,14 @@ func RenameTables(db *gorm.DB, noBackup bool) (int, error) {
 }
 
 // CreateRenameSQL create renaming SQL for the tables.
-func CreateRenameSQLs(tables []TableBean, noBackup bool) []string {
+func CreateRenameSQLs(tables []TableBean, schemas []string, noBackup bool) []string {
 	if noBackup {
-		schemas := make(map[string]int)
-		for _, t := range tables {
-			schemas[t.Schema] = 1
-		}
-
 		sqls := make([]string, 0, len(schemas))
-		for schema := range schemas {
+		for _, schema := range schemas {
 			sqls = append(sqls, "drop database `"+schema+"`")
 		}
+
+		logrus.Infof("DROP SQL: %s", strings.Join(sqls, ";"))
 
 		return sqls
 	}
