@@ -65,7 +65,10 @@ func CreateRenameSQL(tables []TableBean, noBackup bool) string {
 	if noBackup {
 		tablesList := ""
 		for _, t := range tables {
-			tablesList += " `" + t.Schema + "`.`" + t.Name + "`"
+			if tablesList != "" {
+				tablesList += ", "
+			}
+			tablesList += "`" + t.Schema + "`.`" + t.Name + "`"
 		}
 
 		return "drop table if exists " + tablesList
