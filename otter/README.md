@@ -44,4 +44,4 @@ docker build -t footstone-otter-node:v0.0.1 -f NodeDockerfile .
 
 ## three mysql servers sync
 
-![image](https://user-images.githubusercontent.com/1940588/101734606-88210600-3afb-11eb-90bc-67498051376c.png)
+![image](https://user-images.githubusercontent.com/1940588/101736165-efd85080-3afd-11eb-838e-0baa8c292e26.png)
