@@ -41,3 +41,7 @@ otter Dockerfile:
 docker build -t footstone-otter-manager:v0.0.1 -f ManagerDockerfile .
 docker build -t footstone-otter-node:v0.0.1 -f NodeDockerfile .
 ```
+
+## three mysql servers sync
+
+![image](https://user-images.githubusercontent.com/1940588/101734606-88210600-3afb-11eb-90bc-67498051376c.png)
