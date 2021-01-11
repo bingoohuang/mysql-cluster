@@ -75,6 +75,12 @@ esac
 	JAVA_OPTS="-server -Xms1024m -Xmx1024m -XX:NewSize=256m -XX:MaxNewSize=256m -XX:MaxPermSize=128m "
 # fi
 
+# 解决JMX连接异常 java.rmi.ConnectException: Connection refused to host: 127.0.1.1
+# https://blog.csdn.net/yangbo_hr/article/details/5462283
+# JMX的connector server的stub会用'hostname -i'的IP地址作为connector sesrver的IP地址，所以在linux上，如果hosts中的地址设置不正确，用'hostname -i'得到的是IP '127.0.0.1'时，远程JMX连接就会失败。
+# 解决办法有很多：
+# 1、修改hosts,让 hostname 对应的IP为正确的远程可访问IP。
+# 2、指定jmx service url中的connector server ip，如：service:jmx:rmi://localhost:5000/jndi/rmi://localhost:6000/jmxrmi
 RMI_HOSTNAME=$(hostname -I)
 JAVA_OPTS=" $JAVA_OPTS -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.rmi.server.hostname=$RMI_HOSTNAME"
 OTTER_OPTS="-DappName=otter-node -Ddubbo.application.logger=slf4j -Dlogback.configurationFile=$logback_configurationFile -Dnid=$(cat $otterNodeIdFile)"

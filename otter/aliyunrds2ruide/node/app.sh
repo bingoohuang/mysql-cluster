@@ -3,7 +3,13 @@
 cp ./aria2c ./bin
 cp ./otter.properties ./conf/otter.properties
 cp ./startup.sh ./bin/startup.sh
-echo $NID > ./conf/nid;
+
+if [ ! -f ./conf/nid ]; then
+  echo NID?
+  read NID
+  echo $NID > ./conf/nid;
+fi
+
 rm -fr ./log/*
 
 sh ./bin/startup.sh
