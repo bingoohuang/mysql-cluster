@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/bingoohuang/sqlx"
-	"github.com/jedib0t/go-pretty/table"
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 // PrintSQLResult prints the result r of sqlStr execution.

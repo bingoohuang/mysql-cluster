@@ -15,7 +15,7 @@ require (
 	github.com/elliotchance/testify-stats v1.0.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
-	github.com/jedib0t/go-pretty v4.3.0+incompatible
+	github.com/jedib0t/go-pretty/v6 v6.2.7
 	github.com/jinzhu/gorm v1.9.11
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
@@ -24,9 +24,8 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.7.0
 	github.com/tkrajina/go-reflector v0.5.1
-	go.mongodb.org/mongo-driver v1.1.3 // indirect
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
