@@ -17,6 +17,7 @@ require (
 	github.com/gobars/cmd v0.0.0-20191114090003-c6a602977f49
 	github.com/jedib0t/go-pretty/v6 v6.2.7
 	github.com/jinzhu/gorm v1.9.11
+	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
@@ -31,4 +32,5 @@ require (
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/dealancer/validate.v2 v2.1.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
