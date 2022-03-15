@@ -26,7 +26,7 @@ require (
 	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tkrajina/go-reflector v0.5.1
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect
+	go.mongodb.org/mongo-driver v1.8.4 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
