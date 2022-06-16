@@ -23,3 +23,5 @@ centos7/mysql-community-server-5.7/mysql-community-server-5.7.28-1.el7.x86_64.rp
 .DS_Store
 otter/otterbeat/testdata/godo.out
 .history
+.idea
+.vscode
