@@ -53,7 +53,7 @@ func (c *Config) init() {
 	}
 
 	if c.Version {
-		fmt.Println("version: v0.0.1")
+		fmt.Println("version: v0.0.2")
 		os.Exit(0)
 	}
 

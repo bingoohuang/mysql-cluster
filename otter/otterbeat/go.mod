@@ -11,10 +11,9 @@ require (
 	github.com/bingoohuang/sqlx v0.0.0-20200426041827-09d696585f16
 	github.com/bingoohuang/strcase v0.0.0-20200312105414-ac2c85cfc85d
 	github.com/go-sql-driver/mysql v1.8.0
-	github.com/gobuffalo/packr/v2 v2.8.0
+	github.com/gobuffalo/packr/v2 v2.8.3
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
-	honnef.co/go/tools v0.1.3
 )
