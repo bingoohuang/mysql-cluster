@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/bingoohuang/gou/file"
 
@@ -45,6 +46,12 @@ func TestPipelineDelayDao(t *testing.T) {
 
 	throughputStats := Dao.ThroughputStat(lastTime)
 	assert.True(t, len(throughputStats) > 0)
+
+	exceptions := Dao.Exceptions(time.Now().Add(-10*365*24*time.Hour), time.Now())
+	assert.True(t, len(exceptions) > 0)
+
+	tableHistoryStats := Dao.TableHistoryStatByPipeline(time.Now().Add(-10*365*24*time.Hour), time.Now())
+	assert.True(t, len(tableHistoryStats) > 0)
 
 	//const influxDBAddr = `http://beta.isignet.cn:10014/write?db=metrics`
 	//assert.Nil(t, influx.Write(influxDBAddr, l))

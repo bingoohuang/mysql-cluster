@@ -179,3 +179,30 @@ ID|TYPE|NUMBER|SIZE   |PIPELINE_ID|START_TIME           |END_TIME             |G
 
  </details>
 
+
+### 自定义埋点
+
+自定义埋点| 值  
+---|-----
+异常| 0/1 
+otterbeat 自身状态| 0/1
+otter 运行状态| 0/1
+延迟时间| >= 0
+同步插入数| >= 0
+同步更新数| >= 0
+同步删除数| >= 0
+~~延迟个数 TODO~~| ~~>= 0~~ 因为数据库中的，同步延迟数全都是 0（即便是有异常的情况发生），失去了参考意义
+
+1. 为什么自定义埋点 Value.Name 都是 V，因为自定义埋点展示过程会把所有的 Value.Name 都展示一遍，晕
+![img.png](img.png)
+
+#### 测试数据
+```txt
+curl -X POST -H 'Content-Type: application/json' "http://192.168.108.11:30008/custom" -d '{"ipPort":"172.30.51.228","keys":["self","172.30.51.228","alive"],"time":"20240516104438","category":"departed-otter-health-check-02","values":[{"metricType":"Gauges","name":"V","val":1}]}'
+curl -X POST -H 'Content-Type: application/json' "http://192.168.108.11:30008/custom" -d '{"ipPort":"172.30.51.228","keys":["otter","pipeline","1","state"],"time":"20240516104538","category":"departed-otter-health-check-02","values":[{"metricType":"Gauges","name":"V","val":1}]}'
+curl -X POST -H 'Content-Type: application/json' "http://192.168.108.11:30008/custom" -d '{"ipPort":"172.30.51.228","keys":["otter","pipeline","1","delayTime"],"time":"20240516104548","category":"departed-otter-health-check-02","values":[{"metricType":"Gauges","name":"V","val":415}]}'
+curl -X POST -H 'Content-Type: application/json' "http://192.168.108.11:30008/custom" -d '{"ipPort":"172.30.51.228","keys":["otter","pipeline","1","insertCount"],"time":"20240516104448","category":"departed-otter-health-check-02","values":[{"metricType":"Gauges","name":"V","val":15}]}'
+curl -X POST -H 'Content-Type: application/json' "http://192.168.108.11:30008/custom" -d '{"ipPort":"172.30.51.228","keys":["otter","pipeline","1","updateCount"],"time":"20240516104458","category":"departed-otter-health-check-02","values":[{"metricType":"Gauges","name":"V","val":3}]}'
+curl -X POST -H 'Content-Type: application/json' "http://192.168.108.11:30008/custom" -d '{"ipPort":"172.30.51.228","keys":["otter","pipeline","1","deleteCount"],"time":"20240516104628","category":"departed-otter-health-check-02","values":[{"metricType":"Gauges","name":"V","val":1}]}'
+curl -X POST -H 'Content-Type: application/json' "http://192.168.108.11:30008/custom" -d '{"ipPort":"172.30.51.228","keys":["otter","exception"],"time":"20240515182119","category":"departed-otter-health-check-01","values":[{"metricType":"Gauges","name":"V","val":1}]}'
+```
