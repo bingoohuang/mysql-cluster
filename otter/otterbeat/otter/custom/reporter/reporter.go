@@ -5,7 +5,7 @@ import (
 	"github.com/bingoohuang/gg/pkg/jsoni"
 	"github.com/bingoohuang/otterbeat/otter/custom/http"
 	"github.com/bingoohuang/otterbeat/otter/custom/model"
-	"github.com/sirupsen/logrus"
+	"log"
 	"time"
 )
 
@@ -46,7 +46,7 @@ func (r *Reporter) Report(detect model.DetectResult) error {
 			request = metric
 		}
 
-		logrus.Errorf("Report：%v，request：%v，response：%v，err：%v", url, request, rsp, err)
+		log.Printf("E! Report：%v，request：%v，response：%v，err：%v", url, request, rsp, err)
 		return err
 	}
 	return nil

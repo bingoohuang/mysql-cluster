@@ -3,6 +3,8 @@ package otter
 import (
 	"database/sql"
 	"fmt"
+	"github.com/bingoohuang/rotatefile"
+	"log"
 	"testing"
 	"time"
 
@@ -12,7 +14,6 @@ import (
 
 	"github.com/bingoohuang/gou/lang"
 	"github.com/bingoohuang/sqlx"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -20,7 +21,7 @@ import (
 
 // nolint
 func TestPipelineDelayDao(t *testing.T) {
-	logrus.SetLevel(logrus.DebugLevel)
+	log.SetOutput(rotatefile.New())
 
 	//ds := sqlx.CompatibleMySQLDs("localhost:3311 root/root db=otter")
 	//more := sqlx.NewSQLMore("mysql", ds)
