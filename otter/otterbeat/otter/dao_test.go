@@ -3,7 +3,10 @@ package otter
 import (
 	"database/sql"
 	"fmt"
+	"github.com/bingoohuang/rotatefile"
+	"log"
 	"testing"
+	"time"
 
 	"github.com/bingoohuang/gou/file"
 
@@ -11,7 +14,6 @@ import (
 
 	"github.com/bingoohuang/gou/lang"
 	"github.com/bingoohuang/sqlx"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -19,7 +21,7 @@ import (
 
 // nolint
 func TestPipelineDelayDao(t *testing.T) {
-	logrus.SetLevel(logrus.DebugLevel)
+	log.SetOutput(rotatefile.New())
 
 	//ds := sqlx.CompatibleMySQLDs("localhost:3311 root/root db=otter")
 	//more := sqlx.NewSQLMore("mysql", ds)
@@ -45,6 +47,12 @@ func TestPipelineDelayDao(t *testing.T) {
 
 	throughputStats := Dao.ThroughputStat(lastTime)
 	assert.True(t, len(throughputStats) > 0)
+
+	exceptions := Dao.Exceptions(time.Now().Add(-10*365*24*time.Hour), time.Now())
+	assert.True(t, len(exceptions) > 0)
+
+	tableHistoryStats := Dao.TableHistoryStatByPipeline(time.Now().Add(-10*365*24*time.Hour), time.Now())
+	assert.True(t, len(tableHistoryStats) > 0)
 
 	//const influxDBAddr = `http://beta.isignet.cn:10014/write?db=metrics`
 	//assert.Nil(t, influx.Write(influxDBAddr, l))

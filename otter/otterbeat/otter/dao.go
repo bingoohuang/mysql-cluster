@@ -60,14 +60,21 @@ type ThroughputStat struct {
 	ID           uint64    `influx:"field"` // 对应的数据库表自增ID
 }
 
+// Exception 用于映射查询结果 : 异常是否存在
+type Exception struct {
+	Count int `influx:"field"`
+}
+
 // DaoFn defines the dao functions to operate on table DELAY_STAT.
 // nolint lll
 type DaoFn struct {
-	DelayStat        func(lastTime time.Time) []DelayStat        `sql:"select ID, DELAY_TIME, PIPELINE_ID, GMT_CREATE, GMT_MODIFIED from DELAY_STAT where GMT_MODIFIED > :1"`
-	LogRecord        func(lastID uint64) []LogRecord             `sql:"select ID, NID, CHANNEL_ID, PIPELINE_ID, TITLE, MESSAGE, GMT_MODIFIED from LOG_RECORD where ID > :1"`
-	TableHistoryStat func(lastTime time.Time) []TableHistoryStat `sql:"select ID, INSERT_COUNT, UPDATE_COUNT, DELETE_COUNT, PIPELINE_ID, START_TIME, END_TIME, GMT_CREATE, GMT_MODIFIED from TABLE_HISTORY_STAT where GMT_MODIFIED > :1"`
-	TableStat        func(lastTime time.Time) []TableStat        `sql:"select ID, INSERT_COUNT, UPDATE_COUNT, DELETE_COUNT, PIPELINE_ID, GMT_CREATE, GMT_MODIFIED from TABLE_STAT where GMT_MODIFIED > :1"`
-	ThroughputStat   func(lastTime time.Time) []ThroughputStat   `sql:"select ID, TYPE, NUMBER, SIZE, PIPELINE_ID, START_TIME, END_TIME, GMT_CREATE, GMT_MODIFIED from THROUGHPUT_STAT where GMT_MODIFIED > :1"`
+	DelayStat                  func(lastTime time.Time) []DelayStat          `sql:"select ID, DELAY_TIME, PIPELINE_ID, GMT_CREATE, GMT_MODIFIED from DELAY_STAT where GMT_MODIFIED > :1"`
+	LogRecord                  func(lastID uint64) []LogRecord               `sql:"select ID, NID, CHANNEL_ID, PIPELINE_ID, TITLE, MESSAGE, GMT_MODIFIED from LOG_RECORD where ID > :1"`
+	TableHistoryStat           func(lastTime time.Time) []TableHistoryStat   `sql:"select ID, INSERT_COUNT, UPDATE_COUNT, DELETE_COUNT, PIPELINE_ID, START_TIME, END_TIME, GMT_CREATE, GMT_MODIFIED from TABLE_HISTORY_STAT where GMT_MODIFIED > :1"`
+	TableStat                  func(lastTime time.Time) []TableStat          `sql:"select ID, INSERT_COUNT, UPDATE_COUNT, DELETE_COUNT, PIPELINE_ID, GMT_CREATE, GMT_MODIFIED from TABLE_STAT where GMT_MODIFIED > :1"`
+	ThroughputStat             func(lastTime time.Time) []ThroughputStat     `sql:"select ID, TYPE, NUMBER, SIZE, PIPELINE_ID, START_TIME, END_TIME, GMT_CREATE, GMT_MODIFIED from THROUGHPUT_STAT where GMT_MODIFIED > :1"`
+	Exceptions                 func(begin, end time.Time) []Exception        `sql:"select 1 as COUNT from LOG_RECORD where PIPELINE_ID = '-1' AND GMT_MODIFIED >= :1 AND GMT_MODIFIED <= :2 limit 1"`
+	TableHistoryStatByPipeline func(begin, end time.Time) []TableHistoryStat `sql:"select PIPELINE_ID, sum(INSERT_COUNT) as INSERT_COUNT, sum(UPDATE_COUNT) as UPDATE_COUNT, sum(DELETE_COUNT) as DELETE_COUNT from TABLE_HISTORY_STAT where GMT_MODIFIED >= :1 AND GMT_MODIFIED <= :2 group by PIPELINE_ID"`
 }
 
 // nolint

@@ -1,5 +1,8 @@
 DSN="root:root@localhost:3311/otter"
-PipelineListURL="http://127.0.0.1:2901/pipeline_list.htm?channelId=1"
+PipelineListURLPattern="http://127.0.0.1:2901/pipeline_list.htm?channelId=%s"
+ChannelIds="1"
+CustomMetricUrl="http://192.168.1.1:30008/custom"
+CustomMetricCategory="otter-beat-health-check"
 InfluxWriteURL="http://b.i.cn:10014/write?db=metrics"
 PrintConfig=false
 Interval="60s"
